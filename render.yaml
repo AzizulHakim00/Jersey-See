@@ -1,0 +1,28 @@
+services:
+  - type: web
+    name: jersey-see
+    runtime: docker
+    plan: free
+    branch: main
+    dockerfilePath: ./Dockerfile
+    healthCheckPath: /
+    autoDeploy: true
+    envVars:
+      - key: SPRING_PROFILES_ACTIVE
+        value: production
+      - key: JERSEYSEE_DB_URL
+        sync: false
+      - key: JERSEYSEE_DB_USERNAME
+        value: avnadmin
+      - key: JERSEYSEE_DB_PASSWORD
+        sync: false
+      - key: APP_SEED_ADMIN_ENABLED
+        value: "true"
+      - key: APP_SEED_ADMIN_EMAIL
+        sync: false
+      - key: APP_SEED_ADMIN_PASSWORD
+        sync: false
+      - key: APP_UPLOAD_DIR
+        value: /tmp/jerseysee-uploads
+      - key: JAVA_TOOL_OPTIONS
+        value: -XX:MaxRAMPercentage=75.0

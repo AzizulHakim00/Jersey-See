@@ -1,0 +1,2 @@
+org.springframework.boot.EnvironmentPostProcessor=\
+bd.edu.seu.jerseysee.config.LocalDemoEnvironmentPostProcessor

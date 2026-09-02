@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 600 720" role="img" aria-labelledby="title description">
+  <title id="title">Jersey image coming soon</title>
+  <desc id="description">A stylised football shirt on a navy pitch</desc>
+  <rect width="600" height="720" fill="#0b1833"/>
+  <path fill="none" stroke="#2391ff" stroke-width="8" opacity=".35" d="M30 30h540v660H30zM30 360h540M300 30v660M250 360a50 50 0 1 0 100 0 50 50 0 0 0-100 0Z"/>
+  <circle cx="300" cy="360" r="220" fill="#101f40" stroke="#1c315d" stroke-width="6"/>
+  <path fill="#f5f8ff" d="m165 218 95-45c8 42 72 42 80 0l95 45-42 93-41-19v222H248V292l-41 19-42-93Z"/>
+  <path fill="#c7ff35" d="m260 173 20 46h40l20-46c-8 42-72 42-80 0Zm-12 163h104v32H248z"/>
+  <path fill="#2391ff" d="M248 388h104v18H248z"/>
+  <text x="300" y="460" fill="#0b1833" font-family="Arial, sans-serif" font-size="74" font-weight="900" text-anchor="middle">JS</text>
+  <text x="300" y="615" fill="#f5f8ff" font-family="Arial, sans-serif" font-size="24" font-weight="700" letter-spacing="5" text-anchor="middle">IMAGE COMING SOON</text>
+</svg>

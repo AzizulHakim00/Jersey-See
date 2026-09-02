@@ -1,0 +1,55 @@
+HELP.md
+target/
+out/
+.mvn/wrapper/maven-wrapper.jar
+!**/src/main/**/target/
+!**/src/test/**/target/
+
+# Runtime files and local databases
+uploads/
+demo-uploads/
+demo-data/
+logs/
+*.h2.db
+*.trace.db
+*.log
+
+# Local configuration and secrets (the safe template stays versioned)
+.env
+.env.*
+!.env.example
+application-local.properties
+application-local.yml
+application-local.yaml
+secrets/
+*.pem
+*.key
+
+### STS ###
+.apt_generated
+.classpath
+.factorypath
+.project
+.settings
+.springBeans
+.sts4-cache
+
+### IntelliJ IDEA ###
+.idea
+.idea/
+*.iws
+*.iml
+*.ipr
+
+### NetBeans ###
+/nbproject/private/
+/nbbuild/
+/dist/
+/nbdist/
+/.nb-gradle/
+build/
+!**/src/main/**/build/
+!**/src/test/**/build/
+
+### VS Code ###
+.vscode/

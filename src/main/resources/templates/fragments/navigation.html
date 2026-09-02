@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<body>
+<header class="site-header" th:fragment="navigation(activePage)">
+    <div class="nav-shell">
+        <a class="brand" th:href="@{/}" aria-label="JerseySee home">
+            <img th:src="@{/images/brand-mark.svg}" alt="" width="44" height="44">
+            <span><strong>JerseySee</strong><small>Wear the game</small></span>
+        </a>
+        <button class="menu-toggle" type="button" data-menu-toggle aria-controls="siteNav" aria-expanded="false">
+            <span></span><span></span><span></span><span class="sr-only">Open navigation</span>
+        </button>
+        <nav class="site-nav" id="siteNav" aria-label="Primary navigation">
+            <a th:href="@{/}" th:classappend="${activePage == 'home'} ? ' is-active' : ''">Home</a>
+            <a th:href="@{/catalog}" th:classappend="${activePage == 'catalog'} ? ' is-active' : ''">Shop</a>
+            <a th:if="${currentRole != null}" th:href="@{/dashboard}"
+               th:classappend="${activePage == 'dashboard'} ? ' is-active' : ''">Dashboard</a>
+            <a th:if="${currentRole != null and currentRole.name() == 'CUSTOMER'}" th:href="@{/orders}"
+               th:classappend="${activePage == 'orders'} ? ' is-active' : ''">Orders</a>
+            <a th:if="${currentRole != null}" th:href="@{/profile}"
+               th:classappend="${activePage == 'profile'} ? ' is-active' : ''">Profile</a>
+        </nav>
+        <div class="nav-actions">
+            <a class="cart-link" th:if="${currentRole != null and currentRole.name() == 'CUSTOMER'}" th:href="@{/cart}">
+                <span aria-hidden="true">Bag</span><strong th:text="${cartCount}">0</strong>
+            </a>
+            <a class="button button-ghost button-small" th:if="${currentUser == null}" th:href="@{/login}">Sign in</a>
+            <a class="button button-lime button-small" th:if="${currentUser == null}" th:href="@{/register}">Join the squad</a>
+            <form th:if="${currentUser != null}" th:action="@{/logout}" method="post" data-logout-form>
+                <button class="button button-ghost button-small" type="submit">Log out</button>
+            </form>
+        </div>
+    </div>
+    <div th:replace="~{fragments/navigation :: logoutModal}"></div>
+</header>
+
+<div class="confirm-modal" th:fragment="logoutModal" data-logout-modal hidden>
+    <div class="confirm-card" role="dialog" aria-modal="true" aria-labelledby="logoutTitle">
+        <span class="modal-mark" aria-hidden="true">JS</span>
+        <h2 id="logoutTitle">Leave the pitch?</h2>
+        <p>Your cart stays in this browser session, but you will need to sign in again.</p>
+        <div class="modal-actions">
+            <button class="button button-ghost" type="button" data-close-modal>Stay signed in</button>
+            <form th:action="@{/logout}" method="post">
+                <button class="button button-danger" type="submit">Log out</button>
+            </form>
+        </div>
+    </div>
+</div>
+</body>
+</html>

@@ -1,0 +1,5 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Something went wrong | JerseySee</title><link rel="stylesheet" th:href="@{/css/jerseysee.css}"></head>
+<body class="error-body"><main class="error-card"><img th:src="@{/images/brand-mark.svg}" alt="JerseySee" width="72" height="72"><span class="eyebrow">Unexpected stoppage</span><h1>Something went wrong.</h1><p>The request could not be completed. No server details have been exposed.</p><div><a class="button button-lime" th:href="@{/}">Return home</a><a class="button button-ghost" th:if="${currentUser != null}" th:href="@{/dashboard}">Dashboard</a></div></main></body>
+</html>

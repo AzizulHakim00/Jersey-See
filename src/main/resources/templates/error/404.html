@@ -1,0 +1,5 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Not found | JerseySee</title><link rel="stylesheet" th:href="@{/css/jerseysee.css}"></head>
+<body class="error-body"><main class="error-card"><div class="error-code">404</div><span class="eyebrow">Full-time whistle</span><h1>We could not find that page.</h1><p th:text="${errorMessage != null ? errorMessage : 'The page or record may have moved or no longer exists.'}">Not found.</p><div><a class="button button-lime" th:href="@{/catalog}">Browse catalog</a><a class="button button-ghost" th:href="@{/}">Return home</a></div></main></body>
+</html>

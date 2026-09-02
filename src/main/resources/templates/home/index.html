@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="JerseySee football jerseys, boots, balls and match-day accessories.">
+    <title>JerseySee | Wear the game</title>
+    <link rel="icon" th:href="@{/images/brand-mark.svg}" type="image/svg+xml">
+    <link rel="stylesheet" th:href="@{/css/jerseysee.css}">
+</head>
+<body>
+<div th:replace="~{fragments/navigation :: navigation('home')}"></div>
+<main>
+    <section class="hero section-shell">
+        <div class="hero-copy">
+            <span class="eyebrow">Match-day identity</span>
+            <h1>Your colours.<br><em>Your story.</em></h1>
+            <p>Football jerseys and essentials chosen for the terrace, the turf, and every day between fixtures.</p>
+            <div class="hero-actions">
+                <a class="button button-lime" th:href="@{/catalog}">Shop the drop</a>
+                <a class="text-link" href="#featured">See featured kits <span aria-hidden="true">↓</span></a>
+            </div>
+            <dl class="hero-stats">
+                <div><dt>Size-ready</dt><dd>XS–XXL</dd></div>
+                <div><dt>Custom print</dt><dd>Name + number</dd></div>
+                <div><dt>Local checkout</dt><dd>BDT payments</dd></div>
+            </dl>
+        </div>
+        <div class="hero-visual" aria-hidden="true">
+            <span class="pitch-line"></span><span class="hero-number">10</span>
+            <img th:src="@{/images/product-placeholder.svg}" alt="">
+            <div class="floating-label"><small>Built for</small><strong>90 minutes + more</strong></div>
+        </div>
+    </section>
+
+    <section class="category-ribbon">
+        <div class="section-shell category-ribbon-inner">
+            <span>Club jerseys</span><span>National teams</span><span>Football boots</span><span>Match balls</span><span>Accessories</span>
+        </div>
+    </section>
+
+    <section class="section-shell section-block" id="featured">
+        <header class="section-heading">
+            <div><span class="eyebrow">First team selection</span><h2>Featured products</h2></div>
+            <a class="text-link" th:href="@{/catalog}">View the full squad →</a>
+        </header>
+        <div class="product-grid" th:if="${featuredProducts != null and !#lists.isEmpty(featuredProducts)}">
+            <article class="product-card" th:each="product : ${featuredProducts}">
+                <a class="product-media" th:href="@{/products/{id}(id=${product.id})}">
+                    <span class="product-flag" th:if="${product.featured}">Featured</span>
+                    <img th:src="${product.storedImageName != null ? '/product-images/' + product.storedImageName : '/images/product-placeholder.svg'}"
+                         th:alt="${product.name}" onerror="this.onerror=null;this.src='/images/product-placeholder.svg'">
+                </a>
+                <div class="product-card-body">
+                    <span class="product-meta" th:text="${product.clubOrCountry != null ? product.clubOrCountry : product.brand}">Club</span>
+                    <h3><a th:href="@{/products/{id}(id=${product.id})}" th:text="${product.name}">Product</a></h3>
+                    <div class="product-card-footer"><strong>৳<span th:text="${#numbers.formatDecimal(product.basePrice,1,2)}">0.00</span></strong><a th:href="@{/products/{id}(id=${product.id})}" aria-label="View product">→</a></div>
+                </div>
+            </article>
+        </div>
+        <div class="empty-state" th:if="${featuredProducts == null or #lists.isEmpty(featuredProducts)}">
+            <span>⚽</span><h3>The next drop is warming up.</h3><p>Browse the full catalog while featured picks are prepared.</p>
+            <a class="button button-blue" th:href="@{/catalog}">Browse all products</a>
+        </div>
+    </section>
+
+    <section class="section-shell value-grid section-block">
+        <article><span>01</span><h3>Variant-level stock</h3><p>Choose a real size and see availability before you commit.</p></article>
+        <article><span>02</span><h3>Personalised shirts</h3><p>Add a player print or make the back of the jersey unmistakably yours.</p></article>
+        <article><span>03</span><h3>Clear order tracking</h3><p>Follow every order from pending to delivered in your dashboard.</p></article>
+    </section>
+</main>
+<footer class="site-footer"><div class="section-shell"><strong>JerseySee</strong><span>Football lives here.</span><a th:href="@{/catalog}">Shop now</a></div></footer>
+<script th:src="@{/js/app.js}" defer></script>
+</body>
+</html>

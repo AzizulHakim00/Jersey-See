@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+    <title th:text="${product.name + ' | JerseySee'}">Product | JerseySee</title><link rel="stylesheet" th:href="@{/css/jerseysee.css}">
+</head>
+<body>
+<div th:replace="~{fragments/navigation :: navigation('catalog')}"></div>
+<main class="page-main">
+    <div class="section-shell">
+        <a class="back-link" th:href="@{/catalog}">← Back to catalog</a>
+        <div th:replace="~{fragments/messages :: messages}"></div>
+        <section class="product-detail">
+            <div class="detail-media"><span class="product-flag" th:if="${product.featured}">Featured pick</span><img th:src="${product.storedImageName != null ? '/product-images/' + product.storedImageName : '/images/product-placeholder.svg'}" th:alt="${product.name}" onerror="this.onerror=null;this.src='/images/product-placeholder.svg'"></div>
+            <div class="detail-copy">
+                <span class="eyebrow" th:text="${product.brand}">Brand</span><h1 th:text="${product.name}">Product name</h1>
+                <div class="detail-price">৳<span th:text="${#numbers.formatDecimal(product.basePrice,1,2)}">0.00</span><small>base price</small></div>
+                <p class="detail-description" th:text="${product.description}">Description</p>
+                <dl class="product-facts"><div><dt>Category</dt><dd th:text="${product.category.name}">Category</dd></div><div><dt>Club / country</dt><dd th:text="${product.clubOrCountry != null ? product.clubOrCountry : '—'}">Club</dd></div><div><dt>Season</dt><dd th:text="${product.season != null ? product.season : '—'}">Season</dd></div><div><dt>Edition</dt><dd th:text="${product.jerseyEdition != null ? product.jerseyEdition : 'Standard'}">Edition</dd></div><div><dt>Kit</dt><dd th:text="${product.kitType != null ? product.kitType : '—'}">Kit</dd></div><div><dt>Sleeve</dt><dd th:text="${product.sleeveType != null ? product.sleeveType : '—'}">Sleeve</dd></div></dl>
+
+                <form class="buy-box" th:if="${currentRole != null and currentRole.name() == 'CUSTOMER'}" th:action="@{/cart/items}" th:object="${addToCart}" method="post" novalidate>
+                    <div class="global-errors" th:if="${#fields.hasGlobalErrors()}"><p th:each="error : ${#fields.globalErrors()}" th:text="${error}">Error</p></div>
+                    <div class="field"><label for="variantId">Choose size and stock</label><select id="variantId" th:field="*{variantId}" required><option value="">Select a variant</option><option th:each="variant : ${product.variants}" th:value="${variant.id}" th:disabled="${variant.stockQuantity < 1}" th:text="${#strings.replace(variant.size.name(),'_',' ') + ' · ' + variant.sku + ' · ' + variant.stockQuantity + ' in stock'}">M</option></select><span class="field-error" th:if="${#fields.hasErrors('variantId')}" th:errors="*{variantId}">Error</span></div>
+                    <div class="form-grid two compact-grid"><div class="field"><label for="quantity">Quantity</label><div class="quantity-control"><button type="button" data-qty-minus aria-label="Decrease quantity">−</button><input id="quantity" type="number" min="1" max="10" th:field="*{quantity}"><button type="button" data-qty-plus aria-label="Increase quantity">+</button></div><span class="field-error" th:if="${#fields.hasErrors('quantity')}" th:errors="*{quantity}">Error</span></div><div class="field"><label for="printingType">Printing</label><select id="printingType" th:field="*{printingType}" data-printing-select><option th:each="type : ${printingTypes}" th:value="${type}" th:text="${#strings.capitalize(#strings.toLowerCase(type.name()))}">None</option></select></div></div>
+                    <div class="printing-fields" data-printing-fields><div class="form-grid two"><div class="field"><label for="printingName">Name</label><input id="printingName" type="text" th:field="*{printingName}" maxlength="50" placeholder="RAHMAN"><span class="field-error" th:if="${#fields.hasErrors('printingName')}" th:errors="*{printingName}">Error</span></div><div class="field"><label for="printingNumber">Number</label><input id="printingNumber" type="text" inputmode="numeric" th:field="*{printingNumber}" maxlength="2" placeholder="10"><span class="field-error" th:if="${#fields.hasErrors('printingNumber')}" th:errors="*{printingNumber}">Error</span></div></div><small>Player printing: ৳200. Custom printing: ৳300. Custom names use 2–20 letters and spaces.</small></div>
+                    <button class="button button-lime button-wide" type="submit" th:disabled="${#lists.isEmpty(product.variants)}">Add to cart</button>
+                </form>
+                <div class="buy-box sign-in-callout" th:if="${currentUser == null}"><strong>Ready to wear it?</strong><p>Sign in as a customer to choose a variant and add printing.</p><a class="button button-lime" th:href="@{/login}">Sign in to buy</a></div>
+                <div class="buy-box sign-in-callout" th:if="${currentRole != null and currentRole.name() != 'CUSTOMER'}"><strong>Staff view</strong><p>Inventory changes belong in product control.</p><a class="button button-blue" th:if="${currentRole.name() == 'MANAGER' or currentRole.name() == 'ADMIN'}" th:href="@{/staff/products/{id}/edit(id=${product.id})}">Manage product</a></div>
+            </div>
+        </section>
+    </div>
+</main>
+<script th:src="@{/js/app.js}" defer></script>
+</body>
+</html>

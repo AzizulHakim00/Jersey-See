@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Create account | JerseySee</title><link rel="stylesheet" th:href="@{/css/jerseysee.css}">
+</head>
+<body class="auth-body">
+<main class="auth-shell auth-register-shell">
+    <section class="auth-showcase">
+        <a class="brand brand-light" th:href="@{/}"><img th:src="@{/images/brand-mark.svg}" alt="" width="48" height="48"><span><strong>JerseySee</strong><small>Wear the game</small></span></a>
+        <div><span class="eyebrow">Join the squad</span><h1>Your next shirt starts here.</h1><p>Register as a customer to customise products, check out and follow every order.</p></div>
+        <ol class="auth-benefits"><li>Real-time variant stock</li><li>Secure server-calculated totals</li><li>Order history and invoices</li></ol>
+    </section>
+    <section class="auth-panel">
+        <div class="auth-card auth-card-wide">
+            <a class="auth-back" th:href="@{/}">← Back to store</a>
+            <span class="eyebrow">Customer registration</span><h2>Create your account</h2><p>All fields are required. Passwords need upper- and lower-case letters, a number and a symbol.</p>
+            <form class="stack-form" th:action="@{/register}" th:object="${registration}" method="post" novalidate>
+                <div class="global-errors" th:if="${#fields.hasGlobalErrors()}"><p th:each="error : ${#fields.globalErrors()}" th:text="${error}">Form error</p></div>
+                <div class="form-grid two">
+                    <div class="field"><label for="name">Full name</label><input id="name" type="text" th:field="*{name}" autocomplete="name" maxlength="120"><span class="field-error" th:if="${#fields.hasErrors('name')}" th:errors="*{name}">Error</span></div>
+                    <div class="field"><label for="email">Email</label><input id="email" type="email" th:field="*{email}" autocomplete="email" maxlength="255"><span class="field-error" th:if="${#fields.hasErrors('email')}" th:errors="*{email}">Error</span></div>
+                    <div class="field"><label for="phone">Phone</label><input id="phone" type="tel" th:field="*{phone}" autocomplete="tel" maxlength="30"><span class="field-error" th:if="${#fields.hasErrors('phone')}" th:errors="*{phone}">Error</span></div>
+                    <div class="field"><label for="address">Address</label><input id="address" type="text" th:field="*{address}" autocomplete="street-address" maxlength="1000"><span class="field-error" th:if="${#fields.hasErrors('address')}" th:errors="*{address}">Error</span></div>
+                    <div class="field"><label for="password">Password</label><div class="password-field"><input id="password" name="password" type="password" autocomplete="new-password" maxlength="72"><button type="button" data-password-toggle="password">Show</button></div><span class="field-error" th:if="${#fields.hasErrors('password')}" th:errors="*{password}">Error</span></div>
+                    <div class="field"><label for="passwordConfirmation">Confirm password</label><div class="password-field"><input id="passwordConfirmation" name="passwordConfirmation" type="password" autocomplete="new-password" maxlength="72"><button type="button" data-password-toggle="passwordConfirmation">Show</button></div><span class="field-error" th:if="${#fields.hasErrors('passwordConfirmation')}" th:errors="*{passwordConfirmation}">Error</span></div>
+                </div>
+                <button class="button button-lime button-wide" type="submit">Create customer account</button>
+            </form>
+            <p class="auth-switch">Already registered? <a th:href="@{/login}">Sign in</a></p>
+        </div>
+    </section>
+</main>
+<script th:src="@{/js/app.js}" defer></script>
+</body>
+</html>

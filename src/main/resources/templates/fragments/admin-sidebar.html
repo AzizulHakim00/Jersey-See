@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<body>
+<th:block th:fragment="sidebar(activePage)">
+    <aside class="staff-sidebar" id="staffSidebar">
+        <a class="staff-brand" th:href="@{/dashboard}">
+            <img th:src="@{/images/brand-mark.svg}" alt="" width="48" height="48">
+            <span><strong>JerseySee</strong><small>Team operations</small></span>
+        </a>
+        <div class="staff-identity" th:if="${currentUser != null}">
+            <span class="avatar" th:text="${#strings.substring(currentUser.name,0,1)}">J</span>
+            <span><strong th:text="${currentUser.name}">Team member</strong><small th:text="${currentRole}">ROLE</small></span>
+        </div>
+        <nav class="staff-nav" aria-label="Staff navigation">
+            <span class="nav-label">Workspace</span>
+            <a th:href="@{/dashboard}" th:classappend="${activePage == 'dashboard'} ? ' is-active' : ''"><span>01</span>Dashboard</a>
+            <a th:href="@{/staff/orders}" th:classappend="${activePage == 'orders'} ? ' is-active' : ''"><span>02</span>Orders</a>
+            <a th:if="${currentRole != null and (currentRole.name() == 'CASHIER' or currentRole.name() == 'MANAGER' or currentRole.name() == 'ADMIN')}"
+               th:href="@{/staff/payments}" th:classappend="${activePage == 'payments'} ? ' is-active' : ''"><span>03</span>Payments</a>
+            <a th:if="${currentRole != null and (currentRole.name() == 'MANAGER' or currentRole.name() == 'ADMIN')}"
+               th:href="@{/staff/products}" th:classappend="${activePage == 'products'} ? ' is-active' : ''"><span>04</span>Products</a>
+            <a th:if="${currentRole != null and (currentRole.name() == 'MANAGER' or currentRole.name() == 'ADMIN')}"
+               th:href="@{/staff/employees}" th:classappend="${activePage == 'employees'} ? ' is-active' : ''"><span>05</span>Employees</a>
+            <span class="nav-label">Storefront</span>
+            <a th:href="@{/catalog}"><span>↗</span>View shop</a>
+            <a th:href="@{/profile}" th:classappend="${activePage == 'profile'} ? ' is-active' : ''"><span>●</span>Profile</a>
+        </nav>
+        <form class="staff-logout-form" th:action="@{/logout}" method="post" data-logout-form>
+            <button class="staff-logout" type="submit">Log out</button>
+        </form>
+    </aside>
+    <header class="staff-mobile-bar">
+        <a th:href="@{/dashboard}"><img th:src="@{/images/brand-mark.svg}" alt="" width="38" height="38"><strong>JerseySee Ops</strong></a>
+        <button type="button" data-sidebar-toggle aria-controls="staffSidebar" aria-expanded="false">Menu</button>
+    </header>
+    <div class="sidebar-scrim" data-sidebar-scrim></div>
+    <div th:replace="~{fragments/navigation :: logoutModal}"></div>
+</th:block>
+</body>
+</html>

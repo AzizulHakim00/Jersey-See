@@ -1,0 +1,64 @@
+package bd.edu.seu.jerseysee.controller;
+
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import org.junit.jupiter.api.Test;
+
+import static org.assertj.core.api.Assertions.assertThat;
+
+class StorefrontTemplateContractTest {
+
+    private static final Path TEMPLATES = Path.of("src/main/resources/templates");
+    private static final Path STATIC = Path.of("src/main/resources/static");
+
+    @Test
+    void progressiveEnhancementsKeepCoreStorefrontControlsAvailableWithoutJavaScript() throws IOException {
+        String detail = read(TEMPLATES.resolve("catalog/detail.html"));
+        String catalog = read(TEMPLATES.resolve("catalog/list.html"));
+        String navigation = read(TEMPLATES.resolve("fragments/navigation.html"));
+        String sidebar = read(TEMPLATES.resolve("fragments/admin-sidebar.html"));
+        String javascript = read(STATIC.resolve("js/app.js"));
+        String css = read(STATIC.resolve("css/jerseysee.css"));
+
+        assertThat(detail).contains("data-printing-fields").doesNotContain("data-printing-fields hidden");
+        assertThat(navigation).contains("data-logout-form", "th:action=\"@{/logout}\"", "method=\"post\"");
+        assertThat(sidebar).contains("data-logout-form", "th:action=\"@{/logout}\"", "method=\"post\"");
+        assertThat(catalog).contains("data-filter-card", "id=\"catalogFilters\"");
+        assertThat(javascript).contains("is-collapsible", "data-logout-form", "hasValidationErrors");
+        assertThat(css).contains(".filter-card.is-collapsible", ".sidebar-scrim.is-open");
+    }
+
+    @Test
+    void renderedActionsAndPaginationRemainRoleAndInputAware() throws IOException {
+        String catalog = read(TEMPLATES.resolve("catalog/list.html"));
+        String dashboard = read(TEMPLATES.resolve("dashboard/index.html"));
+        String order = read(TEMPLATES.resolve("orders/detail.html"));
+        String payments = read(TEMPLATES.resolve("staff/payments/list.html"));
+
+        assertThat(catalog).contains("keyword=${filter.keyword}", "categoryId=${filter.categoryId}",
+                "productType=${filter.productType}", "clubOrCountry=${filter.clubOrCountry}",
+                "edition=${filter.edition}", "kitType=${filter.kitType}", "size=${filter.size}",
+                "available=${filter.available}", "minimumPrice=${filter.minimumPrice}",
+                "maximumPrice=${filter.maximumPrice}");
+        assertThat(dashboard).contains("currentRole.name() == 'MANAGER' or currentRole.name() == 'ADMIN'",
+                "th:href=\"@{/staff/products/{id}/edit");
+        assertThat(order).contains("currentRole != null and currentRole.name() == 'CUSTOMER'");
+        assertThat(payments).contains("#fields.hasErrors('transactionId')", "th:errors=\"*{transactionId}\"");
+    }
+
+    @Test
+    void renderedAssociationFetchIntentIsExplicit() throws IOException {
+        String products = Files.readString(Path.of("src/main/java/bd/edu/seu/jerseysee/repository/ProductRepository.java"));
+        String employees = Files.readString(Path.of("src/main/java/bd/edu/seu/jerseysee/repository/EmployeeProfileRepository.java"));
+        String employeeService = Files.readString(Path.of("src/main/java/bd/edu/seu/jerseysee/service/EmployeeService.java"));
+
+        assertThat(products).contains("attributePaths = {\"variants\", \"category\"}");
+        assertThat(employees).contains("@EntityGraph(attributePaths = \"user\")", "findAllWithUser()");
+        assertThat(employeeService).contains("employeeProfileRepository.findAllWithUser()");
+    }
+
+    private String read(Path path) throws IOException {
+        return Files.readString(path);
+    }
+}

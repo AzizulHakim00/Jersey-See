@@ -1,0 +1,19 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<body>
+<div th:fragment="messages" class="message-stack" aria-live="polite">
+    <div class="alert alert-success" th:if="${success != null or successMessage != null or param.created != null
+            or param.updated != null or param.added != null or param.confirmed != null or param.cancelled != null
+            or param.variantCreated != null or param.variantUpdated != null or param.removed != null}">
+        <strong>Done.</strong>
+        <span th:text="${success != null ? success : (successMessage != null ? successMessage : 'Your change was saved successfully.')}">Saved.</span>
+        <button type="button" aria-label="Dismiss message" data-dismiss-alert>&times;</button>
+    </div>
+    <div class="alert alert-danger" th:if="${error != null or errorMessage != null or cartError != null or param.error != null}">
+        <strong>Needs attention.</strong>
+        <span th:text="${error != null ? error : (errorMessage != null ? errorMessage : (cartError != null ? cartError : 'Please review the request and try again.'))}">Error.</span>
+        <button type="button" aria-label="Dismiss message" data-dismiss-alert>&times;</button>
+    </div>
+</div>
+</body>
+</html>

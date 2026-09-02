@@ -1,0 +1,26 @@
+ROOT CAUSE FIX:
+The failed Render commit did not contain src/main/java. Upload the CONTENTS of this package to the GitHub repository root.
+Do NOT upload it as an extra nested folder.
+After upload, GitHub must show:
+src/main/java/bd/edu/seu/jerseysee/JerseySeeApplication.java
+
+RENDER:
+Runtime: Docker
+Dockerfile Path: ./Dockerfile
+Root Directory: blank
+
+Required environment variables:
+SPRING_PROFILES_ACTIVE=production
+JERSEYSEE_DB_URL=jdbc:mysql://jourseysee-mdomor01815-ff08.k.aivencloud.com:24116/defaultdb?sslMode=REQUIRED&serverTimezone=UTC
+JERSEYSEE_DB_USERNAME=avnadmin
+JERSEYSEE_DB_PASSWORD=<your Aiven password>
+APP_UPLOAD_DIR=/tmp/jerseysee-uploads
+
+For first administrator creation:
+APP_SEED_ADMIN_ENABLED=true
+APP_SEED_ADMIN_EMAIL=<your admin email>
+APP_SEED_ADMIN_PASSWORD=<strong password: upper/lower/digit/special, 8+ chars>
+
+After admin is created successfully, set APP_SEED_ADMIN_ENABLED=false.
+
+Then Render -> Manual Deploy -> Clear build cache & deploy.
