@@ -179,7 +179,14 @@ class UserServiceTest {
     }
 
     private void authenticateAs(Role role) {
-        SecurityContextHolder.getContext().setAuthentication(new UsernamePasswordAuthenticationToken(
-                "manager@example.com", "unused", new SimpleGrantedAuthority("ROLE_" + role.name())));
+        SecurityContextHolder.getContext().setAuthentication(
+                new UsernamePasswordAuthenticationToken(
+                        "manager@example.com",
+                        "unused",
+                        java.util.List.of(
+                                new SimpleGrantedAuthority("ROLE_" + role.name())
+                        )
+                )
+        );
     }
 }
