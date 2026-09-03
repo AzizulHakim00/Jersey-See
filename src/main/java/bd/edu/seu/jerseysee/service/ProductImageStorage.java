@@ -11,6 +11,10 @@ public interface ProductImageStorage {
 
     void delete(String storedName);
 
+    default boolean participatesInProductTransaction() {
+        return false;
+    }
+
     record StoredFile(String storedName, String originalName, String contentType, long size) {
     }
 }

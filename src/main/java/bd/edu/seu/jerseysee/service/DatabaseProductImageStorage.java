@@ -51,4 +51,9 @@ public class DatabaseProductImageStorage implements ProductImageStorage {
         imageRepository.findById(storedName).ifPresent(imageRepository::delete);
         imageRepository.flush();
     }
+
+    @Override
+    public boolean participatesInProductTransaction() {
+        return true;
+    }
 }

@@ -178,6 +178,26 @@ class ProductServiceTest {
     }
 
     @Test
+    void failedProductSaveLetsTransactionalImageStorageRollBackWithoutASecondDelete() {
+        Product existing = existingProduct(true);
+        existing.setStoredImageName("old.png");
+        when(productRepository.findWithVariantsById(15L)).thenReturn(Optional.of(existing));
+        MockMultipartFile replacement = new MockMultipartFile("image", "new.png", "image/png", new byte[] {2});
+        when(fileStorageService.store(replacement)).thenReturn(
+                new ProductImageStorage.StoredFile("new.png", "new.png", "image/png", 1));
+        when(fileStorageService.participatesInProductTransaction()).thenReturn(true);
+        DataIntegrityViolationException failure = new DataIntegrityViolationException("category_id cannot be null");
+        when(productRepository.saveAndFlush(existing)).thenThrow(failure);
+        beginTransactionSynchronization();
+
+        assertThatThrownBy(() -> productService.update(15L, product(), replacement)).isSameAs(failure);
+
+        verify(fileStorageService, never()).delete("new.png");
+        verify(fileStorageService, never()).delete("old.png");
+        assertThat(TransactionSynchronizationManager.getSynchronizations()).isEmpty();
+    }
+
+    @Test
     void createTranslatesIdentifiableSkuIntegrityFailure() {
         ProductDTO product = product();
         product.setVariants(List.of(variant(SizeOption.M, "JSY-M", 2, "0.00")));

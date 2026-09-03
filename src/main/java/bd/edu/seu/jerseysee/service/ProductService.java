@@ -69,7 +69,7 @@ public class ProductService {
             }
             return saved;
         } catch (RuntimeException exception) {
-            if (stored != null) {
+            if (stored != null && !imageStorage.participatesInProductTransaction()) {
                 imageStorage.delete(stored.storedName());
             }
             throw translateDuplicateSku(exception);
@@ -98,7 +98,7 @@ public class ProductService {
             }
             return saved;
         } catch (RuntimeException exception) {
-            if (replacement != null) {
+            if (replacement != null && !imageStorage.participatesInProductTransaction()) {
                 imageStorage.delete(replacement.storedName());
             }
             throw translateDuplicateSku(exception);
@@ -425,6 +425,9 @@ public class ProductService {
     }
 
     private void deleteOnRollback(String storedName) {
+        if (imageStorage.participatesInProductTransaction()) {
+            return;
+        }
         if (TransactionSynchronizationManager.isActualTransactionActive()
                 && TransactionSynchronizationManager.isSynchronizationActive()) {
             TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {

@@ -82,6 +82,11 @@ class DatabaseProductImageStorageTest {
                 .hasMessage("Product image not found.");
     }
 
+    @Test
+    void declaresThatBlobWritesParticipateInTheProductTransaction() {
+        assertThat(storage.participatesInProductTransaction()).isTrue();
+    }
+
     private byte[] image(String format) throws Exception {
         BufferedImage image = new BufferedImage(2, 3, BufferedImage.TYPE_INT_RGB);
         ByteArrayOutputStream output = new ByteArrayOutputStream();
