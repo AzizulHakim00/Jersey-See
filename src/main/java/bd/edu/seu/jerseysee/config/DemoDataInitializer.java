@@ -22,19 +22,17 @@ import java.time.LocalDate;
 import java.util.List;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.CommandLineRunner;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Profile;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
 /**
- * Optional local demonstration data. The H2 {@code demo}, explicit MySQL
- * {@code mysql-demo}, and direct IntelliJ {@code intellij} profiles enable it.
+ * Optional demonstration data. Local demo profiles can create known-password
+ * accounts and the catalog; production may opt in to the catalog only.
  */
 @Component
-@Profile({"demo", "mysql-demo", "intellij"})
-@ConditionalOnProperty(name = "app.demo-data.enabled", havingValue = "true")
+@Profile({"demo", "mysql-demo", "intellij", "production"})
 public class DemoDataInitializer implements CommandLineRunner {
 
     static final String DEMO_PASSWORD = "Demo123!";
@@ -46,12 +44,16 @@ public class DemoDataInitializer implements CommandLineRunner {
     private final ProductVariantRepository variantRepository;
     private final PasswordEncoder passwordEncoder;
     private final String dataSourceUrl;
+    private final boolean demoDataEnabled;
+    private final boolean demoCatalogEnabled;
 
     public DemoDataInitializer(UserRepository userRepository, CategoryRepository categoryRepository,
             EmployeeProfileRepository employeeProfileRepository,
             ProductRepository productRepository, ProductVariantRepository variantRepository,
             PasswordEncoder passwordEncoder,
-            @Value("${spring.datasource.url}") String dataSourceUrl) {
+            @Value("${spring.datasource.url}") String dataSourceUrl,
+            @Value("${app.demo-data.enabled:false}") boolean demoDataEnabled,
+            @Value("${app.demo-catalog.enabled:false}") boolean demoCatalogEnabled) {
         this.userRepository = userRepository;
         this.categoryRepository = categoryRepository;
         this.employeeProfileRepository = employeeProfileRepository;
@@ -59,14 +61,20 @@ public class DemoDataInitializer implements CommandLineRunner {
         this.variantRepository = variantRepository;
         this.passwordEncoder = passwordEncoder;
         this.dataSourceUrl = dataSourceUrl;
+        this.demoDataEnabled = demoDataEnabled;
+        this.demoCatalogEnabled = demoCatalogEnabled;
     }
 
     @Override
     @Transactional
     public void run(String... args) {
-        requireLocalDemoDatabase(dataSourceUrl);
-        seedUsers();
-        seedCatalog();
+        if (demoDataEnabled) {
+            requireLocalDemoDatabase(dataSourceUrl);
+            seedUsers();
+            seedCatalog();
+        } else if (demoCatalogEnabled) {
+            seedCatalog();
+        }
     }
 
     static void requireLocalDemoDatabase(String jdbcUrl) {
