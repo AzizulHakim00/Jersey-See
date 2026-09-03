@@ -2,7 +2,7 @@ package bd.edu.seu.jerseysee.controller;
 
 import bd.edu.seu.jerseysee.exception.ResourceNotFoundException;
 import bd.edu.seu.jerseysee.model.Product;
-import bd.edu.seu.jerseysee.service.FileStorageService;
+import bd.edu.seu.jerseysee.service.ProductImageStorage;
 import bd.edu.seu.jerseysee.service.ProductService;
 import org.springframework.core.io.Resource;
 import org.springframework.http.ContentDisposition;
@@ -18,11 +18,11 @@ import org.springframework.web.bind.annotation.RestController;
 public class ProductImageController {
 
     private final ProductService productService;
-    private final FileStorageService fileStorageService;
+    private final ProductImageStorage imageStorage;
 
-    public ProductImageController(ProductService productService, FileStorageService fileStorageService) {
+    public ProductImageController(ProductService productService, ProductImageStorage imageStorage) {
         this.productService = productService;
-        this.fileStorageService = fileStorageService;
+        this.imageStorage = imageStorage;
     }
 
     @GetMapping("/product-images/{storedName:.+}")
@@ -49,7 +49,7 @@ public class ProductImageController {
                 || product.getImageContentType() == null || product.getImageSize() == null) {
             throw new ResourceNotFoundException("Product image not found.");
         }
-        Resource resource = fileStorageService.load(product.getStoredImageName());
+        Resource resource = imageStorage.load(product.getStoredImageName());
         return ResponseEntity.ok()
                 .contentType(MediaType.parseMediaType(product.getImageContentType()))
                 .contentLength(product.getImageSize())

@@ -16,13 +16,15 @@ import javax.imageio.ImageIO;
 import javax.imageio.ImageReader;
 import javax.imageio.stream.ImageInputStream;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.annotation.Profile;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.UrlResource;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
 @Service
-public class FileStorageService {
+@Profile("!production")
+public class FileStorageService implements ProductImageStorage {
 
     static final long MAX_IMAGE_SIZE = 5L * 1024 * 1024;
 
@@ -53,6 +55,18 @@ public class FileStorageService {
     }
 
     public StoredFile store(MultipartFile file) {
+        ValidatedUpload upload = validateUpload(file);
+        String storedName = UUID.randomUUID() + "." + upload.extension();
+        Path target = resolveStoredName(storedName);
+        try {
+            Files.write(target, upload.content(), StandardOpenOption.CREATE_NEW, StandardOpenOption.WRITE);
+        } catch (IOException exception) {
+            throw new InvalidFileException("Could not store image.", exception);
+        }
+        return new StoredFile(storedName, upload.originalName(), upload.contentType(), upload.content().length);
+    }
+
+    static ValidatedUpload validateUpload(MultipartFile file) {
         if (file == null || file.isEmpty()) {
             throw new InvalidFileException("Select an image to upload.");
         }
@@ -86,14 +100,7 @@ public class FileStorageService {
         }
         validateContent(content, extension);
 
-        String storedName = UUID.randomUUID() + "." + extension;
-        Path target = resolveStoredName(storedName);
-        try {
-            Files.write(target, content, StandardOpenOption.CREATE_NEW, StandardOpenOption.WRITE);
-        } catch (IOException exception) {
-            throw new InvalidFileException("Could not store image.", exception);
-        }
-        return new StoredFile(storedName, originalName, expectedContentType, content.length);
+        return new ValidatedUpload(originalName, extension, expectedContentType, content);
     }
 
     public Resource load(String storedName) {
@@ -121,7 +128,7 @@ public class FileStorageService {
         }
     }
 
-    private String validateOriginalName(String originalName) {
+    private static String validateOriginalName(String originalName) {
         if (originalName == null || originalName.isBlank()) {
             throw new InvalidFileException("Image filename is required.");
         }
@@ -132,7 +139,7 @@ public class FileStorageService {
         return originalName;
     }
 
-    private String extensionOf(String filename) {
+    private static String extensionOf(String filename) {
         int separator = filename.lastIndexOf('.');
         if (separator < 1 || separator == filename.length() - 1) {
             return "";
@@ -141,6 +148,15 @@ public class FileStorageService {
     }
 
     private Path resolveStoredName(String storedName) {
+        validateStoredName(storedName);
+        Path target = uploadRoot.resolve(storedName).normalize();
+        if (!target.getParent().equals(uploadRoot)) {
+            throw new InvalidFileException("Invalid stored image name.");
+        }
+        return target;
+    }
+
+    static void validateStoredName(String storedName) {
         if (storedName == null || storedName.isBlank() || storedName.contains("/") || storedName.contains("\\")
                 || storedName.contains("..")) {
             throw new InvalidFileException("Invalid stored image name.");
@@ -150,14 +166,9 @@ public class FileStorageService {
                 || !STORED_EXTENSIONS.contains(storedName.substring(extensionSeparator + 1).toLowerCase(Locale.ROOT))) {
             throw new InvalidFileException("Invalid stored image name.");
         }
-        Path target = uploadRoot.resolve(storedName).normalize();
-        if (!target.getParent().equals(uploadRoot)) {
-            throw new InvalidFileException("Invalid stored image name.");
-        }
-        return target;
     }
 
-    private void validateContent(byte[] content, String extension) {
+    private static void validateContent(byte[] content, String extension) {
         if ("webp".equals(extension)) {
             validateWebp(content);
             return;
@@ -195,7 +206,7 @@ public class FileStorageService {
         }
     }
 
-    private void validateWebp(byte[] content) {
+    private static void validateWebp(byte[] content) {
         // The JDK has no standard WEBP ImageIO reader. This deliberately performs pragmatic
         // container verification: exact RIFF length, WEBP signature, and a known image chunk.
         if (content.length < 20 || !asciiEquals(content, 0, "RIFF") || !asciiEquals(content, 8, "WEBP")) {
@@ -215,7 +226,7 @@ public class FileStorageService {
         }
     }
 
-    private boolean asciiEquals(byte[] content, int offset, String value) {
+    private static boolean asciiEquals(byte[] content, int offset, String value) {
         if (offset + value.length() > content.length) {
             return false;
         }
@@ -227,13 +238,13 @@ public class FileStorageService {
         return true;
     }
 
-    private long littleEndianUnsignedInt(byte[] content, int offset) {
+    private static long littleEndianUnsignedInt(byte[] content, int offset) {
         return (content[offset] & 0xffL)
                 | ((content[offset + 1] & 0xffL) << 8)
                 | ((content[offset + 2] & 0xffL) << 16)
                 | ((content[offset + 3] & 0xffL) << 24);
     }
 
-    public record StoredFile(String storedName, String originalName, String contentType, long size) {
+    record ValidatedUpload(String originalName, String extension, String contentType, byte[] content) {
     }
 }

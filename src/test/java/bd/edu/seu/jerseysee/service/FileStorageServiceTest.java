@@ -24,7 +24,7 @@ class FileStorageServiceTest {
         FileStorageService storage = new FileStorageService(uploadDirectory.toString());
         byte[] png = image("png");
 
-        FileStorageService.StoredFile stored = storage.store(
+        ProductImageStorage.StoredFile stored = storage.store(
                 new MockMultipartFile("image", "shirt.png", "image/png", png));
 
         assertThat(stored.storedName()).matches("[0-9a-f-]{36}\\.png");
@@ -51,7 +51,7 @@ class FileStorageServiceTest {
         FileStorageService storage = new FileStorageService(uploadDirectory.toString());
         byte[] exactLimit = Arrays.copyOf(image("png"), 5 * 1024 * 1024);
 
-        FileStorageService.StoredFile stored = storage.store(
+        ProductImageStorage.StoredFile stored = storage.store(
                 new MockMultipartFile("image", "large.png", "image/png", exactLimit));
 
         assertThat(stored.size()).isEqualTo(5L * 1024 * 1024);
@@ -112,7 +112,7 @@ class FileStorageServiceTest {
         FileStorageService storage = new FileStorageService(uploadDirectory.toString());
         byte[] webp = minimalWebp();
 
-        FileStorageService.StoredFile stored = storage.store(
+        ProductImageStorage.StoredFile stored = storage.store(
                 new MockMultipartFile("image", "shirt.webp", "image/webp", webp));
 
         assertThat(stored.storedName()).endsWith(".webp");

@@ -38,14 +38,14 @@ public class ProductService {
     private final ProductRepository productRepository;
     private final ProductVariantRepository variantRepository;
     private final CategoryRepository categoryRepository;
-    private final FileStorageService fileStorageService;
+    private final ProductImageStorage imageStorage;
 
     public ProductService(ProductRepository productRepository, ProductVariantRepository variantRepository,
-            CategoryRepository categoryRepository, FileStorageService fileStorageService) {
+            CategoryRepository categoryRepository, ProductImageStorage imageStorage) {
         this.productRepository = productRepository;
         this.variantRepository = variantRepository;
         this.categoryRepository = categoryRepository;
-        this.fileStorageService = fileStorageService;
+        this.imageStorage = imageStorage;
     }
 
     @Transactional
@@ -57,9 +57,9 @@ public class ProductService {
         apply(input, product, category);
         addInitialVariants(input.getVariants(), product);
 
-        FileStorageService.StoredFile stored = null;
+        ProductImageStorage.StoredFile stored = null;
         if (hasUpload(image)) {
-            stored = fileStorageService.store(image);
+            stored = imageStorage.store(image);
             applyImage(product, stored);
         }
         try {
@@ -70,7 +70,7 @@ public class ProductService {
             return saved;
         } catch (RuntimeException exception) {
             if (stored != null) {
-                fileStorageService.delete(stored.storedName());
+                imageStorage.delete(stored.storedName());
             }
             throw translateDuplicateSku(exception);
         }
@@ -84,10 +84,10 @@ public class ProductService {
         Category category = category(input.getCategoryId());
         apply(input, product, category);
 
-        FileStorageService.StoredFile replacement = null;
+        ProductImageStorage.StoredFile replacement = null;
         String oldStoredName = product.getStoredImageName();
         if (hasUpload(replacementImage)) {
-            replacement = fileStorageService.store(replacementImage);
+            replacement = imageStorage.store(replacementImage);
             applyImage(product, replacement);
         }
         try {
@@ -99,7 +99,7 @@ public class ProductService {
             return saved;
         } catch (RuntimeException exception) {
             if (replacement != null) {
-                fileStorageService.delete(replacement.storedName());
+                imageStorage.delete(replacement.storedName());
             }
             throw translateDuplicateSku(exception);
         }
@@ -380,7 +380,7 @@ public class ProductService {
                 .orElseThrow(() -> new ResourceNotFoundException("Category not found."));
     }
 
-    private void applyImage(Product product, FileStorageService.StoredFile stored) {
+    private void applyImage(Product product, ProductImageStorage.StoredFile stored) {
         product.setStoredImageName(stored.storedName());
         product.setOriginalImageName(stored.originalName());
         product.setImageContentType(stored.contentType());
@@ -416,11 +416,11 @@ public class ProductService {
             TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
                 @Override
                 public void afterCommit() {
-                    fileStorageService.delete(storedName);
+                    imageStorage.delete(storedName);
                 }
             });
         } else {
-            fileStorageService.delete(storedName);
+            imageStorage.delete(storedName);
         }
     }
 
@@ -431,7 +431,7 @@ public class ProductService {
                 @Override
                 public void afterCompletion(int status) {
                     if (status != STATUS_COMMITTED) {
-                        fileStorageService.delete(storedName);
+                        imageStorage.delete(storedName);
                     }
                 }
             });
