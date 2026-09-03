@@ -6,7 +6,7 @@ COPY pom.xml ./
 RUN mvn --batch-mode --no-transfer-progress -DskipTests dependency:go-offline
 
 COPY src ./src
-RUN mvn --batch-mode --no-transfer-progress -DskipTests clean package
+RUN mvn --batch-mode --no-transfer-progress clean verify
 
 FROM eclipse-temurin:17-jre
 WORKDIR /app
@@ -24,5 +24,5 @@ USER jerseysee
 ENV SPRING_PROFILES_ACTIVE=production
 EXPOSE 8080
 HEALTHCHECK --interval=30s --timeout=5s --start-period=40s --retries=3 \
-    CMD curl --fail --silent --show-error http://127.0.0.1:8080/actuator/health || exit 1
+    CMD curl --fail --silent --show-error "http://127.0.0.1:${PORT:-8080}/actuator/health" || exit 1
 ENTRYPOINT ["java", "-jar", "/app/app.jar"]
