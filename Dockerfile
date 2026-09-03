@@ -5,6 +5,7 @@ WORKDIR /workspace
 COPY pom.xml ./
 RUN mvn --batch-mode --no-transfer-progress -DskipTests dependency:go-offline
 
+COPY Dockerfile render.yaml ./
 COPY src ./src
 RUN mvn --batch-mode --no-transfer-progress clean verify
 
