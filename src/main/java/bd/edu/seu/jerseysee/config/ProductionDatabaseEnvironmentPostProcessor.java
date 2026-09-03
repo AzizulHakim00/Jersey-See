@@ -90,20 +90,15 @@ public final class ProductionDatabaseEnvironmentPostProcessor implements Environ
         String host = uri.getHost();
         int port = uri.getPort();
         String databasePath = uri.getRawPath();
-        String query = uri.getRawQuery();
 
         if (host == null || host.isBlank() || port < 1 || databasePath == null || databasePath.length() <= 1) {
             throw new IllegalStateException(
                     "Invalid JERSEYSEE_DB_URL. The Aiven mysql:// Service URI must include host, port, and database name.");
         }
 
-        if (!containsRequiredTlsQuery(query)) {
-            throw new IllegalStateException(
-                    "Invalid JERSEYSEE_DB_URL. Hosted MySQL connections must require TLS (ssl-mode=REQUIRED or sslMode=REQUIRED).");
-        }
-
-        // Deliberately discard any credentials embedded in Aiven's Service URI.
-        // Render supplies username and password through separate secret variables.
+        // Deliberately discard any credentials and query parameters embedded in
+        // Aiven's Service URI. Render supplies username/password separately, and
+        // the normalized JDBC URL always enforces TLS for the hosted connection.
         return "jdbc:mysql://" + host + ":" + port + databasePath
                 + "?sslMode=REQUIRED&serverTimezone=UTC";
     }
@@ -113,14 +108,6 @@ public final class ProductionDatabaseEnvironmentPostProcessor implements Environ
             throw new IllegalStateException(
                     "Invalid JERSEYSEE_DB_URL. Hosted MySQL connections must include sslMode=REQUIRED.");
         }
-    }
-
-    private boolean containsRequiredTlsQuery(String query) {
-        if (query == null) {
-            return false;
-        }
-        String normalizedQuery = query.toLowerCase(Locale.ROOT);
-        return normalizedQuery.contains("ssl-mode=required") || normalizedQuery.contains("sslmode=required");
     }
 
     private boolean containsLineBreak(String value) {
