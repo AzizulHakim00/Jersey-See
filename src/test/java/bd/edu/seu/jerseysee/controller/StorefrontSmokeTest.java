@@ -38,6 +38,13 @@ class StorefrontSmokeTest {
     private ProductVariantRepository variantRepository;
 
     @Test
+    void homePageRendersFeaturedProductsLoadedFromJpa() throws Exception {
+        mockMvc.perform(get("/"))
+                .andExpect(status().isOk())
+                .andExpect(content().string(containsString("Metro City Home Fan Jersey")));
+    }
+
+    @Test
     void administratorCanLogInAndOpenAdminDashboard() throws Exception {
         MockHttpSession session = login("admin@demo.local", "ADMIN");
 

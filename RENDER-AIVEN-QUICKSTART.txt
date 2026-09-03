@@ -24,9 +24,11 @@ The Blueprint supplies these non-secret values:
 APP_SEED_ADMIN_PASSWORD must contain upper- and lowercase letters, a digit,
 a symbol, and 8–72 characters. The value is BCrypt-hashed before storage.
 The initializer creates the administrator only when its email does not exist.
+Catalog initialization is create-only in production. Render restarts never reset
+sold stock, administrator price changes, product visibility, or other catalog edits.
 
 Deployment checks:
-  1. Wait for Render to report /actuator/health as healthy.
+  1. Wait for both the Docker and Render /actuator/health checks to report healthy.
   2. Open the homepage and confirm the catalog is populated.
   3. Log in with APP_SEED_ADMIN_EMAIL and APP_SEED_ADMIN_PASSWORD.
   4. Register a customer account to test cart and checkout.

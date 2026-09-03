@@ -31,7 +31,7 @@ Thymeleaf renders the pages, Spring Security protects routes and service methods
 | `OrderItem many → 1 ProductVariant` | An order item refers to the purchased variant. |
 | `CustomerOrder 1 → 1 Payment` | Each checkout creates one simulated payment record. |
 
-`User.demoSeedKey`, `Category.demoSeedKey`, `Product.demoSeedKey`, and `ProductVariant.demoSeedKey` are nullable, unique, bounded internal identifiers used by optional sample-data initialization. Normal/admin-created records leave these fields `null`; they are not customer-facing fields. Local demo profiles can safely adopt rows created by older JerseySee demo releases only when their full known identity matches; unrelated same-name records remain untouched. Production can initialize the catalog without creating any known-password account.
+`User.demoSeedKey`, `Category.demoSeedKey`, `Product.demoSeedKey`, and `ProductVariant.demoSeedKey` are nullable, unique, bounded internal identifiers used by optional sample-data initialization. Normal/admin-created records leave these fields `null`; they are not customer-facing fields. Local demo profiles can safely adopt rows created by older JerseySee demo releases only when their full category, product, and variant identity matches; unrelated same-name or partially matching records remain untouched. Production can initialize the catalog without creating any known-password account.
 
 ### Role permissions
 
@@ -154,7 +154,7 @@ $env:APP_SEED_ADMIN_EMAIL = 'your-admin@example.com'
 $env:APP_SEED_ADMIN_PASSWORD = 'Use-A-Unique1!Password'
 ```
 
-The committed `render.yaml` already selects the production profile, Docker runtime, database-aware `/actuator/health` check, and catalog-only initializer. Render must supply all values marked `sync: false`. The administrator password must be 8–72 characters with upper- and lowercase letters, a digit, and a symbol; it is stored only as a BCrypt hash. Customers register through the storefront, and the administrator creates other staff accounts through authorized management pages.
+The committed `render.yaml` already selects the production profile, Docker runtime, database-aware `/actuator/health` checks, and catalog-only initializer. Render must supply all values marked `sync: false`. Production catalog initialization is create-only: missing sample rows are added, while existing products, prices, visibility settings, variants, and stock are preserved across restarts and deployments. Deterministic resets remain limited to the local demo profiles. The administrator password must be 8–72 characters with upper- and lowercase letters, a digit, and a symbol; it is stored only as a BCrypt hash. Customers register through the storefront, and the administrator creates other staff accounts through authorized management pages.
 
 Production images are stored in the same MySQL service, not Render's ephemeral filesystem. Do not set `APP_UPLOAD_DIR` in production. Do not use local classroom credentials or activate `demo`, `mysql-demo`, or `intellij` on a hosted service.
 

@@ -252,6 +252,31 @@ class DemoDataInitializerTest {
     }
 
     @Test
+    void rerunDoesNotAdoptAProductThatOnlyMatchesThePartialLegacySignature() throws Exception {
+        Product seeded = productRepository.findByDemoSeedKey("demo.product.metro-city-home-fan").orElseThrow();
+        productRepository.delete(seeded);
+        productRepository.flush();
+
+        Product unrelated = newProduct("Metro City Home Fan Jersey", "JerseySee", "1.00");
+        unrelated.setProductType(ProductType.JERSEY);
+        unrelated.setClubOrCountry("Metro City");
+        unrelated.setSeason("2026/27");
+        unrelated.addVariant(newVariant("CUSTOM-MATCH-S", SizeOption.S, 77, "25.00"));
+        unrelated = productRepository.saveAndFlush(unrelated);
+
+        demoDataInitializer.run();
+
+        Product created = productRepository.findByDemoSeedKey("demo.product.metro-city-home-fan").orElseThrow();
+        Product preserved = productRepository.findById(unrelated.getId()).orElseThrow();
+        ProductVariant preservedVariant = variantRepository.findBySku("CUSTOM-MATCH-S").orElseThrow();
+        assertThat(created.getId()).isNotEqualTo(unrelated.getId());
+        assertThat(preserved.getDemoSeedKey()).isNull();
+        assertThat(preserved.getBasePrice()).isEqualByComparingTo("1.00");
+        assertThat(preservedVariant.getProduct().getId()).isEqualTo(preserved.getId());
+        assertThat(preservedVariant.getStockQuantity()).isEqualTo(77);
+    }
+
+    @Test
     void rerunDoesNotAdoptFallbackLookingVariantWithoutDemoSeedKey() throws Exception {
         Product product = productRepository.findByDemoSeedKey("demo.product.metro-city-home-fan").orElseThrow();
         ProductVariant seeded = variantRepository.findByDemoSeedKey("demo.variant.metro-city-home-fan.mc-hf-m")

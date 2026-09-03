@@ -141,6 +141,22 @@ address { font-style: normal; }
 @media (max-width: 460px) {
     .nav-actions .button-ghost { padding: 0 10px; }.hero-copy h1 { font-size: 3.8rem; }.hero-visual { min-height: 340px; border-radius: 22px; }.product-grid, .catalog-grid, .metric-grid { grid-template-columns: 1fr; }.product-media { aspect-ratio: 5 / 5.5; }.catalog-hero { padding: 25px; }.catalog-hero h1 { font-size: 3.4rem; }.panel, .form-panel { padding: 18px; }.auth-panel { padding: 14px; }.auth-card { padding: 25px 18px; }.modal-actions { grid-template-columns: 1fr; }.message-stack { top: 76px; right: 10px; width: calc(100vw - 20px); }
 }
+/* Progressive navigation: core links remain usable when scripts are unavailable. */
+.mobile-nav-logout { display: none; }
+@media (max-width: 960px) {
+    .staff-sidebar { position: static; width: 100%; min-height: auto; transform: none; transition: none; }
+    .staff-main { width: 100%; margin-left: 0; padding: 24px 18px 60px; }
+    .staff-mobile-bar, .sidebar-scrim { display: none; }
+    html.js .staff-sidebar { position: fixed; inset: 0 auto 0 0; width: min(320px,86vw); min-height: 100vh; transform: translateX(-105%); transition: transform .22s ease; }
+    html.js .staff-sidebar.is-open { transform: translateX(0); }
+    html.js .staff-main { padding-top: 96px; }
+    html.js .staff-mobile-bar { display: flex; }
+    html.js .sidebar-scrim { display: block; }
+}
+@media (max-width: 700px) {
+    .site-nav .mobile-nav-logout { display: flex; padding: 10px 12px 2px; }
+    .mobile-nav-logout button { width: 100%; min-height: 44px; color: #fff; background: transparent; border: 1px solid rgba(255,255,255,.45); border-radius: 4px; cursor: pointer; font: inherit; font-weight: 800; text-transform: uppercase; }
+}
 @media (prefers-reduced-motion: reduce) { *,*::before,*::after { scroll-behavior: auto !important; animation-duration: .01ms !important; transition-duration: .01ms !important; } }
 @media print { .site-header,.staff-sidebar,.staff-mobile-bar,.sidebar-scrim,.button,.message-stack,.confirm-modal { display: none !important; }.staff-main,.page-main { width: 100%; margin: 0; padding: 0; }.panel { box-shadow: none; } }
 

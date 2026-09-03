@@ -23,10 +23,12 @@ class StorefrontTemplateContractTest {
 
         assertThat(detail).contains("data-printing-fields").doesNotContain("data-printing-fields hidden");
         assertThat(navigation).contains("data-logout-form", "th:action=\"@{/logout}\"", "method=\"post\"");
+        assertThat(navigation).contains("class=\"mobile-nav-logout\"");
         assertThat(sidebar).contains("data-logout-form", "th:action=\"@{/logout}\"", "method=\"post\"");
         assertThat(catalog).contains("data-filter-card", "id=\"catalogFilters\"");
         assertThat(javascript).contains("is-collapsible", "data-logout-form", "hasValidationErrors");
-        assertThat(css).contains(".filter-card.is-collapsible", ".sidebar-scrim.is-open");
+        assertThat(css).contains(".filter-card.is-collapsible", ".sidebar-scrim.is-open",
+                "html.js .staff-sidebar", "html.js .staff-mobile-bar", ".mobile-nav-logout");
     }
 
     @Test

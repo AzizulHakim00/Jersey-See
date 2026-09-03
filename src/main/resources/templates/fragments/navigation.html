@@ -33,6 +33,10 @@
                th:classappend="${activePage == 'orders'} ? ' is-active' : ''">Orders</a>
             <a th:if="${currentRole != null}" th:href="@{/profile}"
                th:classappend="${activePage == 'profile'} ? ' is-active' : ''">Profile</a>
+            <form class="mobile-nav-logout" th:if="${currentUser != null}"
+                  th:action="@{/logout}" method="post" data-logout-form>
+                <button type="submit">Log out</button>
+            </form>
         </nav>
 
         <div class="nav-actions">

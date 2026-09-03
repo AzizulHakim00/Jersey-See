@@ -142,7 +142,7 @@ public class ProductService {
 
     @Transactional(readOnly = true)
     public List<Product> featuredProducts() {
-        return productRepository.findTop8ByActiveTrueAndFeaturedTrueOrderByIdDesc();
+        return initializeVariants(productRepository.findTop8ByActiveTrueAndFeaturedTrueOrderByIdDesc());
     }
 
     @Transactional(readOnly = true)
@@ -235,6 +235,11 @@ public class ProductService {
     }
 
     private Page<Product> initializeVariants(Page<Product> products) {
+        products.forEach(product -> product.getVariants().size());
+        return products;
+    }
+
+    private List<Product> initializeVariants(List<Product> products) {
         products.forEach(product -> product.getVariants().size());
         return products;
     }
