@@ -9,12 +9,25 @@ Repository root requirements:
 Create an Aiven MySQL service and a Render Blueprint connected to this repository.
 Keep Render's Root Directory blank and Dockerfile Path set to ./Dockerfile.
 
-Required Render secret values:
-  JERSEYSEE_DB_URL=jdbc:mysql://<AIVEN_HOST>:<AIVEN_PORT>/<DATABASE>?sslMode=REQUIRED&serverTimezone=UTC
-  JERSEYSEE_DB_USERNAME=<AIVEN_USERNAME>
-  JERSEYSEE_DB_PASSWORD=<AIVEN_PASSWORD>
-  APP_SEED_ADMIN_EMAIL=<YOUR_ADMIN_EMAIL>
-  APP_SEED_ADMIN_PASSWORD=<STRONG_UNIQUE_PASSWORD>
+IMPORTANT: In Render, create each environment variable with the KEY and VALUE in
+separate fields. Do not paste "JERSEYSEE_DB_URL=" or the key name into the value.
+The JERSEYSEE_DB_URL value field must contain one single-line JDBC URL only.
+
+Required Render secret keys and their value-field formats:
+  KEY: JERSEYSEE_DB_URL
+  VALUE: jdbc:mysql://<AIVEN_HOST>:<AIVEN_PORT>/<DATABASE>?sslMode=REQUIRED&serverTimezone=UTC
+
+  KEY: JERSEYSEE_DB_USERNAME
+  VALUE: <AIVEN_USERNAME>
+
+  KEY: JERSEYSEE_DB_PASSWORD
+  VALUE: <AIVEN_PASSWORD>
+
+  KEY: APP_SEED_ADMIN_EMAIL
+  VALUE: <YOUR_ADMIN_EMAIL>
+
+  KEY: APP_SEED_ADMIN_PASSWORD
+  VALUE: <STRONG_UNIQUE_PASSWORD>
 
 The Blueprint supplies these non-secret values:
   SPRING_PROFILES_ACTIVE=production
@@ -34,5 +47,9 @@ Deployment checks:
   4. Register a customer account to test cart and checkout.
   5. Upload a small product image as admin/manager and restart the service;
      the image remains available because production stores it in MySQL.
+
+If startup says "Invalid JERSEYSEE_DB_URL", open Render > Environment and verify
+that the JERSEYSEE_DB_URL value begins directly with "jdbc:mysql://" and contains
+no key name, equals sign, quotes, or line break before it.
 
 Never commit a real Aiven hostname, database password, or admin password.
