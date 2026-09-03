@@ -54,7 +54,6 @@ class OrderServiceTest {
         orderService = new OrderService(orderRepository, variantRepository);
         variant = variant("National Home Jersey", "NAT-L", "1000.00", "50.00", 5);
         ReflectionTestUtils.setField(variant, "id", 7L);
-        when(variantRepository.findWithProductById(7L)).thenReturn(Optional.of(variant));
         customer = user("customer@example.com", Role.CUSTOMER);
     }
 
@@ -196,6 +195,7 @@ class OrderServiceTest {
     }
 
     private ShoppingCart cart(int quantity, PrintingType printingType, String name, String number) {
+        when(variantRepository.findWithProductById(7L)).thenReturn(Optional.of(variant));
         AddToCartDTO input = new AddToCartDTO();
         input.setVariantId(7L);
         input.setQuantity(quantity);

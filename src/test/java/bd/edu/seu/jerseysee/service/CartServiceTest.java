@@ -33,11 +33,11 @@ class CartServiceTest {
     void setUp() {
         cartService = new CartService(variantRepository);
         variant = variant("National Home Jersey", "NAT-L", "1000.00", "50.00", 12);
-        when(variantRepository.findWithProductById(7L)).thenReturn(Optional.of(variant));
     }
 
     @Test
     void addCalculatesCustomPrintingPerUnitFromPersistedVariantPrice() {
+        stubAvailableVariant();
         ShoppingCart cart = new ShoppingCart();
 
         CartItem item = cartService.add(cart, add(2, PrintingType.CUSTOM, "  jamal bhuyan  ", "6"));
@@ -52,6 +52,7 @@ class CartServiceTest {
 
     @Test
     void addCarriesThePersistedProductImageIntoTheCustomerCart() {
+        stubAvailableVariant();
         ShoppingCart cart = new ShoppingCart();
 
         CartItem item = cartService.add(cart, add(1, PrintingType.NONE, null, null));
@@ -61,6 +62,7 @@ class CartServiceTest {
 
     @Test
     void addMergesOnlyIdenticalVariantAndNormalizedPrinting() {
+        stubAvailableVariant();
         ShoppingCart cart = new ShoppingCart();
 
         CartItem first = cartService.add(cart, add(1, PrintingType.PLAYER, "  Messi ", "10"));
@@ -95,6 +97,7 @@ class CartServiceTest {
 
     @Test
     void addRejectsAggregateVariantQuantityAboveCurrentStock() {
+        stubAvailableVariant();
         ShoppingCart cart = new ShoppingCart();
         variant.setStockQuantity(3);
         cartService.add(cart, add(2, PrintingType.NONE, null, null));
@@ -107,6 +110,7 @@ class CartServiceTest {
 
     @Test
     void addRejectsMergedLineAboveTenEvenWhenStockIsAvailable() {
+        stubAvailableVariant();
         ShoppingCart cart = new ShoppingCart();
         cartService.add(cart, add(6, PrintingType.NONE, null, null));
 
@@ -123,6 +127,10 @@ class CartServiceTest {
         input.setPrintingName(name);
         input.setPrintingNumber(number);
         return input;
+    }
+
+    private void stubAvailableVariant() {
+        when(variantRepository.findWithProductById(7L)).thenReturn(Optional.of(variant));
     }
 
     private ProductVariant variant(String name, String sku, String basePrice, String adjustment, int stock) {
