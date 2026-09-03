@@ -35,7 +35,7 @@
         </div>
         <aside class="summary-card premium-summary-card" data-order-summary>
             <span class="eyebrow">Order summary</span><h2>Your total</h2>
-            <dl><div><dt>Items</dt><dd th:text="${shoppingCart.totalQuantity}">0</dd></div><div><dt>Subtotal</dt><dd>৳<span th:text="${#numbers.formatDecimal(shoppingCart.subtotal,1,2)}">0.00</span></dd></div><div><dt>Delivery</dt><dd>৳100.00</dd></div><div class="summary-total"><dt>Estimated total</dt><dd>৳<span th:text="${#numbers.formatDecimal(shoppingCart.subtotal + 100,1,2)}">0.00</span></dd></div></dl>
+            <dl><div><dt>Items</dt><dd th:text="${shoppingCart.totalQuantity}">0</dd></div><div><dt>Subtotal</dt><dd>৳<span th:text="${#numbers.formatDecimal(shoppingCart.subtotal,1,2)}">0.00</span></dd></div><div><dt>Delivery</dt><dd>৳<span th:text="${#numbers.formatDecimal(deliveryFee,1,2)}">100.00</span></dd></div><div class="summary-total"><dt>Estimated total</dt><dd>৳<span th:text="${#numbers.formatDecimal(shoppingCart.subtotal.add(deliveryFee),1,2)}">0.00</span></dd></div></dl>
             <a class="button button-crimson button-wide" th:href="@{/checkout}">Continue to checkout <span aria-hidden="true">→</span></a>
             <div class="summary-assurances"><p><span aria-hidden="true">✓</span> Stock checked again at checkout</p><p><span aria-hidden="true">✓</span> Server-controlled prices</p><p><span aria-hidden="true">✓</span> Secure account order history</p></div>
         </aside>

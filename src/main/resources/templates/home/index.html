@@ -56,7 +56,7 @@
             <div class="product-grid commerce-grid" data-commerce-card-list
                  th:if="${featuredProducts != null and !#lists.isEmpty(featuredProducts)}">
                 <th:block th:each="product : ${featuredProducts}"
-                          th:replace="~{fragments/product-card :: productCard(product=${product})}"></th:block>
+                          th:replace="~{fragments/product-card :: productCard(${product})}"></th:block>
             </div>
             <div class="empty-state empty-state-dark" th:if="${featuredProducts == null or #lists.isEmpty(featuredProducts)}">
                 <span>JS</span><h3>The next drop is almost here.</h3><p>Explore the complete shop while our featured selection is prepared.</p>

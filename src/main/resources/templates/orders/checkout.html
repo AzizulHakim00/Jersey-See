@@ -27,7 +27,7 @@
         <aside class="summary-card premium-summary-card checkout-summary" data-order-review>
             <span class="eyebrow">Order review</span><h2>Your selection</h2>
             <div class="checkout-mini-line" th:each="item : ${shoppingCart.items}"><span><strong th:text="${item.productName}">Product</strong><small><span th:text="${item.quantity}">1</span> × <span th:text="${#strings.replace(item.size.name(),'_',' ')}">M</span><span th:if="${item.printingType.name() != 'NONE'}"> · <span th:text="${item.printingName}">NAME</span> <span th:text="${item.printingNumber}">10</span></span></small></span><b>৳<span th:text="${#numbers.formatDecimal(item.lineSubtotal,1,2)}">0.00</span></b></div>
-            <dl><div><dt>Subtotal</dt><dd>৳<span th:text="${#numbers.formatDecimal(shoppingCart.subtotal,1,2)}">0.00</span></dd></div><div><dt>Delivery</dt><dd>৳100.00</dd></div><div class="summary-total"><dt>Total</dt><dd>৳<span th:text="${#numbers.formatDecimal(shoppingCart.subtotal + 100,1,2)}">0.00</span></dd></div></dl>
+            <dl><div><dt>Subtotal</dt><dd>৳<span th:text="${#numbers.formatDecimal(shoppingCart.subtotal,1,2)}">0.00</span></dd></div><div><dt>Delivery</dt><dd>৳<span th:text="${#numbers.formatDecimal(deliveryFee,1,2)}">100.00</span></dd></div><div class="summary-total"><dt>Total</dt><dd>৳<span th:text="${#numbers.formatDecimal(shoppingCart.subtotal.add(deliveryFee),1,2)}">0.00</span></dd></div></dl>
             <a class="summary-edit-link" th:href="@{/cart}">Edit shopping bag</a>
         </aside>
     </div>

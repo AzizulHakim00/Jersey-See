@@ -4,6 +4,7 @@ import bd.edu.seu.jerseysee.config.SecurityConfig;
 import bd.edu.seu.jerseysee.model.Product;
 import bd.edu.seu.jerseysee.service.FileStorageService;
 import bd.edu.seu.jerseysee.service.ProductService;
+import bd.edu.seu.jerseysee.service.UserService;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
@@ -28,6 +29,9 @@ class ProductImageControllerTest {
 
     @MockitoBean
     private FileStorageService fileStorageService;
+
+    @MockitoBean
+    private UserService userService;
 
     @Autowired
     private MockMvc mockMvc;

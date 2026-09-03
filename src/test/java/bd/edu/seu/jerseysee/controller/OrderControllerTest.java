@@ -8,6 +8,8 @@ import bd.edu.seu.jerseysee.model.enums.Role;
 import bd.edu.seu.jerseysee.service.InvoiceService;
 import bd.edu.seu.jerseysee.service.OrderService;
 import bd.edu.seu.jerseysee.service.UserService;
+import java.math.BigDecimal;
+import java.util.List;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
@@ -78,6 +80,8 @@ class OrderControllerTest {
         MockHttpSession session = new MockHttpSession();
         session.setAttribute("shoppingCart", cart);
         when(userService.getRequiredByEmail("customer@example.com")).thenReturn(customer);
+        when(cart.getSubtotal()).thenReturn(BigDecimal.ZERO);
+        when(cart.getItems()).thenReturn(List.of());
         when(orderService.checkout(eq(customer), eq(cart), any()))
                 .thenThrow(new IllegalArgumentException("Insufficient stock for NAT-L."));
 

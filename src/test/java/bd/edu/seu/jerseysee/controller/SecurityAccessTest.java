@@ -27,6 +27,9 @@ class SecurityAccessTest {
     @MockitoBean
     private bd.edu.seu.jerseysee.service.EmployeeService employeeService;
 
+    @MockitoBean
+    private bd.edu.seu.jerseysee.service.DashboardService dashboardService;
+
     @Autowired
     private MockMvc mockMvc;
 

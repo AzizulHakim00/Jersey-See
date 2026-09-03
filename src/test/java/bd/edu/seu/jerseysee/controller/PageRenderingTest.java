@@ -39,6 +39,7 @@ import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
 import org.springframework.context.annotation.Import;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.http.MediaType;
 import org.springframework.mock.web.MockHttpSession;
 import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
@@ -335,7 +336,10 @@ class PageRenderingTest {
     @Test
     @WithMockUser(username = "customer@example.com", roles = "CUSTOMER")
     void friendly403PageRenders() throws Exception {
-        assertPage(get("/access-denied"), "error/403", "That area is offside");
+        mockMvc.perform(get("/access-denied"))
+                .andExpect(status().isForbidden())
+                .andExpect(view().name("error/403"))
+                .andExpect(content().string(containsString("That area is offside")));
     }
 
     @Test
@@ -349,6 +353,7 @@ class PageRenderingTest {
     @Test
     void errorEndpointRendersGenericErrorPage() throws Exception {
         mockMvc.perform(get("/error")
+                        .accept(MediaType.TEXT_HTML)
                         .requestAttr("jakarta.servlet.error.status_code", 500)
                         .requestAttr("jakarta.servlet.error.request_uri", "/broken"))
                 .andExpect(status().is5xxServerError())

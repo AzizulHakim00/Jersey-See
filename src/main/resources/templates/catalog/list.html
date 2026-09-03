@@ -58,7 +58,7 @@
                 <div class="product-grid catalog-grid commerce-grid" data-commerce-grid data-commerce-card-list
                      th:if="${products != null and !products.empty}">
                     <th:block th:each="product : ${products.content}"
-                              th:replace="~{fragments/product-card :: productCard(product=${product})}"></th:block>
+                              th:replace="~{fragments/product-card :: productCard(${product})}"></th:block>
                 </div>
                 <div class="empty-state" th:if="${products == null or products.empty}">
                     <span>JS</span><h2>No products match this edit.</h2><p>Try another club, size or price range, or clear the filters to see the full collection.</p><a class="button button-ink" th:href="@{/catalog}">Clear all filters</a>

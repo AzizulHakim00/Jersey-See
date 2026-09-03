@@ -219,11 +219,11 @@ class DemoDataInitializerTest {
         ProductVariant seeded = variantRepository.findByDemoSeedKey("demo.variant.metro-city-home-fan.mc-hf-m")
                 .orElseThrow();
         Long seededId = seeded.getId();
-        seeded.setSku("MANUALLY-MOVED-M-SKU");
-        variantRepository.saveAndFlush(seeded);
         ProductVariant unrelatedFallback = newVariant("MC-HF-M-DEMO-2", SizeOption.XL, 66, "13.00");
         product.addVariant(unrelatedFallback);
         productRepository.saveAndFlush(product);
+        seeded.setSku("MANUALLY-MOVED-M-SKU");
+        variantRepository.saveAndFlush(seeded);
         entityManager.clear();
 
         demoDataInitializer.run();
