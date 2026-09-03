@@ -13,7 +13,7 @@ class ProductionDatabaseEnvironmentPostProcessorTest {
 
     @Test
     void rejectsRenderSecretThatContainsTheEnvironmentVariableName() {
-        MockEnvironment environment = environment(
+        MockEnvironment environment = productionEnvironmentWithRenderUrl(
                 "JERSEYSEE_DB_URL\njdbc:mysql://db.example.com:3306/defaultdb?sslMode=REQUIRED");
 
         assertThatThrownBy(() -> postProcessor.postProcessEnvironment(environment, null))
@@ -24,7 +24,7 @@ class ProductionDatabaseEnvironmentPostProcessorTest {
 
     @Test
     void rejectsNonJdbcMysqlProductionUrl() {
-        MockEnvironment environment = environment("db.example.com:3306/defaultdb");
+        MockEnvironment environment = productionEnvironmentWithRenderUrl("db.example.com:3306/defaultdb");
 
         assertThatThrownBy(() -> postProcessor.postProcessEnvironment(environment, null))
                 .isInstanceOf(IllegalStateException.class)
@@ -33,8 +33,18 @@ class ProductionDatabaseEnvironmentPostProcessorTest {
 
     @Test
     void acceptsValidMysqlProductionUrl() {
-        MockEnvironment environment = environment(
+        MockEnvironment environment = productionEnvironmentWithRenderUrl(
                 "jdbc:mysql://db.example.com:3306/defaultdb?sslMode=REQUIRED&serverTimezone=UTC");
+
+        assertThatCode(() -> postProcessor.postProcessEnvironment(environment, null))
+                .doesNotThrowAnyException();
+    }
+
+    @Test
+    void allowsProductionProfileTestDatasourceWhenRenderVariableIsAbsent() {
+        MockEnvironment environment = new MockEnvironment()
+                .withProperty("spring.profiles.active", "production")
+                .withProperty("spring.datasource.url", "jdbc:h2:mem:production-test;MODE=MySQL");
 
         assertThatCode(() -> postProcessor.postProcessEnvironment(environment, null))
                 .doesNotThrowAnyException();
@@ -44,15 +54,16 @@ class ProductionDatabaseEnvironmentPostProcessorTest {
     void ignoresNonProductionProfiles() {
         MockEnvironment environment = new MockEnvironment()
                 .withProperty("spring.profiles.active", "demo")
+                .withProperty("JERSEYSEE_DB_URL", "not-a-jdbc-url")
                 .withProperty("spring.datasource.url", "jdbc:h2:mem:test");
 
         assertThatCode(() -> postProcessor.postProcessEnvironment(environment, null))
                 .doesNotThrowAnyException();
     }
 
-    private MockEnvironment environment(String datasourceUrl) {
+    private MockEnvironment productionEnvironmentWithRenderUrl(String renderUrl) {
         return new MockEnvironment()
                 .withProperty("spring.profiles.active", "production")
-                .withProperty("spring.datasource.url", datasourceUrl);
+                .withProperty("JERSEYSEE_DB_URL", renderUrl);
     }
 }
