@@ -78,6 +78,15 @@ class StorefrontTemplateContractTest {
     }
 
     @Test
+    void brandMarkUsesApprovedPremiumPaletteInsteadOfLegacyLime() throws IOException {
+        String brandMark = read(STATIC.resolve("images/brand-mark.svg"));
+
+        assertThat(brandMark)
+                .contains("#07142c", "#1646c8", "#b99552", "#f7f3ea")
+                .doesNotContain("#c7ff35");
+    }
+
+    @Test
     void accountJourneyUsesTheRetailShellWithoutWeakeningOrderActions() throws IOException {
         String login = read(TEMPLATES.resolve("auth/login.html"));
         String registration = read(TEMPLATES.resolve("auth/register.html"));
