@@ -29,3 +29,14 @@ jobs:
 
       - name: Run tests and package
         run: ./mvnw --batch-mode --no-transfer-progress clean verify
+
+  docker:
+    needs: verify
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Check out source
+        uses: actions/checkout@v4
+
+      - name: Build production container
+        run: docker build --tag jerseysee:ci .
