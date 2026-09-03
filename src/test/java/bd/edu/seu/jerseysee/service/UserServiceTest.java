@@ -44,7 +44,6 @@ class UserServiceTest {
         BCryptPasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
         userService = new UserService(userRepository, passwordEncoder);
         employeeService = new EmployeeService(userRepository, employeeProfileRepository, passwordEncoder);
-        when(userRepository.saveAndFlush(any(User.class))).thenAnswer(invocation -> invocation.getArgument(0));
     }
 
     @AfterEach
@@ -54,6 +53,7 @@ class UserServiceTest {
 
     @Test
     void registerNormalizesEmailHashesPasswordAndAlwaysAssignsCustomerRole() {
+        stubSuccessfulUserSave();
         RegistrationDTO registration = registration("  AMINA@Example.COM  ");
 
         User saved = userService.register(registration);
@@ -107,6 +107,7 @@ class UserServiceTest {
 
     @Test
     void managerCanCreateCashierWithLinkedEmployeeProfile() {
+        stubSuccessfulUserSave();
         authenticateAs(Role.MANAGER);
         EmployeeDTO employee = employee(Role.CASHIER);
 
@@ -179,14 +180,12 @@ class UserServiceTest {
     }
 
     private void authenticateAs(Role role) {
-        SecurityContextHolder.getContext().setAuthentication(
-                new UsernamePasswordAuthenticationToken(
-                        "manager@example.com",
-                        "unused",
-                        java.util.List.of(
-                                new SimpleGrantedAuthority("ROLE_" + role.name())
-                        )
-                )
-        );
+        SecurityContextHolder.getContext().setAuthentication(new UsernamePasswordAuthenticationToken(
+                "manager@example.com", "unused",
+                java.util.List.of(new SimpleGrantedAuthority("ROLE_" + role.name()))));
+    }
+
+    private void stubSuccessfulUserSave() {
+        when(userRepository.saveAndFlush(any(User.class))).thenAnswer(invocation -> invocation.getArgument(0));
     }
 }

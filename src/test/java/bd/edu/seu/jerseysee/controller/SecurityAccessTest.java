@@ -13,7 +13,7 @@ import org.mockito.ArgumentCaptor;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.redirectedUrlPattern;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.redirectedUrl;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 import static org.mockito.Mockito.verify;
 
@@ -27,6 +27,9 @@ class SecurityAccessTest {
     @MockitoBean
     private bd.edu.seu.jerseysee.service.EmployeeService employeeService;
 
+    @MockitoBean
+    private bd.edu.seu.jerseysee.service.DashboardService dashboardService;
+
     @Autowired
     private MockMvc mockMvc;
 
@@ -34,7 +37,7 @@ class SecurityAccessTest {
     void anonymousUsersAreRedirectedFromDashboard() throws Exception {
         mockMvc.perform(get("/dashboard"))
                 .andExpect(status().is3xxRedirection())
-                .andExpect(redirectedUrlPattern("**/login"));
+                .andExpect(redirectedUrl("/login"));
     }
 
     @Test

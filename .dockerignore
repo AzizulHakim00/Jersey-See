@@ -1,9 +1,13 @@
 target
 .git
+.github
 .idea
+.superpowers
 *.iml
 uploads
 demo-uploads
+demo-data
 *.log
 .env
+.env.*
 *.zip

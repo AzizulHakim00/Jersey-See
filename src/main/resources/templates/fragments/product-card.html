@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<body>
+<article class="commerce-product-card product-card" th:fragment="productCard(product)" data-commerce-card>
+    <a class="product-media" th:href="@{/products/{id}(id=${product.id})}">
+        <span class="product-flag" th:if="${product.featured}">Editor's pick</span>
+        <span class="product-type-label" th:text="${#strings.replace(product.productType.name(),'_',' ')}">Jersey</span>
+        <img th:src="${product.storedImageName != null ? '/product-images/' + product.storedImageName : '/images/product-placeholder.svg'}"
+             th:alt="${product.name}" loading="lazy"
+             onerror="this.onerror=null;this.src='/images/product-placeholder.svg'">
+    </a>
+    <div class="product-card-body">
+        <span class="product-meta" th:text="${product.clubOrCountry != null ? product.clubOrCountry : product.brand}">Club</span>
+        <h3><a th:href="@{/products/{id}(id=${product.id})}" th:text="${product.name}">Product</a></h3>
+        <div class="size-chip-row" aria-label="Available sizes">
+            <span th:each="variant : ${product.variants}" th:if="${variant.stockQuantity > 0}"
+                  th:text="${#strings.replace(variant.size.name(),'_',' ')}">M</span>
+            <small th:if="${#lists.isEmpty(product.variants)}">Coming soon</small>
+        </div>
+        <div class="product-card-footer">
+            <strong><small>From</small> ৳<span th:text="${#numbers.formatDecimal(product.basePrice,1,2)}">0.00</span></strong>
+            <span class="product-arrow" aria-hidden="true">↗</span>
+        </div>
+    </div>
+</article>
+</body>
+</html>

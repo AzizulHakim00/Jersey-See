@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 760 560" role="img" aria-labelledby="title desc">
+  <title id="title">Custom football shirt printing</title>
+  <desc id="desc">Original brand-neutral football shirt back with a custom name and number.</desc>
+  <defs><linearGradient id="g" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#15274d"/><stop offset="1" stop-color="#07142c"/></linearGradient></defs>
+  <path fill="url(#g)" d="m237 35-98 52L54 226l101 57 28-50v286h394V233l28 50 101-57-85-139-98-52c-27 42-74 63-143 63S264 77 237 35Z"/>
+  <path fill="#b51f3b" d="M155 283 54 226l17-28 101 57zm450 0 101-57-17-28-101 57z"/>
+  <path fill="#b99552" d="M183 449h394v16H183z"/>
+  <text x="380" y="230" fill="#f7f3ea" font-family="Arial, sans-serif" font-size="46" font-weight="800" text-anchor="middle" letter-spacing="8">YOUR NAME</text>
+  <text x="380" y="410" fill="none" stroke="#f7f3ea" stroke-width="5" font-family="Arial, sans-serif" font-size="190" font-weight="900" text-anchor="middle">10</text>
+</svg>

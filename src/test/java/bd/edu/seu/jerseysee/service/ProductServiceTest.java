@@ -111,7 +111,7 @@ class ProductServiceTest {
         ProductDTO product = product();
         MockMultipartFile image = new MockMultipartFile("image", "shirt.png", "image/png", new byte[] {1});
         when(fileStorageService.store(image)).thenReturn(
-                new FileStorageService.StoredFile("uuid.png", "shirt.png", "image/png", 1));
+                new ProductImageStorage.StoredFile("uuid.png", "shirt.png", "image/png", 1));
 
         Product created = productService.create(product, image);
 
@@ -128,7 +128,7 @@ class ProductServiceTest {
         when(productRepository.findWithVariantsById(15L)).thenReturn(Optional.of(existing));
         MockMultipartFile replacement = new MockMultipartFile("image", "new.png", "image/png", new byte[] {2});
         when(fileStorageService.store(replacement)).thenReturn(
-                new FileStorageService.StoredFile("new.png", "new.png", "image/png", 1));
+                new ProductImageStorage.StoredFile("new.png", "new.png", "image/png", 1));
         beginTransactionSynchronization();
 
         Product updated = productService.update(15L, product(), replacement);
@@ -148,7 +148,7 @@ class ProductServiceTest {
         when(productRepository.findWithVariantsById(15L)).thenReturn(Optional.of(existing));
         MockMultipartFile replacement = new MockMultipartFile("image", "new.png", "image/png", new byte[] {2});
         when(fileStorageService.store(replacement)).thenReturn(
-                new FileStorageService.StoredFile("new.png", "new.png", "image/png", 1));
+                new ProductImageStorage.StoredFile("new.png", "new.png", "image/png", 1));
         beginTransactionSynchronization();
 
         productService.update(15L, product(), replacement);
@@ -165,7 +165,7 @@ class ProductServiceTest {
         when(productRepository.findWithVariantsById(15L)).thenReturn(Optional.of(existing));
         MockMultipartFile replacement = new MockMultipartFile("image", "new.png", "image/png", new byte[] {2});
         when(fileStorageService.store(replacement)).thenReturn(
-                new FileStorageService.StoredFile("new.png", "new.png", "image/png", 1));
+                new ProductImageStorage.StoredFile("new.png", "new.png", "image/png", 1));
         DataIntegrityViolationException failure = new DataIntegrityViolationException("category_id cannot be null");
         when(productRepository.saveAndFlush(existing)).thenThrow(failure);
         beginTransactionSynchronization();
@@ -173,6 +173,26 @@ class ProductServiceTest {
         assertThatThrownBy(() -> productService.update(15L, product(), replacement)).isSameAs(failure);
 
         verify(fileStorageService).delete("new.png");
+        verify(fileStorageService, never()).delete("old.png");
+        assertThat(TransactionSynchronizationManager.getSynchronizations()).isEmpty();
+    }
+
+    @Test
+    void failedProductSaveLetsTransactionalImageStorageRollBackWithoutASecondDelete() {
+        Product existing = existingProduct(true);
+        existing.setStoredImageName("old.png");
+        when(productRepository.findWithVariantsById(15L)).thenReturn(Optional.of(existing));
+        MockMultipartFile replacement = new MockMultipartFile("image", "new.png", "image/png", new byte[] {2});
+        when(fileStorageService.store(replacement)).thenReturn(
+                new ProductImageStorage.StoredFile("new.png", "new.png", "image/png", 1));
+        when(fileStorageService.participatesInProductTransaction()).thenReturn(true);
+        DataIntegrityViolationException failure = new DataIntegrityViolationException("category_id cannot be null");
+        when(productRepository.saveAndFlush(existing)).thenThrow(failure);
+        beginTransactionSynchronization();
+
+        assertThatThrownBy(() -> productService.update(15L, product(), replacement)).isSameAs(failure);
+
+        verify(fileStorageService, never()).delete("new.png");
         verify(fileStorageService, never()).delete("old.png");
         assertThat(TransactionSynchronizationManager.getSynchronizations()).isEmpty();
     }

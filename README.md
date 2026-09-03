@@ -1,6 +1,6 @@
 # JerseySee
 
-JerseySee is a server-rendered Spring Boot football merchandise store and small store-management system. It is designed for a university demonstration: it shows layered MVC development, validation, Spring Security roles, JPA relationships, variant-level stock, order/payment workflows, invoice downloads, and safe product-image handling.
+JerseySee is a premium, server-rendered football ecommerce storefront and store-management system. It combines a supporter-focused shopping experience with layered MVC development, validation, Spring Security roles, JPA relationships, variant-level stock, order/payment workflows, invoice downloads, and safe product-image handling.
 
 ## Features
 
@@ -17,7 +17,7 @@ The application follows a simple AFSOS-style layered flow:
 
 `Controller → Service → Repository → Entity`
 
-Thymeleaf renders the pages, Spring Security protects routes and service methods, Spring Data JPA persists the data, and the cart remains in the HTTP session. DTOs hold validated form input. Product images are kept outside the classpath in the configured upload directory.
+Thymeleaf renders the pages, Spring Security protects routes and service methods, Spring Data JPA persists the data, and the cart remains in the HTTP session. DTOs hold validated form input. Product images use a profile-selected storage contract: local profiles write outside the classpath, while production stores validated image bytes in MySQL so Render restarts do not lose them.
 
 ### Main relationships
 
@@ -31,7 +31,7 @@ Thymeleaf renders the pages, Spring Security protects routes and service methods
 | `OrderItem many → 1 ProductVariant` | An order item refers to the purchased variant. |
 | `CustomerOrder 1 → 1 Payment` | Each checkout creates one simulated payment record. |
 
-`User.demoSeedKey`, `Category.demoSeedKey`, `Product.demoSeedKey`, and `ProductVariant.demoSeedKey` are nullable, unique, bounded internal identifiers used only by the optional local demo-data initializer to reconcile its own sample rows. Normal/admin-created records leave these fields `null`; they are not customer-facing fields. If a demo email or category name is already owned by an unkeyed row, startup stops with a clear collision error instead of changing that row.
+`User.demoSeedKey`, `Category.demoSeedKey`, `Product.demoSeedKey`, and `ProductVariant.demoSeedKey` are nullable, unique, bounded internal identifiers used by optional sample-data initialization. Normal/admin-created records leave these fields `null`; they are not customer-facing fields. Local demo profiles can safely adopt rows created by older JerseySee demo releases only when their full category, product, and variant identity matches; unrelated same-name or partially matching records remain untouched. Production can initialize the catalog without creating any known-password account.
 
 ### Role permissions
 
@@ -72,7 +72,7 @@ In IntelliJ IDEA:
 4. Click the green Run button beside `main`.
 5. Open `http://localhost:8080`.
 
-The JDBC URL can create the `jerseysee` schema when the local `root` account has permission; an already-created schema is reused. The demo initializer refuses to run against a non-loopback MySQL host.
+The JDBC URL can create the `jerseysee` schema when the local `root` account has permission; an already-created schema is reused. The demo initializer refuses to run against a non-loopback MySQL host. If the database came from an earlier JerseySee ZIP, recognizable legacy demo rows are assigned ownership keys and reconciled automatically; unrelated data is never adopted.
 
 ## Quick local demo (H2)
 
@@ -139,18 +139,24 @@ $env:APP_UPLOAD_DIR = 'uploads'
 
 The explicit `mysql-demo` profile creates the same five demo accounts and sample catalog listed above in MySQL. It is idempotent and only reconciles rows carrying its private seed keys. The bundled `root/password` values are for the confirmed local classroom setup only and must be replaced for any real deployment.
 
-## Non-demo deployment
+## Render + Aiven production deployment
 
-The `production` profile never loads the known demo accounts. It uses Hibernate `update` to create or update the application tables, so the dedicated database account must have schema-change permission. Supply all required values:
+The `production` profile never loads the known local demo accounts. It uses Hibernate `update` to create or update application tables, so the dedicated database account must have schema-change permission. Configure these Render secrets:
 
 ```powershell
 $env:SPRING_PROFILES_ACTIVE = 'production'
-$env:JERSEYSEE_DB_URL = 'jdbc:mysql://database-host:3306/jerseysee?useSSL=true&serverTimezone=UTC'
-$env:JERSEYSEE_DB_USERNAME = 'jerseysee_app'
+$env:JERSEYSEE_DB_URL = 'jdbc:mysql://database-host:3306/defaultdb?sslMode=REQUIRED&serverTimezone=UTC'
+$env:JERSEYSEE_DB_USERNAME = 'database-user'
 $env:JERSEYSEE_DB_PASSWORD = 'replace-with-a-secret'
+$env:JERSEYSEE_DEMO_CATALOG_ENABLED = 'true'
+$env:APP_SEED_ADMIN_ENABLED = 'true'
+$env:APP_SEED_ADMIN_EMAIL = 'your-admin@example.com'
+$env:APP_SEED_ADMIN_PASSWORD = 'Use-A-Unique1!Password'
 ```
 
-Do not use the local classroom credentials or any demo profile for a deployed application.
+The committed `render.yaml` already selects the production profile, Docker runtime, database-aware `/actuator/health` checks, and catalog-only initializer. Render must supply all values marked `sync: false`. Production catalog initialization is create-only: missing sample rows are added, while existing products, prices, visibility settings, variants, and stock are preserved across restarts and deployments. Deterministic resets remain limited to the local demo profiles. The administrator password must be 8–72 characters with upper- and lowercase letters, a digit, and a symbol; it is stored only as a BCrypt hash. Customers register through the storefront, and the administrator creates other staff accounts through authorized management pages.
+
+Production images are stored in the same MySQL service, not Render's ephemeral filesystem. Do not set `APP_UPLOAD_DIR` in production. Do not use local classroom credentials or activate `demo`, `mysql-demo`, or `intellij` on a hosted service.
 
 ## Build, test, and package
 
@@ -210,8 +216,9 @@ Checkout recalculates prices and validates stock on the server, decreases varian
 - Accepted image types: JPG, JPEG, PNG, WEBP, GIF; maximum size: 5 MB.
 - The server checks extension, MIME type, and decodable image content.
 - Stored filenames are generated UUID names; the original filename is used only as safe download metadata.
-- Default location is `uploads/` (or `demo-uploads/` in demo mode), outside `src/main/resources`; both are ignored by Git.
-- Replacing/deleting a product image removes the old stored file only after the database operation can safely proceed.
+- Local location is `uploads/` (or `demo-uploads/` in demo mode), outside `src/main/resources`; both are ignored by Git.
+- Production stores image bytes in the `product_images` MySQL table, so container restarts do not remove them.
+- Replacing/deleting a product image removes the old stored object only after the product database operation can safely proceed.
 
 ## Project tree
 
@@ -224,7 +231,7 @@ src/main/java/bd/edu/seu/jerseysee/
   repository/    Spring Data repositories
   service/       business rules, storage, checkout, invoice generation
 src/main/resources/
-  application.properties       shared configuration and local-demo default profile
+  application.properties       shared configuration and default `intellij` profile selection
   application-intellij.properties  one-click local MySQL classroom values
   application-demo.properties  local H2 demo configuration
   application-production.properties  required non-demo deployment values
@@ -241,26 +248,13 @@ Take screenshots from your own running demo for: home/catalog filters, product d
 
 | Symptom | Check |
 | --- | --- |
-| Maven cannot download dependencies / `Unknown host repo.maven.apache.org` | Check DNS/network/proxy access to Maven Central, then rerun the Maven Wrapper. This environment currently cannot resolve Maven Central, so Maven test/package execution cannot be claimed as passed here. |
+| Maven cannot download dependencies / `Unknown host repo.maven.apache.org` | This is a network/DNS/proxy problem rather than an application defect. Restore access to Maven Central and rerun the Maven Wrapper; GitHub Actions independently runs `clean verify` on every branch/PR update. |
 | Port 8080 already in use | Stop the other process or add `--server.port=8081`. |
 | `Access denied for user 'root'` | The direct-run configuration expects the confirmed password `password`. If the MySQL account changes, edit the local values in `application-intellij.properties` or run the explicit `mysql-demo` profile with `DB_PASSWORD`. |
 | `Public Key Retrieval is not allowed` | Keep the complete local JDBC URL in `application.properties`, including `allowPublicKeyRetrieval=true`. |
 | Tables exist but catalog is empty | Confirm the Run console says the `intellij` default profile is active and that no different profile was selected in the Run Configuration. |
-| Demo startup reports an existing email/category collision | An unkeyed row already owns a reserved demo value. Rename/remove that local row or select a non-demo profile; the initializer deliberately does not overwrite it. |
+| Demo startup reports an existing email/category collision | An unrelated unkeyed row owns a reserved demo value and did not match the controlled legacy-demo identity. Rename that local row or use a non-demo profile; it will not be overwritten. |
 | MySQL authentication/connection failure | Confirm MySQL is running on port 3306 and that the `root/password` login can access the `jerseysee` schema. |
 | H2 demo starts with no data | Include `demo` exactly in the active profile and check startup logs for `DemoDataInitializer`. |
 | Upload rejected | Use an allowed, decodable image at 5 MB or less and ensure the upload directory is writable. |
-| Upload/image missing after restart | Runtime uploads are not source assets. Preserve the configured directory locally if required; do not commit it. |
-
-## Security notes
-
-- Passwords are BCrypt hashes; only the documented local demo password is known in source and it is explicitly property-gated.
-- Public registration always creates `CUSTOMER`; browser input cannot select a staff or administrator role.
-- URL security and method-level authorization both protect management and ownership-sensitive actions.
-- State-changing forms use POST with Spring Security CSRF protection.
-- Order totals, stock, and payment status are server-controlled; browser totals are never trusted.
-- Do not ship `.git`, `.idea`, `target`, `uploads`, `demo-uploads`, local databases, `.env`, or secrets in a release archive.
-
-## Verification note
-
-Static source/template/view/asset checks can be run locally. In the supplied environment, Maven Central DNS resolution is blocked (`repo.maven.apache.org: Temporary failure in name resolution`), so this README does not claim that Maven tests, package creation, or a running smoke test passed there. Run the commands above on a machine with Maven Central access before a final release.
+| Local upload/image missing after restart | Preserve the configured local upload directory; do not commit it. Production images are stored in MySQL and should survive Render restarts. |

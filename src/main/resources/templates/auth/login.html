@@ -6,12 +6,13 @@
 </head>
 <body class="auth-body">
 <main class="auth-shell">
-    <section class="auth-showcase">
+    <section class="auth-showcase" data-auth-campaign>
         <a class="brand brand-light" th:href="@{/}"><img th:src="@{/images/brand-mark.svg}" alt="" width="48" height="48"><span><strong>JerseySee</strong><small>Wear the game</small></span></a>
-        <div><span class="eyebrow">Your football wardrobe</span><h1>Back in the starting eleven.</h1><p>Track orders, update your profile and get the next shirt ready for match day.</p></div>
-        <blockquote>“A kit is never just fabric. It is memory, place and belonging.”</blockquote>
+        <div class="auth-campaign-copy"><span class="eyebrow">Your football wardrobe</span><h1>Back in the starting eleven.</h1><p>Track orders, update your profile and get the next shirt ready for match day.</p></div>
+        <img class="auth-kit-art" th:src="@{/images/hero-kit.svg}" alt="">
+        <blockquote>“A shirt is memory, place and belonging.”</blockquote>
     </section>
-    <section class="auth-panel">
+    <section class="auth-panel" data-auth-panel>
         <div class="auth-card">
             <a class="auth-back" th:href="@{/}">← Back to store</a>
             <span class="eyebrow">Welcome back</span><h2>Sign in to JerseySee</h2><p>Use the email attached to your account.</p>

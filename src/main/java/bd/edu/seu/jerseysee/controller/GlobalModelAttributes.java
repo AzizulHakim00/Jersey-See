@@ -11,6 +11,7 @@ import bd.edu.seu.jerseysee.model.enums.ProductType;
 import bd.edu.seu.jerseysee.model.enums.SizeOption;
 import bd.edu.seu.jerseysee.model.enums.SleeveType;
 import bd.edu.seu.jerseysee.service.UserService;
+import bd.edu.seu.jerseysee.service.OrderService;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpSession;
 import org.springframework.security.authentication.AnonymousAuthenticationToken;
@@ -42,6 +43,7 @@ public class GlobalModelAttributes {
         model.addAttribute("printingTypes", PrintingType.values());
         model.addAttribute("paymentMethods", PaymentMethod.values());
         model.addAttribute("orderStatuses", OrderStatus.values());
+        model.addAttribute("deliveryFee", OrderService.DELIVERY_FEE);
     }
 
     private User currentUser(Authentication authentication) {

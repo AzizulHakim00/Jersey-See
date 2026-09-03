@@ -1,10 +1,16 @@
 (() => {
     "use strict";
 
+    document.documentElement.classList.add("js");
+
     const setExpanded = (button, expanded) => button?.setAttribute("aria-expanded", String(expanded));
 
-    const menuButton = document.querySelector("[data-menu-toggle]");
-    const siteNav = document.getElementById("siteNav");
+    const menuButton = document.querySelector("[data-mobile-menu-toggle], [data-menu-toggle]");
+    const siteNav = document.querySelector("[data-mobile-menu]");
+    const closeMenu = () => {
+        siteNav?.classList.remove("is-open");
+        setExpanded(menuButton, false);
+    };
     menuButton?.addEventListener("click", () => {
         const open = siteNav?.classList.toggle("is-open") ?? false;
         setExpanded(menuButton, open);
@@ -96,13 +102,30 @@
 
     const filterButton = document.querySelector("[data-filter-toggle]");
     const filterCard = document.querySelector("[data-filter-card]");
+    const filterScrim = document.querySelector("[data-filter-scrim]");
+    const filterClose = document.querySelector("[data-filter-close]");
     if (filterButton instanceof HTMLButtonElement && filterCard instanceof HTMLElement) {
         filterCard.classList.add("is-collapsible");
         filterCard.classList.remove("is-open");
         setExpanded(filterButton, false);
+        const closeFilters = () => {
+            filterCard.classList.remove("is-open");
+            filterScrim?.classList.remove("is-open");
+            setExpanded(filterButton, false);
+        };
         filterButton.addEventListener("click", () => {
             const open = filterCard.classList.toggle("is-open");
+            filterScrim?.classList.toggle("is-open", open);
             setExpanded(filterButton, open);
+            if (open) filterCard.querySelector("input, select, button, a")?.focus();
+        });
+        filterClose?.addEventListener("click", closeFilters);
+        filterScrim?.addEventListener("click", closeFilters);
+        document.addEventListener("keydown", (event) => {
+            if (event.key === "Escape" && filterCard.classList.contains("is-open")) {
+                closeFilters();
+                filterButton.focus();
+            }
         });
     }
 
@@ -139,6 +162,10 @@
         if (event.key === "Escape") {
             hideModal();
             closeSidebar();
+            if (siteNav?.classList.contains("is-open")) {
+                closeMenu();
+                menuButton?.focus();
+            }
         }
     });
 })();

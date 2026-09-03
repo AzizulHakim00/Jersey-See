@@ -1,26 +1,38 @@
-ROOT CAUSE FIX:
-The failed Render commit did not contain src/main/java. Upload the CONTENTS of this package to the GitHub repository root.
-Do NOT upload it as an extra nested folder.
-After upload, GitHub must show:
-src/main/java/bd/edu/seu/jerseysee/JerseySeeApplication.java
+JERSEYSEE — RENDER + AIVEN QUICK START
 
-RENDER:
-Runtime: Docker
-Dockerfile Path: ./Dockerfile
-Root Directory: blank
+Repository root requirements:
+  pom.xml
+  Dockerfile
+  render.yaml
+  src/main/java/bd/edu/seu/jerseysee/JerseySeeApplication.java
 
-Required environment variables:
-SPRING_PROFILES_ACTIVE=production
-JERSEYSEE_DB_URL=jdbc:mysql://jourseysee-mdomor01815-ff08.k.aivencloud.com:24116/defaultdb?sslMode=REQUIRED&serverTimezone=UTC
-JERSEYSEE_DB_USERNAME=avnadmin
-JERSEYSEE_DB_PASSWORD=<your Aiven password>
-APP_UPLOAD_DIR=/tmp/jerseysee-uploads
+Create an Aiven MySQL service and a Render Blueprint connected to this repository.
+Keep Render's Root Directory blank and Dockerfile Path set to ./Dockerfile.
 
-For first administrator creation:
-APP_SEED_ADMIN_ENABLED=true
-APP_SEED_ADMIN_EMAIL=<your admin email>
-APP_SEED_ADMIN_PASSWORD=<strong password: upper/lower/digit/special, 8+ chars>
+Required Render secret values:
+  JERSEYSEE_DB_URL=jdbc:mysql://<AIVEN_HOST>:<AIVEN_PORT>/<DATABASE>?sslMode=REQUIRED&serverTimezone=UTC
+  JERSEYSEE_DB_USERNAME=<AIVEN_USERNAME>
+  JERSEYSEE_DB_PASSWORD=<AIVEN_PASSWORD>
+  APP_SEED_ADMIN_EMAIL=<YOUR_ADMIN_EMAIL>
+  APP_SEED_ADMIN_PASSWORD=<STRONG_UNIQUE_PASSWORD>
 
-After admin is created successfully, set APP_SEED_ADMIN_ENABLED=false.
+The Blueprint supplies these non-secret values:
+  SPRING_PROFILES_ACTIVE=production
+  JERSEYSEE_DEMO_CATALOG_ENABLED=true
+  APP_SEED_ADMIN_ENABLED=true
 
-Then Render -> Manual Deploy -> Clear build cache & deploy.
+APP_SEED_ADMIN_PASSWORD must contain upper- and lowercase letters, a digit,
+a symbol, and 8–72 characters. The value is BCrypt-hashed before storage.
+The initializer creates the administrator only when its email does not exist.
+Catalog initialization is create-only in production. Render restarts never reset
+sold stock, administrator price changes, product visibility, or other catalog edits.
+
+Deployment checks:
+  1. Wait for both the Docker and Render /actuator/health checks to report healthy.
+  2. Open the homepage and confirm the catalog is populated.
+  3. Log in with APP_SEED_ADMIN_EMAIL and APP_SEED_ADMIN_PASSWORD.
+  4. Register a customer account to test cart and checkout.
+  5. Upload a small product image as admin/manager and restart the service;
+     the image remains available because production stores it in MySQL.
+
+Never commit a real Aiven hostname, database password, or admin password.

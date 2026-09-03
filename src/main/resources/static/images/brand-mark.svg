@@ -1,7 +1,8 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-labelledby="title description">
   <title id="title">JerseySee</title>
-  <desc id="description">A lime football shirt shield marked JS</desc>
-  <path fill="#c7ff35" d="M12 12 24 6c2 6 14 6 16 0l12 6-6 13-5-3v32H23V22l-5 3-6-13Z"/>
-  <path fill="#0b1833" d="m24 6 4 9h8l4-9c-2 6-14 6-16 0Zm-4 21 3-7v34h18V20l3 7 4-2-5 16H21l-5-16 4 2Z" opacity=".18"/>
-  <path fill="#0b1833" d="M22 26h7v13c0 5-3 8-8 8h-3v-6h2c1 0 2-1 2-3V26Zm10 0h14v6h-8v2h7v6h-7v2h8v6H32V26Z"/>
+  <desc id="description">A premium navy football shirt shield with cobalt, gold and ivory details marked JS</desc>
+  <path fill="#07142c" d="M12 13 24 7c2 5 14 5 16 0l12 6-5 12-6-3v33H23V22l-6 3-5-12Z"/>
+  <path fill="#1646c8" d="M24 7c2 5 14 5 16 0l4 2c-3 7-8 10-12 10S23 16 20 9l4-2ZM23 24h18v5H23z"/>
+  <path fill="#b99552" d="M23 31h18v3H23zM18 23l5-10 3 2-5 10-3-2Zm28 0-5-10-3 2 5 10 3-2Z"/>
+  <path fill="#f7f3ea" d="M25 36h6v9c0 4-2 6-6 6h-3v-5h2c1 0 1-1 1-2v-8Zm9 0h9v5h-4v1h4v4h-4v1h4v5h-9V36Z"/>
 </svg>

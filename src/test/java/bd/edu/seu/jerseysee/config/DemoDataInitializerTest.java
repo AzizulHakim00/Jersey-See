@@ -109,6 +109,44 @@ class DemoDataInitializerTest {
     }
 
     @Test
+    void rerunAdoptsRecognizableLegacyDemoRowsWhoseSeedKeysAreMissing() throws Exception {
+        User administrator = userRepository.findByDemoSeedKey("demo.user.admin").orElseThrow();
+        administrator.setDemoSeedKey(null);
+        administrator.setPassword("legacy-password-hash");
+        userRepository.saveAndFlush(administrator);
+
+        Category jerseys = categoryRepository.findByDemoSeedKey("demo.category.jerseys").orElseThrow();
+        jerseys.setDemoSeedKey(null);
+        categoryRepository.saveAndFlush(jerseys);
+
+        Product product = productRepository.findByDemoSeedKey("demo.product.metro-city-home-fan").orElseThrow();
+        product.setDemoSeedKey(null);
+        product.getVariants().forEach(variant -> variant.setDemoSeedKey(null));
+        productRepository.saveAndFlush(product);
+        long usersBefore = userRepository.count();
+        long categoriesBefore = categoryRepository.count();
+        long productsBefore = productRepository.count();
+        long variantsBefore = variantRepository.count();
+        entityManager.clear();
+
+        demoDataInitializer.run();
+
+        User adoptedAdministrator = userRepository.findByDemoSeedKey("demo.user.admin").orElseThrow();
+        assertThat(adoptedAdministrator.getId()).isEqualTo(administrator.getId());
+        assertThat(passwordEncoder.matches("Demo123!", adoptedAdministrator.getPassword())).isTrue();
+        assertThat(categoryRepository.findByDemoSeedKey("demo.category.jerseys").orElseThrow().getId())
+                .isEqualTo(jerseys.getId());
+        assertThat(productRepository.findByDemoSeedKey("demo.product.metro-city-home-fan").orElseThrow().getId())
+                .isEqualTo(product.getId());
+        assertThat(variantRepository.findByDemoSeedKey("demo.variant.metro-city-home-fan.mc-hf-m"))
+                .isPresent();
+        assertThat(userRepository.count()).isEqualTo(usersBefore);
+        assertThat(categoryRepository.count()).isEqualTo(categoriesBefore);
+        assertThat(productRepository.count()).isEqualTo(productsBefore);
+        assertThat(variantRepository.count()).isEqualTo(variantsBefore);
+    }
+
+    @Test
     void rerunRestoresDesiredValuesForASeedSkuAlreadyOwnedByItsProduct() throws Exception {
         ProductVariant changed = variantRepository.findByDemoSeedKey("demo.variant.metro-city-home-fan.mc-hf-s")
                 .orElseThrow();
@@ -214,16 +252,41 @@ class DemoDataInitializerTest {
     }
 
     @Test
+    void rerunDoesNotAdoptAProductThatOnlyMatchesThePartialLegacySignature() throws Exception {
+        Product seeded = productRepository.findByDemoSeedKey("demo.product.metro-city-home-fan").orElseThrow();
+        productRepository.delete(seeded);
+        productRepository.flush();
+
+        Product unrelated = newProduct("Metro City Home Fan Jersey", "JerseySee", "1.00");
+        unrelated.setProductType(ProductType.JERSEY);
+        unrelated.setClubOrCountry("Metro City");
+        unrelated.setSeason("2026/27");
+        unrelated.addVariant(newVariant("CUSTOM-MATCH-S", SizeOption.S, 77, "25.00"));
+        unrelated = productRepository.saveAndFlush(unrelated);
+
+        demoDataInitializer.run();
+
+        Product created = productRepository.findByDemoSeedKey("demo.product.metro-city-home-fan").orElseThrow();
+        Product preserved = productRepository.findById(unrelated.getId()).orElseThrow();
+        ProductVariant preservedVariant = variantRepository.findBySku("CUSTOM-MATCH-S").orElseThrow();
+        assertThat(created.getId()).isNotEqualTo(unrelated.getId());
+        assertThat(preserved.getDemoSeedKey()).isNull();
+        assertThat(preserved.getBasePrice()).isEqualByComparingTo("1.00");
+        assertThat(preservedVariant.getProduct().getId()).isEqualTo(preserved.getId());
+        assertThat(preservedVariant.getStockQuantity()).isEqualTo(77);
+    }
+
+    @Test
     void rerunDoesNotAdoptFallbackLookingVariantWithoutDemoSeedKey() throws Exception {
         Product product = productRepository.findByDemoSeedKey("demo.product.metro-city-home-fan").orElseThrow();
         ProductVariant seeded = variantRepository.findByDemoSeedKey("demo.variant.metro-city-home-fan.mc-hf-m")
                 .orElseThrow();
         Long seededId = seeded.getId();
-        seeded.setSku("MANUALLY-MOVED-M-SKU");
-        variantRepository.saveAndFlush(seeded);
         ProductVariant unrelatedFallback = newVariant("MC-HF-M-DEMO-2", SizeOption.XL, 66, "13.00");
         product.addVariant(unrelatedFallback);
         productRepository.saveAndFlush(product);
+        seeded.setSku("MANUALLY-MOVED-M-SKU");
+        variantRepository.saveAndFlush(seeded);
         entityManager.clear();
 
         demoDataInitializer.run();
