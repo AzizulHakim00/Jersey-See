@@ -32,6 +32,16 @@ class ProductionDatabaseEnvironmentPostProcessorTest {
     }
 
     @Test
+    void rejectsProductionUrlWithoutRequiredSsl() {
+        MockEnvironment environment = productionEnvironmentWithRenderUrl(
+                "jdbc:mysql://db.example.com:3306/defaultdb?serverTimezone=UTC");
+
+        assertThatThrownBy(() -> postProcessor.postProcessEnvironment(environment, null))
+                .isInstanceOf(IllegalStateException.class)
+                .hasMessageContaining("sslMode=REQUIRED");
+    }
+
+    @Test
     void acceptsValidMysqlProductionUrl() {
         MockEnvironment environment = productionEnvironmentWithRenderUrl(
                 "jdbc:mysql://db.example.com:3306/defaultdb?sslMode=REQUIRED&serverTimezone=UTC");

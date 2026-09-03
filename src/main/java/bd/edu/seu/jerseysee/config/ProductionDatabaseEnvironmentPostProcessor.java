@@ -1,5 +1,6 @@
 package bd.edu.seu.jerseysee.config;
 
+import java.util.Locale;
 import org.springframework.boot.EnvironmentPostProcessor;
 import org.springframework.boot.SpringApplication;
 import org.springframework.core.Ordered;
@@ -57,6 +58,11 @@ public final class ProductionDatabaseEnvironmentPostProcessor implements Environ
         if (!trimmed.startsWith("jdbc:mysql://")) {
             throw new IllegalStateException(
                     "Invalid JERSEYSEE_DB_URL. The Render value must begin with jdbc:mysql://.");
+        }
+
+        if (!trimmed.toLowerCase(Locale.ROOT).contains("sslmode=required")) {
+            throw new IllegalStateException(
+                    "Invalid JERSEYSEE_DB_URL. Hosted MySQL connections must include sslMode=REQUIRED.");
         }
     }
 
