@@ -140,22 +140,22 @@ class PageRenderingTest {
 
     @Test
     void homeRendersFeaturedProduct() throws Exception {
-        assertPage(get("/"), "home/index", "Match-day identity");
+        assertPage(get("/"), "home/index", "data-campaign-hero");
     }
 
     @Test
     void loginRenders() throws Exception {
-        assertPage(get("/login"), "auth/login", "Welcome back");
+        assertPage(get("/login"), "auth/login", "data-auth-campaign");
     }
 
     @Test
     void registrationRenders() throws Exception {
-        assertPage(get("/register"), "auth/register", "Create your account");
+        assertPage(get("/register"), "auth/register", "data-auth-panel");
     }
 
     @Test
     void catalogRendersFiltersAndProducts() throws Exception {
-        assertPage(get("/catalog"), "catalog/list", "Find your colours");
+        assertPage(get("/catalog"), "catalog/list", "data-commerce-grid");
     }
 
     @Test
@@ -188,7 +188,7 @@ class PageRenderingTest {
 
     @Test
     void productDetailRendersVariants() throws Exception {
-        assertPage(get("/products/11"), "catalog/detail", "Dhaka Strikers Home Jersey");
+        assertPage(get("/products/11"), "catalog/detail", "data-purchase-panel");
     }
 
     @Test
@@ -224,25 +224,25 @@ class PageRenderingTest {
     @Test
     @WithMockUser(username = "customer@example.com", roles = "CUSTOMER")
     void populatedCartRenders() throws Exception {
-        assertPage(get("/cart").session(cartSession()), "cart/view", "Order summary");
+        assertPage(get("/cart").session(cartSession()), "cart/view", "data-order-summary");
     }
 
     @Test
     @WithMockUser(username = "customer@example.com", roles = "CUSTOMER")
     void checkoutRendersDeliveryAndPaymentFields() throws Exception {
-        assertPage(get("/checkout").session(cartSession()), "orders/checkout", "Delivery details");
+        assertPage(get("/checkout").session(cartSession()), "orders/checkout", "data-checkout-layout");
     }
 
     @Test
     @WithMockUser(username = "customer@example.com", roles = "CUSTOMER")
     void customerOrderListRenders() throws Exception {
-        assertPage(get("/orders"), "orders/list", "Your orders");
+        assertPage(get("/orders"), "orders/list", "data-order-history");
     }
 
     @Test
     @WithMockUser(username = "customer@example.com", roles = "CUSTOMER")
     void customerOrderDetailRenders() throws Exception {
-        assertPage(get("/orders/31"), "orders/detail", "Order #31");
+        assertPage(get("/orders/31"), "orders/detail", "data-order-detail");
     }
 
     @Test
@@ -300,7 +300,7 @@ class PageRenderingTest {
     @Test
     @WithMockUser(username = "customer@example.com", roles = "CUSTOMER")
     void profileFormRenders() throws Exception {
-        assertPage(get("/profile"), "profile/edit", "Profile settings");
+        assertPage(get("/profile"), "profile/edit", "data-account-layout");
     }
 
     @Test

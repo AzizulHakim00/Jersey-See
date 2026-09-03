@@ -51,6 +51,15 @@ class CartServiceTest {
     }
 
     @Test
+    void addCarriesThePersistedProductImageIntoTheCustomerCart() {
+        ShoppingCart cart = new ShoppingCart();
+
+        CartItem item = cartService.add(cart, add(1, PrintingType.NONE, null, null));
+
+        assertThat(item.getStoredImageName()).isEqualTo("national-home.png");
+    }
+
+    @Test
     void addMergesOnlyIdenticalVariantAndNormalizedPrinting() {
         ShoppingCart cart = new ShoppingCart();
 
@@ -121,6 +130,7 @@ class CartServiceTest {
         product.setName(name);
         product.setBasePrice(new BigDecimal(basePrice));
         product.setActive(true);
+        product.setStoredImageName("national-home.png");
         ProductVariant result = new ProductVariant();
         result.setProduct(product);
         result.setSku(sku);

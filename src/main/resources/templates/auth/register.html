@@ -6,12 +6,12 @@
 </head>
 <body class="auth-body">
 <main class="auth-shell auth-register-shell">
-    <section class="auth-showcase">
+    <section class="auth-showcase" data-auth-campaign>
         <a class="brand brand-light" th:href="@{/}"><img th:src="@{/images/brand-mark.svg}" alt="" width="48" height="48"><span><strong>JerseySee</strong><small>Wear the game</small></span></a>
-        <div><span class="eyebrow">Join the squad</span><h1>Your next shirt starts here.</h1><p>Register as a customer to customise products, check out and follow every order.</p></div>
+        <div class="auth-campaign-copy"><span class="eyebrow">Join the squad</span><h1>Your next shirt starts here.</h1><p>Register as a customer to customise products, check out and follow every order.</p></div>
         <ol class="auth-benefits"><li>Real-time variant stock</li><li>Secure server-calculated totals</li><li>Order history and invoices</li></ol>
     </section>
-    <section class="auth-panel">
+    <section class="auth-panel" data-auth-panel>
         <div class="auth-card auth-card-wide">
             <a class="auth-back" th:href="@{/}">← Back to store</a>
             <span class="eyebrow">Customer registration</span><h2>Create your account</h2><p>All fields are required. Passwords need upper- and lower-case letters, a number and a symbol.</p>

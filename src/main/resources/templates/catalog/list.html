@@ -2,48 +2,77 @@
 <html lang="en" xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Shop | JerseySee</title><link rel="stylesheet" th:href="@{/css/jerseysee.css}">
+    <meta name="description" content="Shop JerseySee football jerseys, boots, footballs and supporter accessories.">
+    <title>Shop football | JerseySee</title>
+    <link rel="stylesheet" th:href="@{/css/jerseysee.css}">
 </head>
-<body>
+<body class="storefront-body">
 <div th:replace="~{fragments/navigation :: navigation('catalog')}"></div>
-<main class="page-main">
+<main class="page-main catalog-page">
     <div class="section-shell">
-        <header class="catalog-hero"><span class="eyebrow">The JerseySee catalog</span><h1>Find your colours.</h1><p>Filter the squad by club, product type, edition, size, stock and budget.</p></header>
+        <nav class="breadcrumbs" aria-label="Breadcrumb"><a th:href="@{/}">Home</a><span aria-hidden="true">/</span><span>Shop</span></nav>
+        <header class="catalog-hero premium-catalog-hero">
+            <span class="eyebrow">The JerseySee collection</span>
+            <h1>Find your colours.</h1>
+            <p>New-season jerseys, player editions, retro stories and match-day essentials—selected for every kind of supporter.</p>
+        </header>
         <div th:replace="~{fragments/messages :: messages}"></div>
+
+        <section class="catalog-toolbar" aria-label="Catalog controls">
+            <div><strong th:text="${products != null ? products.totalElements : 0}">0</strong><span>pieces in the collection</span></div>
+            <button class="button button-ink button-small filter-mobile-button" type="button"
+                    data-filter-toggle aria-controls="catalogFilters" aria-expanded="true">Filter &amp; refine</button>
+        </section>
+
         <section class="catalog-layout">
-            <aside class="filter-card" id="catalogFilters" data-filter-card>
-                <div class="filter-card-heading"><h2>Filters</h2><a th:href="@{/catalog}">Reset</a></div>
+            <aside class="filter-card commerce-filter" id="catalogFilters" data-filter-card data-filter-drawer>
+                <div class="filter-card-heading">
+                    <div><span>Refine your search</span><h2>Filters</h2></div>
+                    <button class="filter-close" type="button" data-filter-close aria-label="Close filters">×</button>
+                    <a th:href="@{/catalog}">Clear all</a>
+                </div>
                 <form th:action="@{/catalog}" th:object="${filter}" method="get" class="filter-stack" data-filter-form>
                     <div class="global-errors" th:if="${#fields.hasGlobalErrors()}"><p th:each="error : ${#fields.globalErrors()}" th:text="${error}">Filter error</p></div>
-                    <div class="field"><label for="keyword">Search</label><input id="keyword" type="search" th:field="*{keyword}" placeholder="Name, brand or club"></div>
-                    <div class="field"><label for="categoryId">Category</label><select id="categoryId" th:field="*{categoryId}"><option value="">All categories</option><option th:each="category : ${categories}" th:value="${category.id}" th:text="${category.name}">Category</option></select></div>
+                    <div class="field"><label for="keyword">Search products</label><input id="keyword" type="search" th:field="*{keyword}" placeholder="Shirt, club or brand"></div>
+                    <div class="field"><label for="categoryId">Department</label><select id="categoryId" th:field="*{categoryId}"><option value="">All departments</option><option th:each="category : ${categories}" th:value="${category.id}" th:text="${category.name}">Category</option></select></div>
                     <div class="field"><label for="productType">Product type</label><select id="productType" th:field="*{productType}"><option value="">All products</option><option th:each="type : ${productTypes}" th:value="${type}" th:text="${#strings.replace(type.name(),'_',' ')}">Type</option></select></div>
-                    <div class="field"><label for="clubOrCountry">Club or country</label><input id="clubOrCountry" type="text" th:field="*{clubOrCountry}" placeholder="Bangladesh, Barcelona…"></div>
+                    <div class="field"><label for="clubOrCountry">Club or country</label><input id="clubOrCountry" type="text" th:field="*{clubOrCountry}" placeholder="Club or national team"></div>
                     <div class="form-grid two">
-                        <div class="field"><label for="edition">Edition</label><select id="edition" th:field="*{edition}"><option value="">Any</option><option th:each="edition : ${jerseyEditions}" th:value="${edition}" th:text="${edition}">Edition</option></select></div>
-                        <div class="field"><label for="kitType">Kit</label><select id="kitType" th:field="*{kitType}"><option value="">Any</option><option th:each="kit : ${kitTypes}" th:value="${kit}" th:text="${kit}">Kit</option></select></div>
-                        <div class="field"><label for="size">Size</label><select id="size" th:field="*{size}"><option value="">Any</option><option th:each="size : ${sizeOptions}" th:value="${size}" th:text="${#strings.replace(size.name(),'_',' ')}">Size</option></select></div>
-                        <div class="field"><label for="available">Stock</label><select id="available" th:field="*{available}"><option value="">Any</option><option value="true">In stock</option><option value="false">Out of stock</option></select></div>
-                        <div class="field"><label for="minimumPrice">Min ৳</label><input id="minimumPrice" type="number" min="0" step="0.01" th:field="*{minimumPrice}"><span class="field-error" th:if="${#fields.hasErrors('minimumPrice')}" th:errors="*{minimumPrice}">Error</span></div>
-                        <div class="field"><label for="maximumPrice">Max ৳</label><input id="maximumPrice" type="number" min="0" step="0.01" th:field="*{maximumPrice}"><span class="field-error" th:if="${#fields.hasErrors('maximumPrice')}" th:errors="*{maximumPrice}">Error</span></div>
+                        <div class="field"><label for="edition">Edition</label><select id="edition" th:field="*{edition}"><option value="">Any edition</option><option th:each="edition : ${jerseyEditions}" th:value="${edition}" th:text="${edition}">Edition</option></select></div>
+                        <div class="field"><label for="kitType">Kit</label><select id="kitType" th:field="*{kitType}"><option value="">Any kit</option><option th:each="kit : ${kitTypes}" th:value="${kit}" th:text="${kit}">Kit</option></select></div>
+                        <div class="field"><label for="size">Size</label><select id="size" th:field="*{size}"><option value="">Any size</option><option th:each="size : ${sizeOptions}" th:value="${size}" th:text="${#strings.replace(size.name(),'_',' ')}">Size</option></select></div>
+                        <div class="field"><label for="available">Availability</label><select id="available" th:field="*{available}"><option value="">Any</option><option value="true">In stock</option><option value="false">Out of stock</option></select></div>
+                        <div class="field"><label for="minimumPrice">Minimum ৳</label><input id="minimumPrice" type="number" min="0" step="0.01" th:field="*{minimumPrice}"><span class="field-error" th:if="${#fields.hasErrors('minimumPrice')}" th:errors="*{minimumPrice}">Error</span></div>
+                        <div class="field"><label for="maximumPrice">Maximum ৳</label><input id="maximumPrice" type="number" min="0" step="0.01" th:field="*{maximumPrice}"><span class="field-error" th:if="${#fields.hasErrors('maximumPrice')}" th:errors="*{maximumPrice}">Error</span></div>
                     </div>
-                    <button class="button button-blue button-wide" type="submit">Apply filters</button>
+                    <button class="button button-ink button-wide" type="submit">Show matching products</button>
                 </form>
             </aside>
+            <button class="filter-scrim" type="button" data-filter-scrim aria-label="Close filters" tabindex="-1"></button>
+
             <section class="catalog-results">
-                <div class="results-bar"><div><strong th:text="${products != null ? products.totalElements : 0}">0</strong><span>products selected</span></div><button class="button button-ghost button-small filter-mobile-button" type="button" data-filter-toggle aria-controls="catalogFilters" aria-expanded="true">Filters</button></div>
-                <div class="product-grid catalog-grid" th:if="${products != null and !products.empty}">
-                    <article class="product-card" th:each="product : ${products.content}">
-                        <a class="product-media" th:href="@{/products/{id}(id=${product.id})}"><span class="product-flag" th:if="${product.featured}">Featured</span><img th:src="${product.storedImageName != null ? '/product-images/' + product.storedImageName : '/images/product-placeholder.svg'}" th:alt="${product.name}" onerror="this.onerror=null;this.src='/images/product-placeholder.svg'"></a>
-                        <div class="product-card-body"><span class="product-meta" th:text="${product.clubOrCountry != null ? product.clubOrCountry : product.brand}">Club</span><h3><a th:href="@{/products/{id}(id=${product.id})}" th:text="${product.name}">Product</a></h3><div class="size-chip-row"><span th:each="variant : ${product.variants}" th:if="${variant.stockQuantity > 0}" th:text="${#strings.replace(variant.size.name(),'_',' ')}">M</span></div><div class="product-card-footer"><strong>৳<span th:text="${#numbers.formatDecimal(product.basePrice,1,2)}">0.00</span></strong><a th:href="@{/products/{id}(id=${product.id})}">View →</a></div></div>
-                    </article>
+                <div class="results-bar">
+                    <div><strong>Selected for you</strong><span>Availability and prices shown by product</span></div>
+                    <a th:href="@{/catalog}" th:if="${filter.keyword != null or filter.categoryId != null or filter.productType != null or filter.clubOrCountry != null or filter.edition != null or filter.kitType != null or filter.size != null or filter.available != null or filter.minimumPrice != null or filter.maximumPrice != null}">Reset filters</a>
                 </div>
-                <div class="empty-state" th:if="${products == null or products.empty}"><span>⌕</span><h2>No products match</h2><p>Remove a filter or try another keyword.</p><a class="button button-blue" th:href="@{/catalog}">Clear all filters</a></div>
-                <nav class="pagination" th:if="${products != null and products.totalPages > 1}" aria-label="Catalog pages"><a th:if="${products.hasPrevious()}" th:href="@{/catalog(page=${products.number - 1},keyword=${filter.keyword},categoryId=${filter.categoryId},productType=${filter.productType},clubOrCountry=${filter.clubOrCountry},edition=${filter.edition},kitType=${filter.kitType},size=${filter.size},available=${filter.available},minimumPrice=${filter.minimumPrice},maximumPrice=${filter.maximumPrice})}">← Previous</a><span>Page <b th:text="${products.number + 1}">1</b> of <b th:text="${products.totalPages}">1</b></span><a th:if="${products.hasNext()}" th:href="@{/catalog(page=${products.number + 1},keyword=${filter.keyword},categoryId=${filter.categoryId},productType=${filter.productType},clubOrCountry=${filter.clubOrCountry},edition=${filter.edition},kitType=${filter.kitType},size=${filter.size},available=${filter.available},minimumPrice=${filter.minimumPrice},maximumPrice=${filter.maximumPrice})}">Next →</a></nav>
+                <div class="product-grid catalog-grid commerce-grid" data-commerce-grid data-commerce-card-list
+                     th:if="${products != null and !products.empty}">
+                    <th:block th:each="product : ${products.content}"
+                              th:replace="~{fragments/product-card :: productCard(product=${product})}"></th:block>
+                </div>
+                <div class="empty-state" th:if="${products == null or products.empty}">
+                    <span>JS</span><h2>No products match this edit.</h2><p>Try another club, size or price range, or clear the filters to see the full collection.</p><a class="button button-ink" th:href="@{/catalog}">Clear all filters</a>
+                </div>
+                <nav class="pagination premium-pagination" th:if="${products != null and products.totalPages > 1}" aria-label="Catalog pages">
+                    <a th:if="${products.hasPrevious()}" th:href="@{/catalog(page=${products.number - 1},keyword=${filter.keyword},categoryId=${filter.categoryId},productType=${filter.productType},clubOrCountry=${filter.clubOrCountry},edition=${filter.edition},kitType=${filter.kitType},size=${filter.size},available=${filter.available},minimumPrice=${filter.minimumPrice},maximumPrice=${filter.maximumPrice})}">← Previous</a>
+                    <span>Page <b th:text="${products.number + 1}">1</b> of <b th:text="${products.totalPages}">1</b></span>
+                    <a th:if="${products.hasNext()}" th:href="@{/catalog(page=${products.number + 1},keyword=${filter.keyword},categoryId=${filter.categoryId},productType=${filter.productType},clubOrCountry=${filter.clubOrCountry},edition=${filter.edition},kitType=${filter.kitType},size=${filter.size},available=${filter.available},minimumPrice=${filter.minimumPrice},maximumPrice=${filter.maximumPrice})}">Next →</a>
+                </nav>
             </section>
         </section>
     </div>
 </main>
+<div th:replace="~{fragments/footer :: footer}"></div>
 <script th:src="@{/js/app.js}" defer></script>
 </body>
 </html>

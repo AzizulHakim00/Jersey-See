@@ -48,6 +48,49 @@ class StorefrontTemplateContractTest {
     }
 
     @Test
+    void publicJourneyUsesThePremiumCommerceStructure() throws IOException {
+        String home = read(TEMPLATES.resolve("home/index.html"));
+        String navigation = read(TEMPLATES.resolve("fragments/navigation.html"));
+        String catalog = read(TEMPLATES.resolve("catalog/list.html"));
+        String detail = read(TEMPLATES.resolve("catalog/detail.html"));
+        String cart = read(TEMPLATES.resolve("cart/view.html"));
+        String checkout = read(TEMPLATES.resolve("orders/checkout.html"));
+
+        assertThat(home).contains("data-campaign-hero", "data-service-strip", "data-commerce-card");
+        assertThat(navigation).contains("data-storefront-header", "data-mobile-menu", "aria-controls=\"mobileMenu\"");
+        assertThat(catalog).contains("data-filter-drawer", "data-commerce-grid", "data-commerce-card");
+        assertThat(detail).contains("data-product-stage", "data-purchase-panel", "data-size-selector");
+        assertThat(cart).contains("data-cart-lines", "data-order-summary");
+        assertThat(checkout).contains("data-checkout-layout", "data-order-review");
+    }
+
+    @Test
+    void commerceShellRetainsAccessibleProgressiveEnhancementHooks() throws IOException {
+        String navigation = read(TEMPLATES.resolve("fragments/navigation.html"));
+        String javascript = read(STATIC.resolve("js/app.js"));
+        String css = read(STATIC.resolve("css/jerseysee.css"));
+
+        assertThat(navigation).contains("aria-expanded=\"false\"", "aria-label=\"Primary navigation\"");
+        assertThat(javascript).contains("data-mobile-menu-toggle", "aria-expanded", "Escape");
+        assertThat(css).contains(":focus-visible", "prefers-reduced-motion", ".commerce-product-card");
+    }
+
+    @Test
+    void accountJourneyUsesTheRetailShellWithoutWeakeningOrderActions() throws IOException {
+        String login = read(TEMPLATES.resolve("auth/login.html"));
+        String registration = read(TEMPLATES.resolve("auth/register.html"));
+        String profile = read(TEMPLATES.resolve("profile/edit.html"));
+        String orders = read(TEMPLATES.resolve("orders/list.html"));
+        String order = read(TEMPLATES.resolve("orders/detail.html"));
+
+        assertThat(login).contains("data-auth-campaign", "data-auth-panel");
+        assertThat(registration).contains("data-auth-campaign", "data-auth-panel");
+        assertThat(profile).contains("data-account-layout");
+        assertThat(orders).contains("data-order-history", "fragments/footer :: footer");
+        assertThat(order).contains("data-order-detail", "/invoice", "currentRole != null and currentRole.name() == 'CUSTOMER'");
+    }
+
+    @Test
     void renderedAssociationFetchIntentIsExplicit() throws IOException {
         String products = Files.readString(Path.of("src/main/java/bd/edu/seu/jerseysee/repository/ProductRepository.java"));
         String employees = Files.readString(Path.of("src/main/java/bd/edu/seu/jerseysee/repository/EmployeeProfileRepository.java"));

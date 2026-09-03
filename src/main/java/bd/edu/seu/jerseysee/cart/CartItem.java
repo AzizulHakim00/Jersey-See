@@ -16,6 +16,7 @@ public class CartItem implements Serializable {
     private final String lineId;
     private final Long variantId;
     private final String productName;
+    private final String storedImageName;
     private final String sku;
     private final SizeOption size;
     private final PrintingType printingType;
@@ -29,9 +30,17 @@ public class CartItem implements Serializable {
     public CartItem(Long variantId, String productName, String sku, SizeOption size, int quantity,
             BigDecimal unitPrice, PrintingType printingType, String printingName, String printingNumber,
             BigDecimal printingCharge) {
+        this(variantId, productName, null, sku, size, quantity, unitPrice, printingType, printingName,
+                printingNumber, printingCharge);
+    }
+
+    public CartItem(Long variantId, String productName, String storedImageName, String sku, SizeOption size,
+            int quantity, BigDecimal unitPrice, PrintingType printingType, String printingName,
+            String printingNumber, BigDecimal printingCharge) {
         this.lineId = UUID.randomUUID().toString();
         this.variantId = variantId;
         this.productName = productName;
+        this.storedImageName = storedImageName;
         this.sku = sku;
         this.size = size;
         this.printingType = printingType;
@@ -69,6 +78,7 @@ public class CartItem implements Serializable {
     public String getLineId() { return lineId; }
     public Long getVariantId() { return variantId; }
     public String getProductName() { return productName; }
+    public String getStoredImageName() { return storedImageName; }
     public String getSku() { return sku; }
     public SizeOption getSize() { return size; }
     public int getQuantity() { return quantity; }

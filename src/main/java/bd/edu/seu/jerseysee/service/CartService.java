@@ -48,9 +48,9 @@ public class CartService {
             matching.refreshPrice(unitPrice, printingCharge);
             return matching;
         }
-        CartItem item = new CartItem(input.getVariantId(), variant.getProduct().getName(), variant.getSku(),
-                variant.getSize(), input.getQuantity(), unitPrice, printing.type(), printing.name(), printing.number(),
-                printingCharge);
+        CartItem item = new CartItem(input.getVariantId(), variant.getProduct().getName(),
+                variant.getProduct().getStoredImageName(), variant.getSku(), variant.getSize(), input.getQuantity(),
+                unitPrice, printing.type(), printing.name(), printing.number(), printingCharge);
         cart.addItem(item);
         return item;
     }
