@@ -231,7 +231,7 @@ src/main/java/bd/edu/seu/jerseysee/
   repository/    Spring Data repositories
   service/       business rules, storage, checkout, invoice generation
 src/main/resources/
-  application.properties       shared configuration and local-demo default profile
+  application.properties       shared configuration and default `intellij` profile selection
   application-intellij.properties  one-click local MySQL classroom values
   application-demo.properties  local H2 demo configuration
   application-production.properties  required non-demo deployment values
@@ -248,7 +248,7 @@ Take screenshots from your own running demo for: home/catalog filters, product d
 
 | Symptom | Check |
 | --- | --- |
-| Maven cannot download dependencies / `Unknown host repo.maven.apache.org` | Check DNS/network/proxy access to Maven Central, then rerun the Maven Wrapper. This environment currently cannot resolve Maven Central, so Maven test/package execution cannot be claimed as passed here. |
+| Maven cannot download dependencies / `Unknown host repo.maven.apache.org` | This is a network/DNS/proxy problem rather than an application defect. Restore access to Maven Central and rerun the Maven Wrapper; GitHub Actions independently runs `clean verify` on every branch/PR update. |
 | Port 8080 already in use | Stop the other process or add `--server.port=8081`. |
 | `Access denied for user 'root'` | The direct-run configuration expects the confirmed password `password`. If the MySQL account changes, edit the local values in `application-intellij.properties` or run the explicit `mysql-demo` profile with `DB_PASSWORD`. |
 | `Public Key Retrieval is not allowed` | Keep the complete local JDBC URL in `application.properties`, including `allowPublicKeyRetrieval=true`. |
@@ -258,17 +258,3 @@ Take screenshots from your own running demo for: home/catalog filters, product d
 | H2 demo starts with no data | Include `demo` exactly in the active profile and check startup logs for `DemoDataInitializer`. |
 | Upload rejected | Use an allowed, decodable image at 5 MB or less and ensure the upload directory is writable. |
 | Local upload/image missing after restart | Preserve the configured local upload directory; do not commit it. Production images are stored in MySQL and should survive Render restarts. |
-| Render remains unhealthy | Open `/actuator/health`, verify all three `JERSEYSEE_DB_*` secrets, and confirm the JDBC URL uses Aiven's port and `sslMode=REQUIRED`. |
-
-## Security notes
-
-- Passwords are BCrypt hashes; only the documented local demo password is known in source and it is explicitly property-gated.
-- Public registration always creates `CUSTOMER`; browser input cannot select a staff or administrator role.
-- URL security and method-level authorization both protect management and ownership-sensitive actions.
-- State-changing forms use POST with Spring Security CSRF protection.
-- Order totals, stock, and payment status are server-controlled; browser totals are never trusted.
-- Do not ship `.git`, `.idea`, `target`, `uploads`, `demo-uploads`, local databases, `.env`, or secrets in a release archive.
-
-## Verification
-
-GitHub Actions runs `./mvnw clean verify` for every push and pull request, then builds the production Docker image. The suite covers service rules, JPA relationships, seed ownership and legacy migration, real admin/customer authentication, premium page rendering, catalog/cart journeys, access control, health reporting, and both filesystem and MySQL-backed image storage. The local Codex workspace cannot resolve Maven Central, so GitHub's clean Ubuntu runner is the authoritative build environment for this repository.
