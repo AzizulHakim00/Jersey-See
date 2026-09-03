@@ -38,7 +38,7 @@ public final class ProductionDatabaseEnvironmentPostProcessor implements Environ
         if (!normalizedDatabaseUrl.equals(renderDatabaseUrl.trim())) {
             environment.getPropertySources().addFirst(new MapPropertySource(
                     NORMALIZED_DATASOURCE_PROPERTY_SOURCE,
-                    Map.of("spring.datasource.url", normalizedDatabaseUrl)));
+                    Map.<String, Object>of("spring.datasource.url", normalizedDatabaseUrl)));
         }
     }
 
