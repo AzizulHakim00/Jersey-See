@@ -22,4 +22,16 @@ class DeploymentContractTest {
                 .contains("clean verify", "${PORT:-8080}/actuator/health")
                 .doesNotContain("http://127.0.0.1:8080/actuator/health");
     }
+
+    @Test
+    void productionProfileIsPinnedToMysqlAndNeverToH2() throws IOException {
+        String production = Files.readString(Path.of("src/main/resources/application-production.properties"));
+
+        assertThat(production)
+                .contains(
+                        "spring.datasource.url=${JERSEYSEE_DB_URL}",
+                        "spring.datasource.driver-class-name=com.mysql.cj.jdbc.Driver",
+                        "spring.jpa.database-platform=org.hibernate.dialect.MySQLDialect")
+                .doesNotContain("jdbc:h2:", "org.h2.Driver");
+    }
 }
