@@ -30,6 +30,7 @@ public interface ProductRepository extends JpaRepository<Product, Long>, JpaSpec
     @Query("select product from Product product where product.id = :id")
     Optional<Product> findWithVariantsById(@Param("id") Long id);
     Optional<Product> findByStoredImageNameAndActiveTrue(String storedImageName);
+    List<Product> findAllByName(String name);
     @EntityGraph(attributePaths = {"variants", "category"})
     Optional<Product> findByDemoSeedKey(String demoSeedKey);
     List<Product> findTop8ByActiveTrueAndFeaturedTrueOrderByIdDesc();

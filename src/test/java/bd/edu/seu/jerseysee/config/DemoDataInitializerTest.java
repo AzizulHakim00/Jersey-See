@@ -109,6 +109,44 @@ class DemoDataInitializerTest {
     }
 
     @Test
+    void rerunAdoptsRecognizableLegacyDemoRowsWhoseSeedKeysAreMissing() throws Exception {
+        User administrator = userRepository.findByDemoSeedKey("demo.user.admin").orElseThrow();
+        administrator.setDemoSeedKey(null);
+        administrator.setPassword("legacy-password-hash");
+        userRepository.saveAndFlush(administrator);
+
+        Category jerseys = categoryRepository.findByDemoSeedKey("demo.category.jerseys").orElseThrow();
+        jerseys.setDemoSeedKey(null);
+        categoryRepository.saveAndFlush(jerseys);
+
+        Product product = productRepository.findByDemoSeedKey("demo.product.metro-city-home-fan").orElseThrow();
+        product.setDemoSeedKey(null);
+        product.getVariants().forEach(variant -> variant.setDemoSeedKey(null));
+        productRepository.saveAndFlush(product);
+        long usersBefore = userRepository.count();
+        long categoriesBefore = categoryRepository.count();
+        long productsBefore = productRepository.count();
+        long variantsBefore = variantRepository.count();
+        entityManager.clear();
+
+        demoDataInitializer.run();
+
+        User adoptedAdministrator = userRepository.findByDemoSeedKey("demo.user.admin").orElseThrow();
+        assertThat(adoptedAdministrator.getId()).isEqualTo(administrator.getId());
+        assertThat(passwordEncoder.matches("Demo123!", adoptedAdministrator.getPassword())).isTrue();
+        assertThat(categoryRepository.findByDemoSeedKey("demo.category.jerseys").orElseThrow().getId())
+                .isEqualTo(jerseys.getId());
+        assertThat(productRepository.findByDemoSeedKey("demo.product.metro-city-home-fan").orElseThrow().getId())
+                .isEqualTo(product.getId());
+        assertThat(variantRepository.findByDemoSeedKey("demo.variant.metro-city-home-fan.mc-hf-m"))
+                .isPresent();
+        assertThat(userRepository.count()).isEqualTo(usersBefore);
+        assertThat(categoryRepository.count()).isEqualTo(categoriesBefore);
+        assertThat(productRepository.count()).isEqualTo(productsBefore);
+        assertThat(variantRepository.count()).isEqualTo(variantsBefore);
+    }
+
+    @Test
     void rerunRestoresDesiredValuesForASeedSkuAlreadyOwnedByItsProduct() throws Exception {
         ProductVariant changed = variantRepository.findByDemoSeedKey("demo.variant.metro-city-home-fan.mc-hf-s")
                 .orElseThrow();

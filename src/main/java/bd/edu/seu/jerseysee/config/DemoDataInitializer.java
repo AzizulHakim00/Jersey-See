@@ -20,6 +20,7 @@ import bd.edu.seu.jerseysee.service.UserService;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.List;
+import java.util.Objects;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.context.annotation.Profile;
@@ -46,6 +47,7 @@ public class DemoDataInitializer implements CommandLineRunner {
     private final String dataSourceUrl;
     private final boolean demoDataEnabled;
     private final boolean demoCatalogEnabled;
+    private final boolean adoptLegacyData;
 
     public DemoDataInitializer(UserRepository userRepository, CategoryRepository categoryRepository,
             EmployeeProfileRepository employeeProfileRepository,
@@ -53,7 +55,8 @@ public class DemoDataInitializer implements CommandLineRunner {
             PasswordEncoder passwordEncoder,
             @Value("${spring.datasource.url}") String dataSourceUrl,
             @Value("${app.demo-data.enabled:false}") boolean demoDataEnabled,
-            @Value("${app.demo-catalog.enabled:false}") boolean demoCatalogEnabled) {
+            @Value("${app.demo-catalog.enabled:false}") boolean demoCatalogEnabled,
+            @Value("${app.demo-data.adopt-legacy:false}") boolean adoptLegacyData) {
         this.userRepository = userRepository;
         this.categoryRepository = categoryRepository;
         this.employeeProfileRepository = employeeProfileRepository;
@@ -63,6 +66,7 @@ public class DemoDataInitializer implements CommandLineRunner {
         this.dataSourceUrl = dataSourceUrl;
         this.demoDataEnabled = demoDataEnabled;
         this.demoCatalogEnabled = demoCatalogEnabled;
+        this.adoptLegacyData = adoptLegacyData;
     }
 
     @Override
@@ -95,14 +99,14 @@ public class DemoDataInitializer implements CommandLineRunner {
     }
 
     private void ensureCustomer(String seedKey, String name, String email) {
-        User user = demoUser(seedKey, email);
+        User user = demoUser(seedKey, name, email, Role.CUSTOMER);
         applyUser(user, name, email, Role.CUSTOMER);
         userRepository.save(user);
     }
 
     private void ensureStaff(String seedKey, String name, String email, Role role, String employeeCode,
             String position, String salary) {
-        User user = demoUser(seedKey, email);
+        User user = demoUser(seedKey, name, email, role);
         applyUser(user, name, email, role);
         EmployeeProfile profile = user.getEmployeeProfile();
         if (profile == null) {
@@ -119,17 +123,28 @@ public class DemoDataInitializer implements CommandLineRunner {
         userRepository.save(user);
     }
 
-    private User demoUser(String seedKey, String email) {
+    private User demoUser(String seedKey, String name, String email, Role role) {
         User user = userRepository.findByDemoSeedKey(seedKey).orElse(null);
         User emailOwner = userRepository.findByEmail(email).orElse(null);
         if (emailOwner != null && (user == null || !emailOwner.getId().equals(user.getId()))) {
-            throw new IllegalStateException("Demo data cannot use existing email: " + email);
+            if (user == null && isRecognizableLegacyUser(emailOwner, name, role)) {
+                user = emailOwner;
+                user.setDemoSeedKey(seedKey);
+            } else {
+                throw new IllegalStateException("Demo data cannot use existing email: " + email);
+            }
         }
         if (user == null) {
             user = new User();
             user.setDemoSeedKey(seedKey);
         }
         return user;
+    }
+
+    private boolean isRecognizableLegacyUser(User user, String name, Role role) {
+        return adoptLegacyData && user.getDemoSeedKey() == null
+                && Objects.equals(user.getName(), name) && user.getRole() == role
+                && user.getEmail() != null && user.getEmail().endsWith("@demo.local");
     }
 
     private void applyUser(User user, String name, String email, Role role) {
@@ -205,7 +220,13 @@ public class DemoDataInitializer implements CommandLineRunner {
         Category category = categoryRepository.findByDemoSeedKey(seedKey).orElse(null);
         Category nameOwner = categoryRepository.findByName(name).orElse(null);
         if (nameOwner != null && (category == null || !nameOwner.getId().equals(category.getId()))) {
-            throw new IllegalStateException("Demo data cannot use existing category: " + name);
+            if (category == null && adoptLegacyData && nameOwner.getDemoSeedKey() == null
+                    && Objects.equals(nameOwner.getDescription(), description)) {
+                category = nameOwner;
+                category.setDemoSeedKey(seedKey);
+            } else {
+                throw new IllegalStateException("Demo data cannot use existing category: " + name);
+            }
         }
         if (category == null) {
             category = new Category();
@@ -217,7 +238,13 @@ public class DemoDataInitializer implements CommandLineRunner {
     }
 
     private void ensureProduct(Category category, ProductSpec specification) {
-        Product product = productRepository.findByDemoSeedKey(specification.demoSeedKey()).orElseGet(Product::new);
+        Product product = productRepository.findByDemoSeedKey(specification.demoSeedKey()).orElse(null);
+        if (product == null) {
+            product = recognizableLegacyProduct(specification);
+        }
+        if (product == null) {
+            product = new Product();
+        }
         product.setDemoSeedKey(specification.demoSeedKey());
         product.setCategory(category);
         product.setName(specification.name());
@@ -233,13 +260,17 @@ public class DemoDataInitializer implements CommandLineRunner {
         product.setFeatured(specification.featured());
         product.setActive(true);
         for (VariantSpec variantSpec : specification.variants()) {
-            ProductVariant variant = variantRepository.findByDemoSeedKey(variantSpec.demoSeedKey()).orElseGet(() -> {
+            ProductVariant variant = variantRepository.findByDemoSeedKey(variantSpec.demoSeedKey()).orElse(null);
+            if (variant == null) {
+                variant = recognizableLegacyVariant(product, variantSpec);
+            }
+            if (variant == null) {
                 ProductVariant created = new ProductVariant();
                 created.setDemoSeedKey(variantSpec.demoSeedKey());
                 created.setSku(availableDemoSku(variantSpec.sku()));
                 product.addVariant(created);
-                return created;
-            });
+                variant = created;
+            }
             if (variant.getProduct() == null) {
                 product.addVariant(variant);
             }
@@ -248,6 +279,33 @@ public class DemoDataInitializer implements CommandLineRunner {
             variant.setPriceAdjustment(new BigDecimal(variantSpec.priceAdjustment()));
         }
         productRepository.save(product);
+    }
+
+    private Product recognizableLegacyProduct(ProductSpec specification) {
+        if (!adoptLegacyData) {
+            return null;
+        }
+        List<Product> matches = productRepository.findAllByName(specification.name()).stream()
+                .filter(product -> product.getDemoSeedKey() == null)
+                .filter(product -> Objects.equals(product.getBrand(), specification.brand()))
+                .filter(product -> product.getProductType() == specification.productType())
+                .filter(product -> Objects.equals(product.getClubOrCountry(), specification.clubOrCountry()))
+                .filter(product -> Objects.equals(product.getSeason(), specification.season()))
+                .toList();
+        return matches.size() == 1 ? matches.get(0) : null;
+    }
+
+    private ProductVariant recognizableLegacyVariant(Product product, VariantSpec specification) {
+        if (!adoptLegacyData || product.getId() == null) {
+            return null;
+        }
+        ProductVariant candidate = variantRepository.findBySku(specification.sku()).orElse(null);
+        if (candidate == null || candidate.getDemoSeedKey() != null || candidate.getProduct() == null
+                || !product.getId().equals(candidate.getProduct().getId())) {
+            return null;
+        }
+        candidate.setDemoSeedKey(specification.demoSeedKey());
+        return candidate;
     }
 
     private String availableEmployeeCode(String desiredCode, User user) {
