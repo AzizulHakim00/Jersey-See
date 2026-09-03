@@ -3,6 +3,7 @@ package bd.edu.seu.jerseysee.config;
 import org.junit.jupiter.api.Test;
 import org.springframework.mock.env.MockEnvironment;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatCode;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
@@ -19,7 +20,7 @@ class ProductionDatabaseEnvironmentPostProcessorTest {
         assertThatThrownBy(() -> postProcessor.postProcessEnvironment(environment, null))
                 .isInstanceOf(IllegalStateException.class)
                 .hasMessageContaining("JERSEYSEE_DB_URL")
-                .hasMessageContaining("only the JDBC URL");
+                .hasMessageContaining("only the database URL");
     }
 
     @Test
@@ -48,6 +49,32 @@ class ProductionDatabaseEnvironmentPostProcessorTest {
 
         assertThatCode(() -> postProcessor.postProcessEnvironment(environment, null))
                 .doesNotThrowAnyException();
+    }
+
+    @Test
+    void normalizesAivenServiceUriIntoJdbcDatasourceUrlWithoutEmbeddingCredentials() {
+        MockEnvironment environment = productionEnvironmentWithRenderUrl(
+                "mysql://avnadmin:demo-secret@db.example.com:24116/defaultdb?ssl-mode=REQUIRED");
+
+        assertThatCode(() -> postProcessor.postProcessEnvironment(environment, null))
+                .doesNotThrowAnyException();
+
+        assertThat(environment.getProperty("spring.datasource.url"))
+                .isEqualTo("jdbc:mysql://db.example.com:24116/defaultdb?sslMode=REQUIRED&serverTimezone=UTC")
+                .doesNotContain("avnadmin", "demo-secret");
+    }
+
+    @Test
+    void normalizesAivenServiceUriWithoutSslQueryAndForcesTls() {
+        MockEnvironment environment = productionEnvironmentWithRenderUrl(
+                "mysql://avnadmin:demo-secret@db.example.com:24116/defaultdb");
+
+        assertThatCode(() -> postProcessor.postProcessEnvironment(environment, null))
+                .doesNotThrowAnyException();
+
+        assertThat(environment.getProperty("spring.datasource.url"))
+                .isEqualTo("jdbc:mysql://db.example.com:24116/defaultdb?sslMode=REQUIRED&serverTimezone=UTC")
+                .doesNotContain("avnadmin", "demo-secret");
     }
 
     @Test
