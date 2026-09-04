@@ -2,15 +2,8 @@
 <html lang="en" xmlns:th="http://www.thymeleaf.org">
 <body>
 <link rel="stylesheet" th:href="@{/css/storefront-modern.css}">
+<link rel="stylesheet" th:href="@{/css/storefront-final.css}">
 <header class="store-header" th:fragment="navigation(activePage)" data-storefront-header>
-    <div class="store-promise" aria-label="Store services">
-        <div class="section-shell store-promise-inner">
-            <span>Free delivery over ৳5,000</span>
-            <span class="store-promise-divider" aria-hidden="true">•</span>
-            <span>Easy 7-day size exchange</span>
-        </div>
-    </div>
-
     <div class="store-nav section-shell">
         <button class="menu-toggle modern-menu-toggle" type="button" data-menu-toggle data-mobile-menu-toggle
                 aria-controls="mobileMenu" aria-expanded="false" aria-label="Open navigation">
@@ -24,12 +17,10 @@
 
         <nav class="primary-shop-nav" id="mobileMenu" data-primary-shop-nav data-mobile-menu aria-label="Primary navigation">
             <div class="primary-shop-links">
-                <a th:href="@{/catalog}" th:classappend="${activePage == 'catalog'} ? ' is-active' : ''">New in</a>
-                <a th:href="@{/catalog(productType='JERSEY')}">Jerseys</a>
+                <a th:href="@{/}" th:classappend="${activePage == 'home'} ? ' is-active' : ''">Home</a>
+                <a th:href="@{/catalog}" th:classappend="${activePage == 'catalog'} ? ' is-active' : ''">Shop all</a>
                 <a th:href="@{/catalog(edition='PLAYER')}">Player edition</a>
                 <a th:href="@{/catalog(edition='RETRO')}">Retro</a>
-                <a th:href="@{/catalog(productType='BOOTS')}">Boots</a>
-                <a th:href="@{/catalog(productType='ACCESSORY')}">Accessories</a>
             </div>
 
             <div class="mobile-account-links" th:if="${currentUser != null}">
@@ -48,7 +39,7 @@
         <div class="nav-actions modern-nav-actions">
             <form class="header-search modern-header-search" th:action="@{/catalog}" method="get" role="search">
                 <label class="sr-only" for="headerSearch">Search the store</label>
-                <input id="headerSearch" name="keyword" type="search" placeholder="Search shirts, clubs & gear" autocomplete="off">
+                <input id="headerSearch" name="keyword" type="search" placeholder="Search shirts, clubs &amp; gear" autocomplete="off">
                 <button type="submit" aria-label="Search">
                     <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="6.5"></circle><path d="m16 16 4 4"></path></svg>
                 </button>
