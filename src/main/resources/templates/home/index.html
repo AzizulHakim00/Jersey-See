@@ -64,14 +64,18 @@
 
     <section class="modern-home-section">
         <div class="section-shell">
-            <header class="modern-section-heading">
+            <header class="modern-section-heading product-rail-heading">
                 <div><span class="modern-eyebrow">New arrivals</span><h2>Fresh shirts. Real choices.</h2></div>
                 <p>Shop the newest featured pieces with edition, stock and pricing shown clearly before you add anything to your bag.</p>
             </header>
-            <div class="product-rail" data-commerce-card-list th:if="${featuredProducts != null and !#lists.isEmpty(featuredProducts)}">
-                <th:block th:each="product : ${featuredProducts}">
-                    <div th:replace="~{fragments/product-card :: productCard(${product})}"></div>
-                </th:block>
+            <div class="product-rail-shell" data-product-rail th:if="${featuredProducts != null and !#lists.isEmpty(featuredProducts)}">
+                <button class="product-rail-arrow product-rail-arrow-prev" type="button" data-product-rail-prev aria-label="Previous products">←</button>
+                <div class="product-rail" data-commerce-card-list data-product-rail-track tabindex="0" aria-label="Featured products">
+                    <th:block th:each="product : ${featuredProducts}">
+                        <div th:replace="~{fragments/product-card :: productCard(${product})}"></div>
+                    </th:block>
+                </div>
+                <button class="product-rail-arrow product-rail-arrow-next" type="button" data-product-rail-next aria-label="Next products">→</button>
             </div>
             <div class="empty-state" th:if="${featuredProducts == null or #lists.isEmpty(featuredProducts)}">
                 <span>JS</span><h3>New arrivals are being prepared.</h3><p>The complete catalog is still available.</p><a class="button button-ink" th:href="@{/catalog}">Shop all products</a>
@@ -149,5 +153,6 @@
 </main>
 <div th:replace="~{fragments/footer :: footer}"></div>
 <script th:src="@{/js/app.js}" defer></script>
+<script th:src="@{/js/storefront-final.js}" defer></script>
 </body>
 </html>
