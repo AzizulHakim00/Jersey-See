@@ -19,16 +19,19 @@ class ModernStorefrontContractTest {
         String login = read(TEMPLATES.resolve("auth/login.html"));
         String footer = read(TEMPLATES.resolve("fragments/footer.html"));
         String javascript = read(STATIC.resolve("js/app.js"));
+        String railJavascript = read(STATIC.resolve("js/storefront-final.js"));
 
         assertThat(navigation)
-                .contains("data-storefront-header", "data-primary-shop-nav")
-                .doesNotContain("class=\"category-nav\"");
+                .contains("data-storefront-header", "data-primary-shop-nav", "storefront-final.css")
+                .doesNotContain("class=\"category-nav\"", "class=\"store-promise\"");
         assertThat(home)
                 .contains("data-product-carousel", "data-carousel-slide", "data-carousel-next", "data-carousel-prev")
+                .contains("data-product-rail", "data-product-rail-track", "data-product-rail-next", "data-product-rail-prev")
                 .doesNotContain("collection-grid");
-        assertThat(login).contains("data-demo-account", "data-demo-email", "data-demo-password");
-        assertThat(footer).contains("© 2026 JerseySee. Designed &amp; developed by Azizul Hakim Omor.");
+        assertThat(login).contains("data-demo-account", "data-demo-email", "data-demo-password", "storefront-final.css");
+        assertThat(footer).contains("© 2026 JerseySee. Crafted and deployed from Dhaka.", "৳5,000");
         assertThat(javascript).contains("data-product-carousel", "data-demo-account", "prefers-reduced-motion");
+        assertThat(railJavascript).contains("data-product-rail", "scrollBy", "prefers-reduced-motion");
     }
 
     @Test
@@ -36,9 +39,13 @@ class ModernStorefrontContractTest {
         String navigation = read(TEMPLATES.resolve("fragments/navigation.html"));
         String login = read(TEMPLATES.resolve("auth/login.html"));
         String brand = read(STATIC.resolve("images/brand-mark.svg"));
+        String finalCss = read(STATIC.resolve("css/storefront-final.css"));
 
-        assertThat(navigation).contains("storefront-modern.css");
-        assertThat(login).contains("storefront-modern.css");
+        assertThat(navigation).contains("storefront-modern.css", "storefront-final.css");
+        assertThat(login).contains("storefront-modern.css", "storefront-final.css");
+        assertThat(finalCss)
+                .contains(".product-rail", "flex-basis: calc((100% - 64px) / 5)", "@media (max-width: 720px)")
+                .doesNotContain("linear-gradient", "radial-gradient");
         assertThat(brand)
                 .contains("#07142c", "#1646c8", "#b99552", "#f7f3ea")
                 .doesNotContain("jersey");
