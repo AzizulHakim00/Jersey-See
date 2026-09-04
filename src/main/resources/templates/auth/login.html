@@ -2,32 +2,74 @@
 <html lang="en" xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Sign in | JerseySee</title><link rel="stylesheet" th:href="@{/css/jerseysee.css}">
+    <meta name="description" content="Sign in to your JerseySee account or explore the public demo accounts.">
+    <title>Sign in | JerseySee</title>
+    <link rel="icon" th:href="@{/images/brand-mark.svg}" type="image/svg+xml">
+    <link rel="stylesheet" th:href="@{/css/jerseysee.css}">
+    <link rel="stylesheet" th:href="@{/css/storefront-modern.css}">
 </head>
-<body class="auth-body">
-<main class="auth-shell">
-    <section class="auth-showcase" data-auth-campaign>
-        <a class="brand brand-light" th:href="@{/}"><img th:src="@{/images/brand-mark.svg}" alt="" width="48" height="48"><span><strong>JerseySee</strong><small>Wear the game</small></span></a>
-        <div class="auth-campaign-copy"><span class="eyebrow">Your football wardrobe</span><h1>Back in the starting eleven.</h1><p>Track orders, update your profile and get the next shirt ready for match day.</p></div>
-        <img class="auth-kit-art" th:src="@{/images/hero-kit.svg}" alt="">
-        <blockquote>“A shirt is memory, place and belonging.”</blockquote>
+<body class="auth-body modern-auth-body">
+<main class="modern-auth-shell">
+    <section class="auth-editorial" data-auth-campaign>
+        <a class="brand modern-brand" th:href="@{/}" aria-label="JerseySee home">
+            <img th:src="@{/images/brand-mark.svg}" alt="" width="44" height="44">
+            <span><strong>JerseySee</strong><small>Football store</small></span>
+        </a>
+        <div class="auth-editorial-copy">
+            <span class="modern-eyebrow">Your football wardrobe</span>
+            <h1>Back in for match day.</h1>
+            <p>Track orders, manage your profile and keep your next shirt ready without the oversized poster-style login screen.</p>
+        </div>
     </section>
+
     <section class="auth-panel" data-auth-panel>
-        <div class="auth-card">
+        <div class="modern-auth-card">
             <a class="auth-back" th:href="@{/}">← Back to store</a>
-            <span class="eyebrow">Welcome back</span><h2>Sign in to JerseySee</h2><p>Use the email attached to your account.</p>
+            <span class="modern-eyebrow">Welcome back</span>
+            <h2>Sign in to JerseySee</h2>
+            <p>Use the email attached to your account.</p>
+
             <div th:replace="~{fragments/messages :: messages}"></div>
             <div class="inline-alert danger" th:if="${param.error != null}" role="alert">Email or password was not recognised.</div>
             <div class="inline-alert success" th:if="${param.logout != null}">You have signed out safely.</div>
             <div class="inline-alert success" th:if="${param.registered != null}">Account created. You can sign in now.</div>
+
             <form class="stack-form" th:action="@{/login}" method="post">
                 <label for="username">Email address</label>
                 <input id="username" name="username" type="email" autocomplete="email" placeholder="you@example.com" required autofocus>
+
                 <label for="password">Password</label>
-                <div class="password-field"><input id="password" name="password" type="password" autocomplete="current-password" required><button type="button" data-password-toggle="password">Show</button></div>
-                <button class="button button-lime button-wide" type="submit">Enter the store</button>
+                <div class="password-field">
+                    <input id="password" name="password" type="password" autocomplete="current-password" placeholder="Enter your password" required>
+                    <button type="button" data-password-toggle="password" aria-label="Show or hide password">Show</button>
+                </div>
+
+                <button class="button button-wide" type="submit">Sign in</button>
             </form>
+
             <p class="auth-switch">New here? <a th:href="@{/register}">Create a customer account</a></p>
+
+            <div class="demo-access">
+                <div class="demo-access-header">
+                    <h3>Demo accounts</h3>
+                    <span>One click fills the form</span>
+                </div>
+                <div class="demo-login-grid" aria-label="Demo accounts">
+                    <button type="button" class="demo-account" data-demo-account
+                            data-demo-email="customer@jerseysee.demo" data-demo-password="Demo123!">
+                        <span>Customer demo</span>
+                        <strong>Browse, cart &amp; checkout</strong>
+                        <small>Use customer demo</small>
+                    </button>
+                    <button type="button" class="demo-account" data-demo-account
+                            data-demo-email="admin@jerseysee.demo" data-demo-password="Demo123!">
+                        <span>Admin demo</span>
+                        <strong>Review store operations</strong>
+                        <small>Use admin demo</small>
+                    </button>
+                </div>
+                <p style="margin:12px 0 0;color:#6f746f;font-size:.68rem">Public demo credentials are separate from the private production administrator account.</p>
+            </div>
         </div>
     </section>
 </main>
