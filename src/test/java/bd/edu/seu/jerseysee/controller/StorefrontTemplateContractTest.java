@@ -102,6 +102,23 @@ class StorefrontTemplateContractTest {
     }
 
     @Test
+    void modernStorefrontUsesSingleNavigationProductCarouselAndProfessionalFooter() throws IOException {
+        String navigation = read(TEMPLATES.resolve("fragments/navigation.html"));
+        String home = read(TEMPLATES.resolve("home/index.html"));
+        String login = read(TEMPLATES.resolve("auth/login.html"));
+        String footer = read(TEMPLATES.resolve("fragments/footer.html"));
+        String javascript = read(STATIC.resolve("js/app.js"));
+
+        assertThat(navigation)
+                .contains("data-storefront-header", "data-primary-shop-nav")
+                .doesNotContain("class=\"category-nav\"");
+        assertThat(home).contains("data-product-carousel", "data-carousel-slide", "data-carousel-next", "data-carousel-prev");
+        assertThat(login).contains("data-demo-account", "data-demo-email", "data-demo-password");
+        assertThat(footer).contains("© 2026 JerseySee. Designed &amp; developed by Azizul Hakim Omor.");
+        assertThat(javascript).contains("data-product-carousel", "data-demo-account", "prefers-reduced-motion");
+    }
+
+    @Test
     void renderedAssociationFetchIntentIsExplicit() throws IOException {
         String products = Files.readString(Path.of("src/main/java/bd/edu/seu/jerseysee/repository/ProductRepository.java"));
         String employees = Files.readString(Path.of("src/main/java/bd/edu/seu/jerseysee/repository/EmployeeProfileRepository.java"));
