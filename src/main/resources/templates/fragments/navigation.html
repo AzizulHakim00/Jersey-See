@@ -1,85 +1,88 @@
 <!DOCTYPE html>
 <html lang="en" xmlns:th="http://www.thymeleaf.org">
 <body>
-<header class="site-header" th:fragment="navigation(activePage)" data-storefront-header>
-    <div class="announcement-bar" aria-label="Store services">
-        <div class="section-shell announcement-inner">
-            <span>Complimentary delivery over ৳5,000</span>
-            <span>Authentic quality, made for match day</span>
-            <span>Easy size exchange within 7 days</span>
+<link rel="stylesheet" th:href="@{/css/storefront-modern.css}">
+<header class="store-header" th:fragment="navigation(activePage)" data-storefront-header>
+    <div class="store-promise" aria-label="Store services">
+        <div class="section-shell store-promise-inner">
+            <span>Free delivery over ৳5,000</span>
+            <span class="store-promise-divider" aria-hidden="true">•</span>
+            <span>Easy 7-day size exchange</span>
         </div>
     </div>
 
-    <div class="nav-shell">
-        <button class="menu-toggle" type="button" data-menu-toggle data-mobile-menu-toggle
-                aria-controls="mobileMenu" aria-expanded="false">
-            <span></span><span></span><span></span><span class="sr-only">Open navigation</span>
+    <div class="store-nav section-shell">
+        <button class="menu-toggle modern-menu-toggle" type="button" data-menu-toggle data-mobile-menu-toggle
+                aria-controls="mobileMenu" aria-expanded="false" aria-label="Open navigation">
+            <span></span><span></span><span></span>
         </button>
 
-        <a class="brand" th:href="@{/}" aria-label="JerseySee home">
-            <img th:src="@{/images/brand-mark.svg}" alt="" width="46" height="46">
-            <span><strong>JerseySee</strong><small>Football culture, refined</small></span>
+        <a class="brand modern-brand" th:href="@{/}" aria-label="JerseySee home">
+            <img th:src="@{/images/brand-mark.svg}" alt="" width="44" height="44">
+            <span><strong>JerseySee</strong><small>Football store</small></span>
         </a>
 
-        <nav class="site-nav" id="mobileMenu" data-mobile-menu aria-label="Primary navigation">
-            <a th:href="@{/}" th:classappend="${activePage == 'home'} ? ' is-active' : ''">Home</a>
-            <a th:href="@{/catalog}" th:classappend="${activePage == 'catalog'} ? ' is-active' : ''">Shop all</a>
-            <a th:href="@{/catalog(productType='JERSEY')}">Jerseys</a>
-            <a th:href="@{/catalog(edition='PLAYER')}">Player edition</a>
-            <a th:href="@{/catalog(kitType='RETRO')}">Retro</a>
-            <a th:if="${currentRole != null}" th:href="@{/dashboard}"
-               th:classappend="${activePage == 'dashboard'} ? ' is-active' : ''">Dashboard</a>
-            <a th:if="${currentRole != null and currentRole.name() == 'CUSTOMER'}" th:href="@{/orders}"
-               th:classappend="${activePage == 'orders'} ? ' is-active' : ''">Orders</a>
-            <a th:if="${currentRole != null}" th:href="@{/profile}"
-               th:classappend="${activePage == 'profile'} ? ' is-active' : ''">Profile</a>
+        <nav class="primary-shop-nav" id="mobileMenu" data-primary-shop-nav data-mobile-menu aria-label="Primary navigation">
+            <div class="primary-shop-links">
+                <a th:href="@{/catalog}" th:classappend="${activePage == 'catalog'} ? ' is-active' : ''">New in</a>
+                <a th:href="@{/catalog(productType='JERSEY')}">Jerseys</a>
+                <a th:href="@{/catalog(edition='PLAYER')}">Player edition</a>
+                <a th:href="@{/catalog(edition='RETRO')}">Retro</a>
+                <a th:href="@{/catalog(productType='BOOTS')}">Boots</a>
+                <a th:href="@{/catalog(productType='ACCESSORY')}">Accessories</a>
+            </div>
+
+            <div class="mobile-account-links" th:if="${currentUser != null}">
+                <span class="mobile-account-title">Your account</span>
+                <a th:if="${currentRole != null and currentRole.name() != 'CUSTOMER'}" th:href="@{/dashboard}">Dashboard</a>
+                <a th:href="@{/profile}">Profile</a>
+                <a th:if="${currentRole != null and currentRole.name() == 'CUSTOMER'}" th:href="@{/orders}">Orders</a>
+            </div>
+
             <form class="mobile-nav-logout" th:if="${currentUser != null}"
                   th:action="@{/logout}" method="post" data-logout-form>
                 <button type="submit">Log out</button>
             </form>
         </nav>
 
-        <div class="nav-actions">
-            <form class="header-search" th:action="@{/catalog}" method="get" role="search">
+        <div class="nav-actions modern-nav-actions">
+            <form class="header-search modern-header-search" th:action="@{/catalog}" method="get" role="search">
                 <label class="sr-only" for="headerSearch">Search the store</label>
-                <input id="headerSearch" name="keyword" type="search" placeholder="Search kits" autocomplete="off">
+                <input id="headerSearch" name="keyword" type="search" placeholder="Search shirts, clubs & gear" autocomplete="off">
                 <button type="submit" aria-label="Search">
                     <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="6.5"></circle><path d="m16 16 4 4"></path></svg>
                 </button>
             </form>
-            <a class="account-link" th:if="${currentUser == null}" th:href="@{/login}" aria-label="Sign in">
+
+            <a class="nav-icon-link" th:if="${currentUser == null}" th:href="@{/login}" aria-label="Sign in">
                 <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="8" r="4"></circle><path d="M4.5 21c.5-5 3-7.5 7.5-7.5S19 16 19.5 21"></path></svg>
                 <span>Sign in</span>
             </a>
-            <a class="account-link" th:if="${currentUser != null}" th:href="@{/profile}" aria-label="Open account">
+            <a class="nav-icon-link" th:if="${currentUser != null and currentRole != null and currentRole.name() == 'CUSTOMER'}"
+               th:href="@{/profile}" aria-label="Open account">
                 <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="8" r="4"></circle><path d="M4.5 21c.5-5 3-7.5 7.5-7.5S19 16 19.5 21"></path></svg>
                 <span>Account</span>
             </a>
-            <a class="cart-link" th:if="${currentRole != null and currentRole.name() == 'CUSTOMER'}" th:href="@{/cart}" aria-label="Shopping bag">
+            <a class="nav-icon-link" th:if="${currentUser != null and currentRole != null and currentRole.name() != 'CUSTOMER'}"
+               th:href="@{/dashboard}" aria-label="Open dashboard">
+                <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 4h7v7H4zM13 4h7v5h-7zM13 11h7v9h-7zM4 13h7v7H4z"></path></svg>
+                <span>Dashboard</span>
+            </a>
+
+            <a class="nav-icon-link bag-link" th:if="${currentRole != null and currentRole.name() == 'CUSTOMER'}" th:href="@{/cart}" aria-label="Shopping bag">
                 <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 8h14l-1 13H6L5 8Z"></path><path d="M9 9V6a3 3 0 0 1 6 0v3"></path></svg>
                 <span>Bag</span><strong th:text="${cartCount}">0</strong>
             </a>
-            <a class="cart-link" th:if="${currentUser == null}" th:href="@{/login}" aria-label="Sign in to use shopping bag">
+            <a class="nav-icon-link bag-link" th:if="${currentUser == null}" th:href="@{/login}" aria-label="Sign in to use shopping bag">
                 <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 8h14l-1 13H6L5 8Z"></path><path d="M9 9V6a3 3 0 0 1 6 0v3"></path></svg>
                 <span>Bag</span>
             </a>
-            <form class="header-logout" th:if="${currentUser != null}" th:action="@{/logout}" method="post" data-logout-form>
-                <button type="submit">Log out</button>
+
+            <form class="header-logout modern-header-logout" th:if="${currentUser != null}" th:action="@{/logout}" method="post" data-logout-form>
+                <button type="submit" aria-label="Log out">Log out</button>
             </form>
         </div>
     </div>
-
-    <nav class="category-nav" aria-label="Shop departments">
-        <div class="section-shell">
-            <a th:href="@{/catalog}">New season</a>
-            <a th:href="@{/catalog(kitType='HOME')}">Home kits</a>
-            <a th:href="@{/catalog(kitType='AWAY')}">Away kits</a>
-            <a th:href="@{/catalog(edition='PLAYER')}">Player edition</a>
-            <a th:href="@{/catalog(edition='RETRO')}">Retro</a>
-            <a th:href="@{/catalog(productType='BOOTS')}">Boots</a>
-            <a th:href="@{/catalog(productType='ACCESSORY')}">Accessories</a>
-        </div>
-    </nav>
     <div th:replace="~{fragments/navigation :: logoutModal}"></div>
 </header>
 
