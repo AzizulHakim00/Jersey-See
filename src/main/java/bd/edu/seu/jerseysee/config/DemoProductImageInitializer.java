@@ -5,6 +5,8 @@ import bd.edu.seu.jerseysee.model.ProductImage;
 import bd.edu.seu.jerseysee.repository.ProductImageRepository;
 import bd.edu.seu.jerseysee.repository.ProductRepository;
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
+import java.util.Base64;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
@@ -22,6 +24,7 @@ import org.springframework.transaction.annotation.Transactional;
 public class DemoProductImageInitializer {
 
     private static final Map<String, DemoImage> IMAGES = imageMap();
+    private static final String FALLBACK_IMAGE = "jerseysee-training-wear.svg";
 
     private final ProductRepository productRepository;
     private final ProductImageRepository imageRepository;
@@ -50,24 +53,42 @@ public class DemoProductImageInitializer {
         if (product.getStoredImageName() != null && !product.getStoredImageName().isBlank()) {
             return;
         }
-        Resource resource = resourceLoader.getResource("classpath:/demo-images/" + image.resourceName());
         try {
-            if (!resource.exists()) {
-                throw new IllegalStateException("Missing demo product image: " + image.resourceName());
-            }
-            byte[] bytes = resource.getInputStream().readAllBytes();
-            String storedName = "demo-" + image.storedSlug() + image.extension();
+            LoadedImage loaded = loadImage(image);
+            String storedName = "demo-" + image.storedSlug() + loaded.extension();
             if (imageRepository.findById(storedName).isEmpty()) {
-                imageRepository.saveAndFlush(new ProductImage(storedName, bytes));
+                imageRepository.saveAndFlush(new ProductImage(storedName, loaded.bytes()));
             }
             product.setStoredImageName(storedName);
-            product.setOriginalImageName(image.resourceName());
-            product.setImageContentType(image.contentType());
-            product.setImageSize((long) bytes.length);
+            product.setOriginalImageName(loaded.originalName());
+            product.setImageContentType(loaded.contentType());
+            product.setImageSize((long) loaded.bytes().length);
             productRepository.saveAndFlush(product);
         } catch (IOException exception) {
             throw new IllegalStateException("Could not load demo product image: " + image.resourceName(), exception);
         }
+    }
+
+    private LoadedImage loadImage(DemoImage image) throws IOException {
+        Resource encoded = resourceLoader.getResource("classpath:/demo-images/" + image.resourceName() + ".b64");
+        if (encoded.exists()) {
+            String payload = new String(encoded.getInputStream().readAllBytes(), StandardCharsets.UTF_8)
+                    .replaceAll("\\s+", "");
+            byte[] bytes = Base64.getDecoder().decode(payload);
+            return new LoadedImage(bytes, image.resourceName(), image.extension(), image.contentType());
+        }
+
+        Resource direct = resourceLoader.getResource("classpath:/demo-images/" + image.resourceName());
+        if (direct.exists()) {
+            return new LoadedImage(direct.getInputStream().readAllBytes(), image.resourceName(),
+                    image.extension(), image.contentType());
+        }
+
+        Resource fallback = resourceLoader.getResource("classpath:/demo-images/" + FALLBACK_IMAGE);
+        if (!fallback.exists()) {
+            throw new IllegalStateException("Missing demo product image and fallback: " + image.resourceName());
+        }
+        return new LoadedImage(fallback.getInputStream().readAllBytes(), FALLBACK_IMAGE, ".svg", "image/svg+xml");
     }
 
     private static Map<String, DemoImage> imageMap() {
@@ -122,4 +143,6 @@ public class DemoProductImageInitializer {
     }
 
     private record DemoImage(String storedSlug, String resourceName, String extension, String contentType) { }
+
+    private record LoadedImage(byte[] bytes, String originalName, String extension, String contentType) { }
 }
