@@ -28,27 +28,7 @@ jobs:
         run: chmod +x mvnw
 
       - name: Run tests and package
-        id: maven_verify
-        shell: bash
-        run: |
-          set +e
-          ./mvnw --batch-mode --no-transfer-progress clean verify 2>&1 | tee maven-verify.log
-          status=${PIPESTATUS[0]}
-          echo "status=${status}" >> "$GITHUB_OUTPUT"
-          exit 0
-
-      - name: Upload Maven verification log
-        if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: maven-verify-log
-          path: maven-verify.log
-          if-no-files-found: error
-          retention-days: 2
-
-      - name: Fail when Maven verification failed
-        if: steps.maven_verify.outputs.status != '0'
-        run: exit 1
+        run: ./mvnw --batch-mode --no-transfer-progress clean verify
 
   docker:
     needs: verify
