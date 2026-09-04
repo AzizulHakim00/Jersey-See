@@ -16,6 +16,91 @@
         setExpanded(menuButton, open);
     });
 
+    document.querySelectorAll("[data-product-carousel]").forEach((carousel) => {
+        const slides = [...carousel.querySelectorAll("[data-carousel-slide]")];
+        if (slides.length === 0) return;
+        const dots = [...carousel.querySelectorAll("[data-carousel-dot]")];
+        const previous = carousel.querySelector("[data-carousel-prev]");
+        const next = carousel.querySelector("[data-carousel-next]");
+        const prefersReducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+        let index = Math.max(0, slides.findIndex((slide) => slide.classList.contains("is-active")));
+        let timer = null;
+        let touchStartX = null;
+
+        const show = (requestedIndex) => {
+            index = (requestedIndex + slides.length) % slides.length;
+            slides.forEach((slide, slideIndex) => {
+                const active = slideIndex === index;
+                slide.classList.toggle("is-active", active);
+                slide.setAttribute("aria-hidden", String(!active));
+            });
+            dots.forEach((dot, dotIndex) => {
+                const active = dotIndex === index;
+                dot.classList.toggle("is-active", active);
+                dot.setAttribute("aria-current", active ? "true" : "false");
+            });
+        };
+
+        const stopAutoPlay = () => {
+            if (timer !== null) window.clearInterval(timer);
+            timer = null;
+        };
+        const startAutoPlay = () => {
+            stopAutoPlay();
+            if (!prefersReducedMotion && slides.length > 1) {
+                timer = window.setInterval(() => show(index + 1), 6500);
+            }
+        };
+
+        previous?.addEventListener("click", () => {
+            show(index - 1);
+            startAutoPlay();
+        });
+        next?.addEventListener("click", () => {
+            show(index + 1);
+            startAutoPlay();
+        });
+        dots.forEach((dot, dotIndex) => dot.addEventListener("click", () => {
+            show(dotIndex);
+            startAutoPlay();
+        }));
+
+        carousel.addEventListener("pointerenter", stopAutoPlay);
+        carousel.addEventListener("pointerleave", startAutoPlay);
+        carousel.addEventListener("focusin", stopAutoPlay);
+        carousel.addEventListener("focusout", () => window.setTimeout(() => {
+            if (!carousel.contains(document.activeElement)) startAutoPlay();
+        }, 0));
+        carousel.addEventListener("touchstart", (event) => {
+            touchStartX = event.touches?.[0]?.clientX ?? null;
+        }, {passive: true});
+        carousel.addEventListener("touchend", (event) => {
+            if (touchStartX === null) return;
+            const endX = event.changedTouches?.[0]?.clientX ?? touchStartX;
+            const delta = endX - touchStartX;
+            touchStartX = null;
+            if (Math.abs(delta) < 45) return;
+            show(index + (delta < 0 ? 1 : -1));
+            startAutoPlay();
+        }, {passive: true});
+
+        show(index);
+        startAutoPlay();
+    });
+
+    document.querySelectorAll("[data-demo-account]").forEach((button) => {
+        button.addEventListener("click", () => {
+            const email = document.getElementById("username");
+            const password = document.getElementById("password");
+            if (!(email instanceof HTMLInputElement) || !(password instanceof HTMLInputElement)) return;
+            email.value = button.dataset.demoEmail || "";
+            password.value = button.dataset.demoPassword || "";
+            email.dispatchEvent(new Event("input", {bubbles: true}));
+            password.dispatchEvent(new Event("input", {bubbles: true}));
+            password.focus();
+        });
+    });
+
     const sidebar = document.getElementById("staffSidebar");
     const sidebarButton = document.querySelector("[data-sidebar-toggle]");
     const sidebarScrim = document.querySelector("[data-sidebar-scrim]");
