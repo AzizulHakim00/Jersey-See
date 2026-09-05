@@ -35,7 +35,8 @@ class ModernStorefrontContractTest {
 
         assertThat(login)
                 .contains("Demo credentials (for testing only)", "customer@demo.local", "admin@demo.local", "Demo123!",
-                        "storefront-premium-v2.css", "© 2026 Azizul Hakim Omor. All rights reserved.")
+                        "storefront-premium-v2.css", "© 2026 Azizul Hakim Omor. All rights reserved.",
+                        "modern-auth-card", "demo-credentials", "auth-owner")
                 .doesNotContain("/demo-login/customer", "/demo-login/admin", "data-demo-entry", "data-demo-account",
                         "storefront-modern.css", "storefront-final.css");
         assertThat(javascript)
@@ -51,8 +52,7 @@ class ModernStorefrontContractTest {
         assertThat(premiumCss)
                 .contains("@media (max-width: 1220px)", "@media (max-width: 980px)", "@media (max-width: 720px)",
                         "@media (max-width: 480px)", "@media (max-width: 360px)", "prefers-reduced-motion: reduce",
-                        "aspect-ratio", "overflow-x: clip", ".premium-auth-card", ".manual-demo-credentials",
-                        ".premium-auth-credit", ".premium-account-hero")
+                        "aspect-ratio", "overflow-x: clip", ".modern-auth-card", ".demo-credentials", ".auth-owner", ".account-hero")
                 .doesNotContain("linear-gradient", "radial-gradient");
         assertThat(premiumJs)
                 .contains("IntersectionObserver", "data-product-rail", "scrollBy", "prefers-reduced-motion")
@@ -68,10 +68,10 @@ class ModernStorefrontContractTest {
         String orders = read(TEMPLATES.resolve("orders/list.html"));
 
         assertThat(dashboard)
-                .contains("fragments/navigation :: navigation('dashboard')", "account-tabs", "Customer dashboard")
+                .contains("fragments/navigation :: navigation('dashboard')", "account-tabs", "Customer dashboard", "account-hero")
                 .contains("fragments/admin-sidebar :: sidebar('dashboard')", "Admin dashboard");
-        assertThat(profile).contains("account-tabs", "storefront-premium-v2.css");
-        assertThat(orders).contains("account-tabs", "storefront-premium-v2.css");
+        assertThat(profile).contains("account-tabs", "storefront-premium-v2.css", "account-hero");
+        assertThat(orders).contains("account-tabs", "storefront-premium-v2.css", "account-hero");
     }
 
     private String read(Path path) throws IOException {
