@@ -5,10 +5,10 @@
     <div class="section-shell modern-footer-main">
         <div class="modern-footer-brand">
             <a class="brand modern-brand" th:href="@{/}">
-                <img th:src="@{/images/brand-mark.svg}" alt="" width="44" height="44">
+                <img th:src="@{/images/brand-mark.svg}" alt="" width="39" height="44">
                 <span><strong>JerseySee</strong><small>Football store</small></span>
             </a>
-            <p>Football shirts, retro classics and match-day essentials presented with clear BDT pricing and a focused ecommerce experience.</p>
+            <p>Premium football shirts, player editions, retro classics and match-day essentials with clear BDT pricing.</p>
         </div>
 
         <nav aria-label="Shop footer links">
@@ -24,25 +24,25 @@
             <h3>Account</h3>
             <a th:if="${currentUser == null}" th:href="@{/login}">Sign in</a>
             <a th:if="${currentUser == null}" th:href="@{/register}">Create account</a>
+            <a th:if="${currentUser != null}" th:href="@{/dashboard}">Dashboard</a>
             <a th:if="${currentUser != null}" th:href="@{/profile}">Profile</a>
             <a th:if="${currentRole != null and currentRole.name() == 'CUSTOMER'}" th:href="@{/orders}">Orders</a>
-            <a th:if="${currentRole != null and currentRole.name() != 'CUSTOMER'}" th:href="@{/dashboard}">Dashboard</a>
         </nav>
 
         <div class="modern-footer-care">
             <h3>Customer care</h3>
             <p>Variant-level size and stock</p>
             <p>Custom name &amp; number</p>
-            <p>7-day size exchange message</p>
+            <p>7-day size exchange</p>
             <p>Free delivery over ৳5,000</p>
             <p>Prices displayed in BDT</p>
         </div>
     </div>
 
     <div class="section-shell modern-footer-bottom">
-        <span>© 2026 JerseySee. Crafted and deployed from Dhaka.</span>
-        <span><strong>JerseySee</strong> · Football culture, made easier to shop.</span>
-        <span>Demo storefront · BDT pricing</span>
+        <span>© 2026 Azizul Hakim Omor. All rights reserved.</span>
+        <span><strong>JerseySee</strong> · Football culture, refined.</span>
+        <span>Premium football store · Bangladesh</span>
     </div>
 </footer>
 </body>
