@@ -4,7 +4,7 @@ import bd.edu.seu.jerseysee.model.User;
 import bd.edu.seu.jerseysee.model.enums.Role;
 import bd.edu.seu.jerseysee.repository.UserRepository;
 import bd.edu.seu.jerseysee.service.UserService;
-import org.springframework.beans.factory.annotation.Value;
+import java.util.UUID;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.context.event.ApplicationReadyEvent;
 import org.springframework.context.annotation.Profile;
@@ -20,14 +20,11 @@ public class PublicDemoAccountInitializer {
 
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
-    private final String demoPassword;
 
     public PublicDemoAccountInitializer(UserRepository userRepository,
-            PasswordEncoder passwordEncoder,
-            @Value("${app.public-demo.password}") String demoPassword) {
+            PasswordEncoder passwordEncoder) {
         this.userRepository = userRepository;
         this.passwordEncoder = passwordEncoder;
-        this.demoPassword = demoPassword;
     }
 
     @EventListener(ApplicationReadyEvent.class)
@@ -54,7 +51,7 @@ public class PublicDemoAccountInitializer {
         }
         user.setName(name);
         user.setEmail(normalizedEmail);
-        user.setPassword(passwordEncoder.encode(demoPassword));
+        user.setPassword(passwordEncoder.encode(UUID.randomUUID().toString()));
         user.setPhone("01700000000");
         user.setAddress("Public JerseySee portfolio demo account");
         user.setRole(role);
