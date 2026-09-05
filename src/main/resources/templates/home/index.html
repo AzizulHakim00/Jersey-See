@@ -2,75 +2,89 @@
 <html lang="en" xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1">
-    <meta name="description" content="Football jerseys, player editions, retro kits, boots and match-day essentials from JerseySee.">
-    <title>JerseySee | Football store</title>
+    <meta name="description" content="Premium football jerseys, player editions, retro kits, boots and match-day essentials from JerseySee.">
+    <title>JerseySee | Premium football store</title>
     <link rel="icon" th:href="@{/images/brand-mark.svg}" type="image/svg+xml">
     <link rel="stylesheet" th:href="@{/css/jerseysee.css}">
+    <link rel="stylesheet" th:href="@{/css/storefront-premium-v2.css}">
 </head>
-<body class="storefront-body">
+<body class="storefront-body premium-home">
 <div th:replace="~{fragments/navigation :: navigation('home')}"></div>
 <main>
-    <section class="product-carousel" data-product-carousel data-campaign-hero aria-roledescription="carousel" aria-label="Featured football kits">
-        <div class="carousel-viewport">
-            <th:block th:if="${featuredProducts != null and !#lists.isEmpty(featuredProducts)}">
-                <article class="carousel-slide" data-carousel-slide
-                         th:each="product, iter : ${featuredProducts}"
-                         th:if="${iter.index < 5}"
-                         th:classappend="${iter.index == 0} ? ' is-active' : ''"
-                         th:attr="aria-hidden=${iter.index == 0 ? 'false' : 'true'}">
-                    <div class="section-shell carousel-slide-inner">
-                        <div class="carousel-copy">
-                            <span class="carousel-kicker" th:text="${product.jerseyEdition != null ? #strings.replace(product.jerseyEdition.name(),'_',' ') + ' · ' + (product.clubOrCountry != null ? product.clubOrCountry : product.brand) : 'JerseySee selection'}">Player edition</span>
-                            <h1 th:text="${product.name}">Your next shirt starts here.</h1>
-                            <p>Curated football shirts and match-day essentials with Bangladesh-friendly pricing, reliable stock and custom name-and-number options.</p>
-                            <div class="carousel-price-row"><strong>৳<span th:text="${#numbers.formatDecimal(product.basePrice,1,0)}">750</span></strong><span>Current demo price</span></div>
-                            <a class="carousel-cta" th:href="@{/products/{id}(id=${product.id})}">Shop this product</a>
-                        </div>
-                        <div class="carousel-media">
-                            <img th:src="${product.storedImageName != null ? '/product-images/' + product.storedImageName : '/images/product-placeholder.svg'}"
-                                 th:alt="${product.name}"
-                                 onerror="this.onerror=null;this.src='/images/product-placeholder.svg'">
-                        </div>
-                    </div>
-                </article>
-            </th:block>
-            <article class="carousel-slide is-active" data-carousel-slide aria-hidden="false"
-                     th:if="${featuredProducts == null or #lists.isEmpty(featuredProducts)}">
-                <div class="section-shell carousel-slide-inner">
-                    <div class="carousel-copy">
-                        <span class="carousel-kicker">JerseySee · New season</span>
-                        <h1>Football culture, ready to wear.</h1>
-                        <p>Explore fan editions, player shirts, retro kits, boots and match-day essentials selected for supporters across Bangladesh.</p>
-                        <div class="carousel-price-row"><strong>From ৳750</strong><span>Fan edition</span></div>
-                        <a class="carousel-cta" th:href="@{/catalog}">Explore the collection</a>
-                    </div>
-                    <div class="carousel-media"><img th:src="@{/images/product-placeholder.svg}" alt="JerseySee football collection"></div>
-                </div>
-            </article>
-        </div>
-        <div class="carousel-controls" th:if="${featuredProducts != null and #lists.size(featuredProducts) > 1}">
-            <button type="button" data-carousel-prev aria-label="Previous featured product">←</button>
-            <div class="carousel-dots" data-carousel-dots aria-label="Choose featured product">
-                <button class="carousel-dot" type="button" data-carousel-dot
-                        th:each="product, iter : ${featuredProducts}" th:if="${iter.index < 5}"
-                        th:classappend="${iter.index == 0} ? ' is-active' : ''"
-                        th:attr="data-carousel-index=${iter.index},aria-label=|Go to featured product ${iter.index + 1}|"></button>
+    <section class="premium-home-hero" data-campaign-hero
+             th:with="heroProduct=${featuredProducts != null and !#lists.isEmpty(featuredProducts) ? featuredProducts[0] : null}">
+        <div class="section-shell premium-hero-inner">
+            <div class="premium-hero-copy">
+                <span class="premium-eyebrow">FOOTBALL LIVES HERE</span>
+                <h1>Wear The Passion</h1>
+                <p>Premium football jerseys for real fans. Discover player editions, retro classics and match-day essentials with clear BDT pricing.</p>
+                <a class="premium-hero-cta" data-premium-press th:href="@{/catalog}">Shop Now <span aria-hidden="true">→</span></a>
+                <div class="premium-hero-note">More than a jersey. A football identity.</div>
             </div>
-            <button type="button" data-carousel-next aria-label="Next featured product">→</button>
+            <div class="premium-hero-media">
+                <img th:if="${heroProduct != null}"
+                     th:src="${heroProduct.storedImageName != null ? '/product-images/' + heroProduct.storedImageName : '/images/product-placeholder.svg'}"
+                     th:alt="${heroProduct.name}" width="650" height="760" loading="eager" fetchpriority="high" decoding="async"
+                     onerror="this.onerror=null;this.src='/images/product-placeholder.svg'">
+                <img th:if="${heroProduct == null}" th:src="@{/images/hero-kit.svg}" alt="JerseySee premium football jersey"
+                     width="650" height="760" loading="eager" fetchpriority="high" decoding="async">
+                <a class="premium-hero-product" th:if="${heroProduct != null}" th:href="@{/products/{id}(id=${heroProduct.id})}">
+                    <small th:text="${heroProduct.clubOrCountry != null ? heroProduct.clubOrCountry : 'JerseySee selection'}">JerseySee selection</small>
+                    <strong th:text="${heroProduct.name}">Featured jersey</strong>
+                    <b>৳<span th:text="${#numbers.formatDecimal(heroProduct.basePrice,1,0)}">1299</span></b>
+                </a>
+            </div>
         </div>
     </section>
 
     <div data-service-strip th:replace="~{fragments/service-strip :: serviceStrip}"></div>
 
-    <section class="modern-home-section">
+    <section class="premium-section" data-premium-reveal>
         <div class="section-shell">
-            <header class="modern-section-heading product-rail-heading">
-                <div><span class="modern-eyebrow">New arrivals</span><h2>Fresh shirts. Real choices.</h2></div>
-                <p>Shop the newest featured pieces with edition, stock and pricing shown clearly before you add anything to your bag.</p>
+            <header class="premium-section-heading">
+                <div><span class="premium-eyebrow">Explore the store</span><h2>Shop by category</h2></div>
+                <a th:href="@{/catalog}">View all →</a>
+            </header>
+            <div class="premium-category-grid" th:if="${featuredProducts != null and #lists.size(featuredProducts) > 3}">
+                <a class="premium-category-card" th:href="@{/catalog(edition='PLAYER')}">
+                    <img th:src="${featuredProducts[0].storedImageName != null ? '/product-images/' + featuredProducts[0].storedImageName : '/images/product-placeholder.svg'}"
+                         alt="Player edition football jerseys" width="520" height="360" loading="lazy" decoding="async">
+                    <span>Closer match fit</span><strong>Player Edition</strong><b>→</b>
+                </a>
+                <a class="premium-category-card" th:href="@{/catalog(edition='RETRO')}">
+                    <img th:src="${featuredProducts[1].storedImageName != null ? '/product-images/' + featuredProducts[1].storedImageName : '/images/product-placeholder.svg'}"
+                         alt="Retro football jersey classics" width="520" height="360" loading="lazy" decoding="async">
+                    <span>Archive-inspired</span><strong>Retro Classics</strong><b>→</b>
+                </a>
+                <a class="premium-category-card" th:href="@{/catalog(productType='BOOTS')}">
+                    <img th:src="${featuredProducts[2].storedImageName != null ? '/product-images/' + featuredProducts[2].storedImageName : '/images/product-placeholder.svg'}"
+                         alt="Football boots collection" width="520" height="360" loading="lazy" decoding="async">
+                    <span>Built for the pitch</span><strong>Football Boots</strong><b>→</b>
+                </a>
+                <a class="premium-category-card" th:href="@{/catalog}">
+                    <img th:src="${featuredProducts[3].storedImageName != null ? '/product-images/' + featuredProducts[3].storedImageName : '/images/product-placeholder.svg'}"
+                         alt="New football jersey arrivals" width="520" height="360" loading="lazy" decoding="async">
+                    <span>Fresh football colours</span><strong>New Arrivals</strong><b>→</b>
+                </a>
+            </div>
+            <div class="premium-category-grid" th:if="${featuredProducts == null or #lists.size(featuredProducts) <= 3}">
+                <a class="premium-category-card" th:href="@{/catalog(edition='PLAYER')}"><img th:src="@{/images/hero-kit.svg}" alt="Player edition jerseys" width="520" height="360"><span>Closer match fit</span><strong>Player Edition</strong><b>→</b></a>
+                <a class="premium-category-card" th:href="@{/catalog(edition='RETRO')}"><img th:src="@{/images/product-placeholder.svg}" alt="Retro jerseys" width="520" height="360"><span>Archive-inspired</span><strong>Retro Classics</strong><b>→</b></a>
+                <a class="premium-category-card" th:href="@{/catalog(productType='BOOTS')}"><img th:src="@{/images/product-placeholder.svg}" alt="Football boots" width="520" height="360"><span>Built for the pitch</span><strong>Football Boots</strong><b>→</b></a>
+                <a class="premium-category-card" th:href="@{/catalog}"><img th:src="@{/images/product-placeholder.svg}" alt="New football arrivals" width="520" height="360"><span>Fresh football colours</span><strong>New Arrivals</strong><b>→</b></a>
+            </div>
+        </div>
+    </section>
+
+    <section class="premium-section" data-premium-reveal>
+        <div class="section-shell">
+            <header class="premium-section-heading">
+                <div><span class="premium-eyebrow">Curated now</span><h2>Featured jerseys</h2></div>
+                <p>Real kit imagery, live size stock and BDT prices, presented like a football store instead of a content feed.</p>
             </header>
             <div class="product-rail-shell" data-product-rail th:if="${featuredProducts != null and !#lists.isEmpty(featuredProducts)}">
                 <button class="product-rail-arrow product-rail-arrow-prev" type="button" data-product-rail-prev aria-label="Previous products">←</button>
-                <div class="product-rail" data-commerce-card-list data-product-rail-track tabindex="0" aria-label="Featured products">
+                <div class="product-rail" data-commerce-card-list data-product-rail-track tabindex="0" aria-label="Featured jerseys">
                     <th:block th:each="product : ${featuredProducts}">
                         <div th:replace="~{fragments/product-card :: productCard(${product})}"></div>
                     </th:block>
@@ -78,81 +92,32 @@
                 <button class="product-rail-arrow product-rail-arrow-next" type="button" data-product-rail-next aria-label="Next products">→</button>
             </div>
             <div class="empty-state" th:if="${featuredProducts == null or #lists.isEmpty(featuredProducts)}">
-                <span>JS</span><h3>New arrivals are being prepared.</h3><p>The complete catalog is still available.</p><a class="button button-ink" th:href="@{/catalog}">Shop all products</a>
+                <span>JS</span><h3>New arrivals are being prepared.</h3><p>The full catalog remains available.</p><a class="button button-ink" th:href="@{/catalog}">Shop all products</a>
             </div>
         </div>
     </section>
 
-    <section class="modern-home-section">
-        <div class="section-shell">
-            <header class="modern-section-heading">
-                <div><span class="modern-eyebrow">Choose your fit</span><h2>Three ways to wear the game.</h2></div>
-            </header>
-            <div class="edition-grid">
-                <a class="edition-card" th:href="@{/catalog(edition='FAN')}"><small>Everyday match-day comfort</small><h3>Fan<br>edition</h3></a>
-                <a class="edition-card" th:href="@{/catalog(edition='PLAYER')}"><small>Closer performance cut</small><h3>Player<br>edition</h3></a>
-                <a class="edition-card" th:href="@{/catalog(edition='RETRO')}"><small>Archive-inspired classics</small><h3>Retro<br>icons</h3></a>
+    <section class="premium-secondary-campaign" data-premium-reveal
+             th:with="campaignProduct=${featuredProducts != null and #lists.size(featuredProducts) > 1 ? featuredProducts[1] : null}">
+        <div class="section-shell premium-campaign-box">
+            <div class="premium-campaign-copy">
+                <span class="premium-eyebrow">Different clubs. Same passion.</span>
+                <h2>Football unites us.</h2>
+                <p>Build a match-day wardrobe around the teams and eras you follow, then add your name and number when the jersey supports printing.</p>
+                <a class="premium-hero-cta" th:href="@{/catalog(productType='JERSEY')}">Shop all jerseys →</a>
             </div>
-        </div>
-    </section>
-
-    <section class="modern-home-section">
-        <div class="section-shell">
-            <header class="modern-section-heading">
-                <div><span class="modern-eyebrow">Top clubs</span><h2>Find your colours.</h2></div>
-                <p>Jump straight into the clubs represented in the current demo collection.</p>
-            </header>
-            <div class="club-rail" aria-label="Shop by club">
-                <a class="club-pill" th:href="@{/catalog(clubOrCountry='Barcelona')}">Barcelona</a>
-                <a class="club-pill" th:href="@{/catalog(clubOrCountry='Real Madrid')}">Real Madrid</a>
-                <a class="club-pill" th:href="@{/catalog(clubOrCountry='Arsenal')}">Arsenal</a>
-                <a class="club-pill" th:href="@{/catalog(clubOrCountry='Chelsea')}">Chelsea</a>
-                <a class="club-pill" th:href="@{/catalog(clubOrCountry='Liverpool')}">Liverpool</a>
-                <a class="club-pill" th:href="@{/catalog(clubOrCountry='Manchester City')}">Manchester City</a>
-                <a class="club-pill" th:href="@{/catalog(clubOrCountry='Manchester United')}">Manchester United</a>
-                <a class="club-pill" th:href="@{/catalog(clubOrCountry='AC Milan')}">AC Milan</a>
-                <a class="club-pill" th:href="@{/catalog(clubOrCountry='Juventus')}">Juventus</a>
+            <div class="premium-campaign-media">
+                <img th:if="${campaignProduct != null}"
+                     th:src="${campaignProduct.storedImageName != null ? '/product-images/' + campaignProduct.storedImageName : '/images/product-placeholder.svg'}"
+                     th:alt="${campaignProduct.name}" width="650" height="430" loading="lazy" decoding="async"
+                     onerror="this.onerror=null;this.src='/images/product-placeholder.svg'">
+                <img th:if="${campaignProduct == null}" th:src="@{/images/custom-printing.svg}" alt="Custom football jersey" width="650" height="430" loading="lazy" decoding="async">
             </div>
-        </div>
-    </section>
-
-    <section class="modern-home-section">
-        <div class="section-shell">
-            <header class="modern-section-heading">
-                <div><span class="modern-eyebrow">Beyond shirts</span><h2>Football essentials.</h2></div>
-            </header>
-            <div class="essentials-grid">
-                <a class="essential-card" th:href="@{/catalog(productType='BOOTS')}"><span>On pitch</span><h3>Football boots</h3></a>
-                <a class="essential-card" th:href="@{/catalog(productType='FOOTBALL')}"><span>Match &amp; training</span><h3>Footballs</h3></a>
-                <a class="essential-card" th:href="@{/catalog(keyword='training')}"><span>Training day</span><h3>Training wear</h3></a>
-                <a class="essential-card" th:href="@{/catalog(productType='ACCESSORY')}"><span>Finish the kit</span><h3>Accessories</h3></a>
-            </div>
-        </div>
-    </section>
-
-    <section class="modern-home-section">
-        <div class="section-shell modern-custom">
-            <div class="modern-custom-media"><img th:src="@{/images/custom-printing.svg}" alt="Custom name and number shirt"></div>
-            <div class="modern-custom-copy"><span class="modern-eyebrow">Make it yours</span><h2>Your name.<br>Your number.</h2><p>Select an available jersey and size, then choose player or custom printing before checkout. The final selection and price stay attached to the order.</p><a class="carousel-cta" th:href="@{/catalog(productType='JERSEY')}">Create your shirt</a></div>
-        </div>
-    </section>
-
-    <section class="section-shell modern-trust-strip" aria-label="Why shop JerseySee">
-        <article><strong>BDT pricing</strong><span>Clear Bangladesh-friendly demo prices</span></article>
-        <article><strong>Variant stock</strong><span>Availability tracked by size</span></article>
-        <article><strong>Easy exchange</strong><span>7-day size exchange message</span></article>
-        <article><strong>Personal printing</strong><span>Name and number recorded with your order</span></article>
-    </section>
-
-    <section class="modern-home-section">
-        <div class="section-shell modern-section-heading">
-            <div><span class="modern-eyebrow">JerseySee</span><h2>Ready for your next match day?</h2></div>
-            <a class="carousel-cta" th:href="@{/catalog}" style="background:#07142c;color:#fff;border-color:#07142c">Shop the full collection</a>
         </div>
     </section>
 </main>
 <div th:replace="~{fragments/footer :: footer}"></div>
 <script th:src="@{/js/app.js}" defer></script>
-<script th:src="@{/js/storefront-final.js}" defer></script>
+<script th:src="@{/js/storefront-premium-v2.js}" defer></script>
 </body>
 </html>
