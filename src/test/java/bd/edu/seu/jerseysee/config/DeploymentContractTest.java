@@ -34,4 +34,15 @@ class DeploymentContractTest {
                         "spring.jpa.database-platform=org.hibernate.dialect.MySQLDialect")
                 .doesNotContain("jdbc:h2:", "org.h2.Driver");
     }
+
+    @Test
+    void portfolioProductionEnablesThePublicStorefrontCatalogByDefault() throws IOException {
+        String render = Files.readString(Path.of("render.yaml"));
+        String production = Files.readString(Path.of("src/main/resources/application-production.properties"));
+
+        assertThat(render).contains(
+                "- key: JERSEYSEE_PUBLIC_DEMO_ENABLED\n        value: \"true\"");
+        assertThat(production).contains(
+                "app.public-demo.enabled=${JERSEYSEE_PUBLIC_DEMO_ENABLED:true}");
+    }
 }
