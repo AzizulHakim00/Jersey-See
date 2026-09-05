@@ -68,10 +68,10 @@ class ModernStorefrontContractTest {
         String orders = read(TEMPLATES.resolve("orders/list.html"));
 
         assertThat(dashboard)
-                .contains("fragments/navigation :: navigation('dashboard')", "account-tabs", "Customer dashboard", "account-hero")
+                .contains("fragments/navigation :: navigation('dashboard')", "account-tabs", "Customer dashboard", "account-hero", "account-page premium-account-page")
                 .contains("fragments/admin-sidebar :: sidebar('dashboard')", "Admin dashboard");
-        assertThat(profile).contains("account-tabs", "storefront-premium-v2.css", "account-hero");
-        assertThat(orders).contains("account-tabs", "storefront-premium-v2.css", "account-hero");
+        assertThat(profile).contains("account-tabs", "storefront-premium-v2.css", "account-hero", "account-page premium-account-page");
+        assertThat(orders).contains("account-tabs", "storefront-premium-v2.css", "account-hero", "account-page premium-account-page");
     }
 
     private String read(Path path) throws IOException {
