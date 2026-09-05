@@ -43,7 +43,8 @@
 .product-rail::-webkit-scrollbar { display: none; }
 
 .product-rail > [data-commerce-card] {
-    flex: 0 0 calc((100% - 64px) / 5);
+    flex: 0 0 auto;
+    flex-basis: calc((100% - 64px) / 5);
     min-width: 0;
     scroll-snap-align: start;
 }
