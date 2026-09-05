@@ -25,13 +25,13 @@ class PublicDemoLoginControllerTest {
     }
 
     @Test
-    void customerDemoLoginCreatesAuthenticatedSessionWithoutSendingAPasswordToTheBrowser() {
+    void compatibilityDemoLoginUsesTheSameManualDemoCustomerIdentity() {
         CustomUserDetailsService userDetailsService = mock(CustomUserDetailsService.class);
-        UserDetails customer = User.withUsername("customer@jerseysee.demo")
+        UserDetails customer = User.withUsername("customer@demo.local")
                 .password("server-only")
                 .roles("CUSTOMER")
                 .build();
-        when(userDetailsService.loadUserByUsername("customer@jerseysee.demo")).thenReturn(customer);
+        when(userDetailsService.loadUserByUsername("customer@demo.local")).thenReturn(customer);
 
         PublicDemoLoginController controller = new PublicDemoLoginController(userDetailsService);
         MockHttpServletRequest request = new MockHttpServletRequest();
@@ -44,8 +44,8 @@ class PublicDemoLoginControllerTest {
         assertThat(stored).isInstanceOf(SecurityContext.class);
         SecurityContext context = (SecurityContext) stored;
         assertThat(context.getAuthentication().isAuthenticated()).isTrue();
-        assertThat(context.getAuthentication().getName()).isEqualTo("customer@jerseysee.demo");
-        verify(userDetailsService).loadUserByUsername("customer@jerseysee.demo");
+        assertThat(context.getAuthentication().getName()).isEqualTo("customer@demo.local");
+        verify(userDetailsService).loadUserByUsername("customer@demo.local");
     }
 
     @Test
