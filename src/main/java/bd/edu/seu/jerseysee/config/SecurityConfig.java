@@ -18,7 +18,7 @@ public class SecurityConfig {
             throws Exception {
         http.authorizeHttpRequests(authorize -> authorize
                         .requestMatchers("/", "/catalog/**", "/products/**", "/product-images/**", "/register", "/login",
-                                "/demo-login/**", "/css/**", "/js/**", "/images/**", "/error", "/error/**", "/access-denied",
+                                "/css/**", "/js/**", "/images/**", "/error", "/error/**", "/access-denied",
                                 "/actuator/health", "/actuator/health/**", "/actuator/info")
                         .permitAll()
                         .requestMatchers("/staff/employees/**").hasAnyRole("MANAGER", "ADMIN")
