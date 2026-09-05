@@ -22,8 +22,8 @@ import org.springframework.web.server.ResponseStatusException;
 public class PublicDemoLoginController {
 
     private static final Map<String, String> DEMO_ACCOUNTS = Map.of(
-            "customer", "customer@jerseysee.demo",
-            "admin", "admin@jerseysee.demo"
+            "customer", "customer@demo.local",
+            "admin", "admin@demo.local"
     );
 
     private final CustomUserDetailsService userDetailsService;
@@ -32,6 +32,7 @@ public class PublicDemoLoginController {
         this.userDetailsService = userDetailsService;
     }
 
+    /** Compatibility endpoint only. The public login page uses normal manual form login. */
     @PostMapping("/demo-login/{account}")
     public String login(@PathVariable String account, HttpServletRequest request) {
         String email = DEMO_ACCOUNTS.get(account);
