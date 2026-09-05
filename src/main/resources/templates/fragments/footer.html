@@ -1,24 +1,49 @@
 <!DOCTYPE html>
 <html lang="en" xmlns:th="http://www.thymeleaf.org">
 <body>
-<footer class="site-footer" th:fragment="footer">
-    <div class="footer-newsletter">
-        <div class="section-shell">
-            <div><span class="eyebrow">The touchline edit</span><h2>Football culture, delivered.</h2></div>
-            <p>Discover new-season shirts, player editions and match-day essentials in one considered collection.</p>
-            <a class="button button-ivory" th:href="@{/catalog}">Explore the collection</a>
+<footer class="modern-footer" th:fragment="footer">
+    <div class="section-shell modern-footer-main">
+        <div class="modern-footer-brand">
+            <a class="brand modern-brand" th:href="@{/}">
+                <img th:src="@{/images/brand-mark.svg}" alt="" width="44" height="44">
+                <span><strong>JerseySee</strong><small>Football store</small></span>
+            </a>
+            <p>Football shirts, retro classics and match-day essentials presented with clear BDT pricing and a focused ecommerce experience.</p>
+        </div>
+
+        <nav aria-label="Shop footer links">
+            <h3>Shop</h3>
+            <a th:href="@{/catalog}">New in</a>
+            <a th:href="@{/catalog(productType='JERSEY')}">Jerseys</a>
+            <a th:href="@{/catalog(edition='PLAYER')}">Player edition</a>
+            <a th:href="@{/catalog(edition='RETRO')}">Retro</a>
+            <a th:href="@{/catalog(productType='BOOTS')}">Boots</a>
+        </nav>
+
+        <nav aria-label="Account footer links">
+            <h3>Account</h3>
+            <a th:if="${currentUser == null}" th:href="@{/login}">Sign in</a>
+            <a th:if="${currentUser == null}" th:href="@{/register}">Create account</a>
+            <a th:if="${currentUser != null}" th:href="@{/profile}">Profile</a>
+            <a th:if="${currentRole != null and currentRole.name() == 'CUSTOMER'}" th:href="@{/orders}">Orders</a>
+            <a th:if="${currentRole != null and currentRole.name() != 'CUSTOMER'}" th:href="@{/dashboard}">Dashboard</a>
+        </nav>
+
+        <div class="modern-footer-care">
+            <h3>Customer care</h3>
+            <p>Variant-level size and stock</p>
+            <p>Custom name &amp; number</p>
+            <p>7-day size exchange message</p>
+            <p>Free delivery over ৳5,000</p>
+            <p>Prices displayed in BDT</p>
         </div>
     </div>
-    <div class="section-shell footer-grid">
-        <div class="footer-brand">
-            <a class="brand brand-light" th:href="@{/}"><img th:src="@{/images/brand-mark.svg}" alt="" width="48" height="48"><span><strong>JerseySee</strong><small>Football culture, refined</small></span></a>
-            <p>Premium football jerseys and essentials for supporters who carry the game everywhere.</p>
-        </div>
-        <nav aria-label="Shop footer links"><h3>Shop</h3><a th:href="@{/catalog}">All products</a><a th:href="@{/catalog(productType='JERSEY')}">Jerseys</a><a th:href="@{/catalog(edition='PLAYER')}">Player edition</a><a th:href="@{/catalog(edition='RETRO')}">Retro collection</a></nav>
-        <nav aria-label="Account footer links"><h3>Account</h3><a th:if="${currentUser == null}" th:href="@{/login}">Sign in</a><a th:if="${currentUser == null}" th:href="@{/register}">Create account</a><a th:if="${currentUser != null}" th:href="@{/profile}">Profile</a><a th:if="${currentRole != null and currentRole.name() == 'CUSTOMER'}" th:href="@{/orders}">Orders</a></nav>
-        <div><h3>Customer care</h3><p>Secure simulated checkout</p><p>Variant-level stock</p><p>Easy size exchange</p><p>Custom name &amp; number</p></div>
+
+    <div class="section-shell modern-footer-bottom">
+        <span>© 2026 JerseySee. Crafted and deployed from Dhaka.</span>
+        <span><strong>JerseySee</strong> · Football culture, made easier to shop.</span>
+        <span>Demo storefront · BDT pricing</span>
     </div>
-    <div class="section-shell footer-bottom"><span>© 2026 JerseySee</span><span>Designed for the beautiful game.</span><span>Payments shown in BDT</span></div>
 </footer>
 </body>
 </html>

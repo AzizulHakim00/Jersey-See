@@ -58,7 +58,7 @@ class StorefrontTemplateContractTest {
         String cart = read(TEMPLATES.resolve("cart/view.html"));
         String checkout = read(TEMPLATES.resolve("orders/checkout.html"));
 
-        assertThat(home).contains("data-campaign-hero", "data-service-strip", "data-commerce-card");
+        assertThat(home).contains("data-campaign-hero", "data-service-strip", "data-commerce-card", "data-product-rail");
         assertThat(navigation).contains("data-storefront-header", "data-mobile-menu", "aria-controls=\"mobileMenu\"");
         assertThat(catalog).contains("data-filter-drawer", "data-commerce-grid", "data-commerce-card");
         assertThat(detail).contains("data-product-stage", "data-purchase-panel", "data-size-selector");
@@ -99,6 +99,28 @@ class StorefrontTemplateContractTest {
         assertThat(profile).contains("data-account-layout");
         assertThat(orders).contains("data-order-history", "fragments/footer :: footer");
         assertThat(order).contains("data-order-detail", "/invoice", "currentRole != null and currentRole.name() == 'CUSTOMER'");
+    }
+
+    @Test
+    void modernStorefrontUsesSingleNavigationProductCarouselAndProfessionalFooter() throws IOException {
+        String navigation = read(TEMPLATES.resolve("fragments/navigation.html"));
+        String home = read(TEMPLATES.resolve("home/index.html"));
+        String login = read(TEMPLATES.resolve("auth/login.html"));
+        String footer = read(TEMPLATES.resolve("fragments/footer.html"));
+        String javascript = read(STATIC.resolve("js/app.js"));
+        String railJavascript = read(STATIC.resolve("js/storefront-final.js"));
+
+        assertThat(navigation)
+                .contains("data-storefront-header", "data-primary-shop-nav")
+                .doesNotContain("class=\"category-nav\"", "class=\"store-promise\"");
+        assertThat(home).contains("data-product-carousel", "data-carousel-slide", "data-carousel-next", "data-carousel-prev",
+                "data-product-rail", "data-product-rail-next", "data-product-rail-prev");
+        assertThat(login)
+                .contains("data-demo-entry", "th:action=\"@{/demo-login/customer}\"", "th:action=\"@{/demo-login/admin}\"")
+                .doesNotContain("data-demo-password", "Demo123!");
+        assertThat(footer).contains("© 2026 JerseySee. Crafted and deployed from Dhaka.");
+        assertThat(javascript).contains("data-product-carousel", "prefers-reduced-motion");
+        assertThat(railJavascript).contains("data-product-rail", "scrollBy", "prefers-reduced-motion");
     }
 
     @Test

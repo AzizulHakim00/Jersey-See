@@ -28,7 +28,22 @@ jobs:
         run: chmod +x mvnw
 
       - name: Run tests and package
-        run: ./mvnw --batch-mode --no-transfer-progress clean verify
+        shell: bash
+        run: |
+          set +e
+          ./mvnw --batch-mode --no-transfer-progress clean verify > maven.log 2>&1
+          status=$?
+          tail -n 200 maven.log
+          exit "$status"
+
+      - name: Upload Maven diagnostics
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: maven-diagnostics
+          path: maven.log
+          if-no-files-found: error
+          retention-days: 3
 
   docker:
     needs: verify
