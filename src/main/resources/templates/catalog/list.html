@@ -5,32 +5,28 @@
     <meta name="description" content="Shop JerseySee football jerseys, boots, footballs and supporter accessories.">
     <title>Shop football | JerseySee</title>
     <link rel="stylesheet" th:href="@{/css/jerseysee.css}">
+    <link rel="stylesheet" th:href="@{/css/storefront-premium-v2.css}">
 </head>
 <body class="storefront-body">
 <div th:replace="~{fragments/navigation :: navigation('catalog')}"></div>
-<main class="page-main catalog-page">
+<main class="page-main catalog-page premium-catalog-page">
     <div class="section-shell">
         <nav class="breadcrumbs" aria-label="Breadcrumb"><a th:href="@{/}">Home</a><span aria-hidden="true">/</span><span>Shop</span></nav>
         <header class="catalog-hero premium-catalog-hero">
-            <span class="eyebrow">The JerseySee collection</span>
-            <h1>Find your colours.</h1>
-            <p>New-season jerseys, player editions, retro stories and match-day essentials—selected for every kind of supporter.</p>
+            <span class="premium-eyebrow">THE JERSEYSEE COLLECTION</span>
+            <h1>All Products <span th:if="${products != null}">(<span th:text="${products.totalElements}">0</span>)</span></h1>
+            <p>New-season jerseys, player editions, retro stories and match-day essentials selected for every kind of supporter.</p>
         </header>
         <div th:replace="~{fragments/messages :: messages}"></div>
 
         <section class="catalog-toolbar" aria-label="Catalog controls">
-            <div><strong th:text="${products != null ? products.totalElements : 0}">0</strong><span>pieces in the collection</span></div>
-            <button class="button button-ink button-small filter-mobile-button" type="button"
-                    data-filter-toggle aria-controls="catalogFilters" aria-expanded="true">Filter &amp; refine</button>
+            <div><strong th:text="${products != null ? products.totalElements : 0}">0</strong><span>products available</span></div>
+            <button class="button button-ink button-small filter-mobile-button" type="button" data-filter-toggle aria-controls="catalogFilters" aria-expanded="true">Filter &amp; refine</button>
         </section>
 
-        <section class="catalog-layout">
-            <aside class="filter-card commerce-filter" id="catalogFilters" data-filter-card data-filter-drawer>
-                <div class="filter-card-heading">
-                    <div><span>Refine your search</span><h2>Filters</h2></div>
-                    <button class="filter-close" type="button" data-filter-close aria-label="Close filters">×</button>
-                    <a th:href="@{/catalog}">Clear all</a>
-                </div>
+        <section class="catalog-layout premium-catalog-layout">
+            <aside class="filter-card commerce-filter premium-filter-card" id="catalogFilters" data-filter-card data-filter-drawer>
+                <div class="filter-card-heading"><div><span>Refine your search</span><h2>Categories</h2></div><button class="filter-close" type="button" data-filter-close aria-label="Close filters">×</button><a th:href="@{/catalog}">Clear all</a></div>
                 <form th:action="@{/catalog}" th:object="${filter}" method="get" class="filter-stack" data-filter-form>
                     <div class="global-errors" th:if="${#fields.hasGlobalErrors()}"><p th:each="error : ${#fields.globalErrors()}" th:text="${error}">Filter error</p></div>
                     <div class="field"><label for="keyword">Search products</label><input id="keyword" type="search" th:field="*{keyword}" placeholder="Shirt, club or brand"></div>
@@ -51,19 +47,11 @@
             <button class="filter-scrim" type="button" data-filter-scrim aria-label="Close filters" tabindex="-1"></button>
 
             <section class="catalog-results">
-                <div class="results-bar">
-                    <div><strong>Selected for you</strong><span>Availability and prices shown by product</span></div>
-                    <a th:href="@{/catalog}" th:if="${filter.keyword != null or filter.categoryId != null or filter.productType != null or filter.clubOrCountry != null or filter.edition != null or filter.kitType != null or filter.size != null or filter.available != null or filter.minimumPrice != null or filter.maximumPrice != null}">Reset filters</a>
+                <div class="results-bar"><div><strong>Selected for you</strong><span>Availability and BDT prices shown by product</span></div><a th:href="@{/catalog}" th:if="${filter.keyword != null or filter.categoryId != null or filter.productType != null or filter.clubOrCountry != null or filter.edition != null or filter.kitType != null or filter.size != null or filter.available != null or filter.minimumPrice != null or filter.maximumPrice != null}">Reset filters</a></div>
+                <div class="product-grid catalog-grid commerce-grid premium-commerce-grid" data-commerce-grid data-commerce-card-list th:if="${products != null and !products.empty}">
+                    <th:block th:each="product : ${products.content}"><div th:replace="~{fragments/product-card :: productCard(${product})}"></div></th:block>
                 </div>
-                <div class="product-grid catalog-grid commerce-grid" data-commerce-grid data-commerce-card-list
-                     th:if="${products != null and !products.empty}">
-                    <th:block th:each="product : ${products.content}">
-                        <div th:replace="~{fragments/product-card :: productCard(${product})}"></div>
-                    </th:block>
-                </div>
-                <div class="empty-state" th:if="${products == null or products.empty}">
-                    <span>JS</span><h2>No products match this edit.</h2><p>Try another club, size or price range, or clear the filters to see the full collection.</p><a class="button button-ink" th:href="@{/catalog}">Clear all filters</a>
-                </div>
+                <div class="empty-state" th:if="${products == null or products.empty}"><span>JS</span><h2>No products match this edit.</h2><p>Try another club, size or price range, or clear the filters to see the full collection.</p><a class="button button-ink" th:href="@{/catalog}">Clear all filters</a></div>
                 <nav class="pagination premium-pagination" th:if="${products != null and products.totalPages > 1}" aria-label="Catalog pages">
                     <a th:if="${products.hasPrevious()}" th:href="@{/catalog(page=${products.number - 1},keyword=${filter.keyword},categoryId=${filter.categoryId},productType=${filter.productType},clubOrCountry=${filter.clubOrCountry},edition=${filter.edition},kitType=${filter.kitType},size=${filter.size},available=${filter.available},minimumPrice=${filter.minimumPrice},maximumPrice=${filter.maximumPrice})}">← Previous</a>
                     <span>Page <b th:text="${products.number + 1}">1</b> of <b th:text="${products.totalPages}">1</b></span>
@@ -74,6 +62,6 @@
     </div>
 </main>
 <div th:replace="~{fragments/footer :: footer}"></div>
-<script th:src="@{/js/app.js}" defer></script>
+<script th:src="@{/js/app.js}" defer></script><script th:src="@{/js/storefront-premium-v2.js}" defer></script>
 </body>
 </html>
