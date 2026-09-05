@@ -11,6 +11,7 @@ class ModernStorefrontContractTest {
 
     private static final Path TEMPLATES = Path.of("src/main/resources/templates");
     private static final Path STATIC = Path.of("src/main/resources/static");
+    private static final Path JAVA = Path.of("src/main/java/bd/edu/seu/jerseysee");
 
     @Test
     void premiumV2UsesOneCommerceHeaderAndApprovedHomeComposition() throws IOException {
@@ -29,9 +30,10 @@ class ModernStorefrontContractTest {
     }
 
     @Test
-    void loginUsesVisibleManualDemoCredentialsAndNoOneClickDemoUi() throws IOException {
+    void loginUsesVisibleManualDemoCredentialsAndNoOneClickDemoUiOrRoute() throws IOException {
         String login = read(TEMPLATES.resolve("auth/login.html"));
         String javascript = read(STATIC.resolve("js/app.js"));
+        String securityConfig = read(JAVA.resolve("config/SecurityConfig.java"));
 
         assertThat(login)
                 .contains("Demo credentials (for testing only)", "customer@demo.local", "admin@demo.local", "Demo123!",
@@ -41,6 +43,8 @@ class ModernStorefrontContractTest {
                         "storefront-modern.css", "storefront-final.css");
         assertThat(javascript)
                 .doesNotContain("data-demo-account", "demoEmail", "demoPassword");
+        assertThat(securityConfig).doesNotContain("/demo-login/**");
+        assertThat(JAVA.resolve("controller/PublicDemoLoginController.java")).doesNotExist();
     }
 
     @Test
