@@ -155,9 +155,18 @@ Use the approved split layout:
 - left: premium dark football visual, logo and short football-centric statement
 - right: compact email/password form on a white surface
 
-The rejected one-click demo account cards are removed.
+The rejected one-click demo account cards are removed completely. There must be no `/demo-login/customer` or `/demo-login/admin` buttons/forms on the page and no JavaScript that auto-fills or submits demo credentials.
 
-Demo access is shown as plain text credentials for manual login only. Credentials must come from the same configured demo values used by the server and must not be hidden in clickable data attributes or JavaScript autofill behavior. If the project uses fixed portfolio demo accounts, expose only those deliberate demo credentials and no production secrets.
+Under the normal sign-in form, show a small plain-text block titled `Demo credentials (for testing only)`. These credentials are intentionally public demo-only accounts and are displayed visibly so a reviewer can type them manually into the regular login form:
+
+- Customer demo
+  - Username: `customer@demo.local`
+  - Password: `Demo123!`
+- Admin demo
+  - Username: `admin@demo.local`
+  - Password: `Demo123!`
+
+The implementation must ensure those two deliberate demo accounts actually exist in the portfolio/demo deployment and authenticate through the normal `/login` form. They must not be represented by hidden data attributes, clickable credential cards, one-click authentication endpoints or client-side autofill. Do not expose any non-demo account, environment secret, database credential or production-only password.
 
 The page should include a small footer credit:
 
@@ -254,11 +263,13 @@ At every width:
 Before implementation, extend the existing storefront contract tests with assertions for:
 
 1. the single-row premium header routes
-2. manual demo credentials and absence of one-click demo-login forms
-3. Azizul Hakim Omor copyright line
-4. stable image attributes / real product image routes
-5. customer dashboard without the staff sidebar
-6. premium stylesheet/script inclusion on target pages
+2. visible `customer@demo.local` / `Demo123!` and `admin@demo.local` / `Demo123!` credential text on the login page
+3. absence of one-click `/demo-login/customer` and `/demo-login/admin` forms/buttons and absence of demo autofill behavior
+4. successful authentication of both deliberate demo accounts through the normal `/login` flow in the demo/portfolio configuration
+5. Azizul Hakim Omor copyright line
+6. stable image attributes / real product image routes
+7. customer dashboard without the staff sidebar
+8. premium stylesheet/script inclusion on target pages
 
 Then implement page changes until those tests pass.
 
@@ -266,10 +277,10 @@ Verification after implementation:
 
 - `./mvnw clean verify`
 - production Docker build
-- review PR diff for dead links, duplicated CSS and exposed credentials
+- review PR diff for dead links, duplicated CSS and exposure of anything except the two deliberate demo credentials
 - merge only when CI is green
 - Render auto-deploy from `main`
-- live smoke test: health, homepage, catalog, player/retro filters, product image, product detail, manual demo customer login, customer dashboard, admin dashboard and ownership footer
+- live smoke test: health, homepage, catalog, player/retro filters, product image, product detail, manual customer login using the displayed credentials, manual admin login using the displayed credentials, customer dashboard, admin dashboard and ownership footer
 
 ## Files expected to change
 
@@ -286,9 +297,10 @@ Primary:
 - new/final `src/main/resources/static/css/storefront-premium-v2.css`
 - new/final `src/main/resources/static/js/storefront-premium-v2.js`
 - storefront contract tests
+- demo/public-portfolio authentication configuration only as needed to make the displayed deliberate demo credentials authenticate through normal login
 
-Existing backend domain logic should remain unchanged unless a small view-model adjustment is strictly required to render already-existing data.
+Existing backend domain logic should remain unchanged unless a small view-model or demo-auth configuration adjustment is strictly required to render/use already-approved demo data.
 
 ## Definition of done
 
-The project is complete only when the deployed Render site visually follows the approved mockup, the live pages are responsive and stable, manual demo credentials work, ownership credit is correct, real product images render, customer/admin workflows remain functional, Maven and Docker CI are green, and a live post-deploy smoke test passes.
+The project is complete only when the deployed Render site visually follows the approved mockup, the live pages are responsive and stable, the two visible manual demo credentials work through the regular login form, ownership credit is correct, real product images render, customer/admin workflows remain functional, Maven and Docker CI are green, and a live post-deploy smoke test passes.
