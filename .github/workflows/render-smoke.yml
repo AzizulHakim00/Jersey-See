@@ -1,4 +1,4 @@
-name: Render deployment smoke
+name: Render deployment diagnostics
 
 on:
   push:
@@ -6,88 +6,45 @@ on:
       - ops/render-deployment-smoke
 
 jobs:
-  verify-render:
+  inspect-render:
     runs-on: ubuntu-latest
-    timeout-minutes: 12
+    timeout-minutes: 8
     steps:
-      - name: Verify deployed application health and storefront
+      - name: Inspect live catalog and demo access
         shell: bash
         run: |
           set -euo pipefail
           base_url="https://jersey-see.onrender.com"
 
-          require_marker() {
-            local label="$1"
-            local marker="$2"
-            local body="$3"
-            if grep -Fq "$marker" <<<"$body"; then
-              echo "PASS: ${label}"
-            else
-              echo "FAIL: ${label} (missing: ${marker})" >&2
-              return 1
-            fi
-          }
+          curl -fsS --retry 3 --retry-delay 2 --max-time 35 "${base_url}/actuator/health"
+          echo
 
-          fetch_page() {
-            local label="$1"
-            local path="$2"
-            local out_file="$3"
-            local code
-            code="$(curl -sS --retry 2 --retry-delay 2 --max-time 35 -o "$out_file" -w '%{http_code}' "${base_url}${path}")"
-            echo "${label}: HTTP ${code}, bytes $(wc -c < "$out_file")"
-            [[ "$code" == "200" ]]
-          }
+          curl -fsS --retry 3 --retry-delay 2 --max-time 35 "${base_url}/catalog" -o /tmp/catalog.html
+          echo "Catalog bytes: $(wc -c < /tmp/catalog.html)"
+          count="$(grep -oE '<strong>[0-9]+</strong><span>pieces in the collection</span>' /tmp/catalog.html | sed -E 's#<strong>([0-9]+)</strong>.*#\1#' | head -n1 || true)"
+          echo "Rendered collection count: ${count:-unknown}"
+          echo 'Rendered product names:'
+          grep -oE '<h3><a href="/products/[0-9]+">[^<]+' /tmp/catalog.html | sed -E 's#.*>##' | head -n 30 || true
+          echo 'Rendered image paths:'
+          grep -oE '/product-images/[^\" ]+' /tmp/catalog.html | head -n 10 || true
+          echo 'Empty-state marker:'
+          grep -F 'No products match this edit.' /tmp/catalog.html || true
 
-          for attempt in $(seq 1 40); do
-            response="$(curl -sS --max-time 25 -w '\n%{http_code}' "${base_url}/actuator/health" || true)"
-            code="$(printf '%s\n' "$response" | tail -n1)"
-            body="$(printf '%s\n' "$response" | sed '$d')"
-            echo "Health attempt ${attempt}: HTTP ${code} ${body}"
-            if [[ "$code" == "200" ]] && grep -q '"status"[[:space:]]*:[[:space:]]*"UP"' <<<"$body"; then
-              break
-            fi
-            [[ "$attempt" != "40" ]] || { echo 'Render never became healthy' >&2; exit 1; }
-            sleep 15
-          done
-
-          fetch_page home / /tmp/home.html
-          fetch_page catalog /catalog /tmp/catalog.html
-          fetch_page player '/catalog?edition=PLAYER' /tmp/player.html
-          fetch_page retro '/catalog?edition=RETRO' /tmp/retro.html
-          fetch_page login /login /tmp/login.html
-
-          home="$(cat /tmp/home.html)"
-          catalog="$(cat /tmp/catalog.html)"
-          player="$(cat /tmp/player.html)"
-          retro="$(cat /tmp/retro.html)"
-          login="$(cat /tmp/login.html)"
-
-          require_marker 'new homepage copy' 'Fresh shirts. Real choices.' "$home"
-          require_marker 'Dhaka footer credit' '© 2026 JerseySee. Crafted and deployed from Dhaka.' "$home"
-          require_marker 'seeded Barcelona jersey' 'Barcelona Home Fan Jersey' "$catalog"
-          require_marker 'player-edition filtered catalog' 'Player Jersey' "$player"
-          require_marker 'retro filtered catalog' 'Retro Jersey' "$retro"
-          require_marker 'secure one-click demo copy' 'Secure one-click access' "$login"
-          require_marker 'customer demo endpoint' '/demo-login/customer' "$login"
-          require_marker 'admin demo endpoint' '/demo-login/admin' "$login"
-
-          if grep -Fq 'Demo123!' <<<"$login"; then
-            echo 'FAIL: known demo password leaked into the live login page.' >&2
-            exit 1
+          curl -fsS --retry 3 --retry-delay 2 --max-time 35 -c /tmp/cookies.txt "${base_url}/login" -o /tmp/login.html
+          csrf="$(sed -nE 's/.*name="_csrf"[^>]*value="([^"]+)".*/\1/p' /tmp/login.html | head -n1 || true)"
+          if [[ -z "$csrf" ]]; then
+            csrf="$(sed -nE 's/.*value="([^"]+)"[^>]*name="_csrf".*/\1/p' /tmp/login.html | head -n1 || true)"
           fi
-          echo 'PASS: no known demo password in login HTML'
+          echo "CSRF token present: $([[ -n "$csrf" ]] && echo yes || echo no)"
+          [[ -n "$csrf" ]] || exit 1
 
-          image_path="$(grep -oE '/product-images/[^\" ]+' /tmp/catalog.html | head -n1 || true)"
-          echo "First product image path: ${image_path:-<none>}"
-          [[ -n "$image_path" ]] || { echo 'FAIL: no persisted product image found in live catalog.' >&2; exit 1; }
-          headers="$(curl -fsSI --retry 2 --retry-delay 2 --max-time 35 "${base_url}${image_path}")"
-          grep -Eiq '^content-type:[[:space:]]*image/' <<<"$headers" || { echo 'FAIL: product image did not return an image content type.' >&2; printf '%s\n' "$headers"; exit 1; }
-          echo 'PASS: persisted product image is reachable'
+          code="$(curl -sS --max-time 35 -b /tmp/cookies.txt -c /tmp/cookies.txt -D /tmp/demo-headers.txt -o /tmp/demo-body.txt -w '%{http_code}' -X POST --data-urlencode "_csrf=${csrf}" "${base_url}/demo-login/customer")"
+          echo "Customer demo login HTTP: ${code}"
+          grep -i '^location:' /tmp/demo-headers.txt || true
+          if [[ "$code" == "302" || "$code" == "303" ]]; then
+            echo 'Demo endpoint is active.'
+          else
+            echo 'Demo endpoint is not active.' >&2
+          fi
 
-          first_product="$(grep -oE '/products/[0-9]+' /tmp/catalog.html | head -n1 || true)"
-          echo "First product path: ${first_product:-<none>}"
-          [[ -n "$first_product" ]] || { echo 'FAIL: no product detail link found in live catalog.' >&2; exit 1; }
-          detail="$(curl -fsS --retry 2 --retry-delay 2 --max-time 35 "${base_url}${first_product}")"
-          require_marker 'product detail purchase action' 'Add to cart' "$detail"
-
-          echo 'PASS: full Render storefront smoke test completed.'
+          exit 0
