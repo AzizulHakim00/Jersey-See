@@ -45,7 +45,7 @@
         </th:block>
 
         <th:block th:if="${currentRole != null and currentRole.name() != 'CUSTOMER'}">
-            <header class="page-header dashboard-header"><div><span class="eyebrow">STORE OPERATIONS</span><h1>Admin dashboard</h1><p>Manage products, orders, payments and staff from one operational workspace.</p></div><a class="button button-lime" th:if="${currentRole.name() == 'MANAGER' or currentRole.name() == 'ADMIN'}" th:href="@{/staff/products/new}">+ Add Product</a></header>
+            <header class="page-header dashboard-header"><div><span class="eyebrow">STORE OPERATIONS</span><h1 th:text="${currentRole != null ? #strings.capitalize(#strings.toLowerCase(currentRole.name())) + ' dashboard' : 'Admin dashboard'}">Admin dashboard</h1><p>Manage products, orders, payments and staff from one operational workspace.</p></div><a class="button button-lime" th:if="${currentRole.name() == 'MANAGER' or currentRole.name() == 'ADMIN'}" th:href="@{/staff/products/new}">+ Add Product</a></header>
             <section class="metric-grid" aria-label="Dashboard summary">
                 <article><span class="metric-icon">KIT</span><strong th:text="${dashboard.catalogProductCount}">0</strong><h2>Total products</h2><p>Products visible in the store.</p></article>
                 <article><span class="metric-icon blue">ORD</span><strong th:text="${dashboard.orderCount}">0</strong><h2>Total orders</h2><p>All recorded customer orders.</p></article>
