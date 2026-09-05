@@ -13,7 +13,7 @@ import org.springframework.web.filter.OncePerRequestFilter;
 /** Keeps the public portfolio administrator useful for review without allowing live data mutation. */
 public class PublicDemoAdminReadOnlyFilter extends OncePerRequestFilter {
 
-    static final String PUBLIC_DEMO_ADMIN = "admin@jerseysee.demo";
+    static final String PUBLIC_DEMO_ADMIN = "admin@demo.local";
     private static final Set<String> SAFE_METHODS = Set.of("GET", "HEAD", "OPTIONS");
 
     @Override
