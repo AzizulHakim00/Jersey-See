@@ -53,23 +53,25 @@
             <div class="demo-access">
                 <div class="demo-access-header">
                     <h3>Demo accounts</h3>
-                    <span>One click fills the form</span>
+                    <span>Secure one-click access</span>
                 </div>
                 <div class="demo-login-grid" aria-label="Demo accounts">
-                    <button type="button" class="demo-account" data-demo-account
-                            data-demo-email="customer@jerseysee.demo" data-demo-password="Demo123!">
-                        <span>Customer demo</span>
-                        <strong>Browse, cart &amp; checkout</strong>
-                        <small>Use customer demo</small>
-                    </button>
-                    <button type="button" class="demo-account" data-demo-account
-                            data-demo-email="admin@jerseysee.demo" data-demo-password="Demo123!">
-                        <span>Admin demo</span>
-                        <strong>Review store operations</strong>
-                        <small>Use admin demo</small>
-                    </button>
+                    <form th:action="@{/demo-login/customer}" method="post" data-demo-account>
+                        <button type="submit" class="demo-account">
+                            <span>Customer demo</span>
+                            <strong>Browse, cart &amp; checkout</strong>
+                            <small>Enter customer demo</small>
+                        </button>
+                    </form>
+                    <form th:action="@{/demo-login/admin}" method="post" data-demo-account>
+                        <button type="submit" class="demo-account">
+                            <span>Admin demo</span>
+                            <strong>Review store operations</strong>
+                            <small>Enter admin demo</small>
+                        </button>
+                    </form>
                 </div>
-                <p style="margin:12px 0 0;color:#6f746f;font-size:.68rem">Public demo credentials are separate from the private production administrator account.</p>
+                <p style="margin:12px 0 0;color:#6f746f;font-size:.68rem">Demo access is created server-side, so no demo password is embedded in the page.</p>
             </div>
         </div>
     </section>
