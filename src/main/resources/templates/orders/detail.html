@@ -3,7 +3,7 @@
 <head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title th:text="${'Order #' + order.id + ' | JerseySee'}">Order | JerseySee</title><link rel="stylesheet" th:href="@{/css/jerseysee.css}"><link rel="stylesheet" th:href="@{/css/storefront-premium-v2.css}"></head>
 <body class="storefront-body">
 <div th:replace="~{fragments/navigation :: navigation('orders')}"></div>
-<main class="page-main premium-account-page" data-order-detail><div class="section-shell narrow-shell">
+<main class="page-main account-page premium-account-page" data-order-detail><div class="section-shell narrow-shell">
     <nav class="breadcrumbs" aria-label="Breadcrumb"><a th:href="@{/}">Home</a><span>/</span><a th:href="@{/orders}">Orders</a><span>/</span><span>Order <b th:text="${'#' + order.id}">#1</b></span></nav>
     <div th:replace="~{fragments/messages :: messages}"></div>
     <nav class="account-tabs" aria-label="Account sections"><a th:href="@{/dashboard}">Dashboard</a><a class="is-active" th:href="@{/orders}">Orders</a><a th:href="@{/profile}">Profile</a><a th:href="@{/cart}">Bag</a></nav>
