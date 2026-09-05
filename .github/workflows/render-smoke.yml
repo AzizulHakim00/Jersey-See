@@ -16,6 +16,28 @@ jobs:
           set -euo pipefail
           base_url="https://jersey-see.onrender.com"
 
+          require_marker() {
+            local label="$1"
+            local marker="$2"
+            local body="$3"
+            if grep -Fq "$marker" <<<"$body"; then
+              echo "PASS: ${label}"
+            else
+              echo "FAIL: ${label} (missing: ${marker})" >&2
+              return 1
+            fi
+          }
+
+          fetch_page() {
+            local label="$1"
+            local path="$2"
+            local out_file="$3"
+            local code
+            code="$(curl -sS --retry 2 --retry-delay 2 --max-time 35 -o "$out_file" -w '%{http_code}' "${base_url}${path}")"
+            echo "${label}: HTTP ${code}, bytes $(wc -c < "$out_file")"
+            [[ "$code" == "200" ]]
+          }
+
           for attempt in $(seq 1 40); do
             response="$(curl -sS --max-time 25 -w '\n%{http_code}' "${base_url}/actuator/health" || true)"
             code="$(printf '%s\n' "$response" | tail -n1)"
@@ -28,32 +50,44 @@ jobs:
             sleep 15
           done
 
-          home="$(curl -fsS --max-time 30 "${base_url}/")"
-          catalog="$(curl -fsS --max-time 30 "${base_url}/catalog")"
-          player="$(curl -fsS --max-time 30 "${base_url}/catalog?edition=PLAYER")"
-          retro="$(curl -fsS --max-time 30 "${base_url}/catalog?edition=RETRO")"
-          login="$(curl -fsS --max-time 30 "${base_url}/login")"
+          fetch_page home / /tmp/home.html
+          fetch_page catalog /catalog /tmp/catalog.html
+          fetch_page player '/catalog?edition=PLAYER' /tmp/player.html
+          fetch_page retro '/catalog?edition=RETRO' /tmp/retro.html
+          fetch_page login /login /tmp/login.html
 
-          grep -Fq 'Fresh shirts. Real choices.' <<<"$home"
-          grep -Fq '© 2026 JerseySee. Crafted and deployed from Dhaka.' <<<"$home"
-          grep -Fq 'Barcelona Home Fan Jersey' <<<"$catalog"
-          grep -Fq 'Player Jersey' <<<"$player"
-          grep -Fq 'Retro Jersey' <<<"$retro"
-          grep -Fq 'Secure one-click access' <<<"$login"
-          grep -Fq '/demo-login/customer' <<<"$login"
-          grep -Fq '/demo-login/admin' <<<"$login"
+          home="$(cat /tmp/home.html)"
+          catalog="$(cat /tmp/catalog.html)"
+          player="$(cat /tmp/player.html)"
+          retro="$(cat /tmp/retro.html)"
+          login="$(cat /tmp/login.html)"
+
+          require_marker 'new homepage copy' 'Fresh shirts. Real choices.' "$home"
+          require_marker 'Dhaka footer credit' '© 2026 JerseySee. Crafted and deployed from Dhaka.' "$home"
+          require_marker 'seeded Barcelona jersey' 'Barcelona Home Fan Jersey' "$catalog"
+          require_marker 'player-edition filtered catalog' 'Player Jersey' "$player"
+          require_marker 'retro filtered catalog' 'Retro Jersey' "$retro"
+          require_marker 'secure one-click demo copy' 'Secure one-click access' "$login"
+          require_marker 'customer demo endpoint' '/demo-login/customer' "$login"
+          require_marker 'admin demo endpoint' '/demo-login/admin' "$login"
+
           if grep -Fq 'Demo123!' <<<"$login"; then
-            echo 'Known demo password leaked into the live login page.' >&2
+            echo 'FAIL: known demo password leaked into the live login page.' >&2
             exit 1
           fi
+          echo 'PASS: no known demo password in login HTML'
 
-          image_path="$(grep -oE '/product-images/[^\" ]+' <<<"$catalog" | head -n1 || true)"
-          [[ -n "$image_path" ]] || { echo 'No persisted product image found in live catalog.' >&2; exit 1; }
-          headers="$(curl -fsSI --max-time 30 "${base_url}${image_path}")"
-          grep -Eiq '^content-type:[[:space:]]*image/' <<<"$headers"
+          image_path="$(grep -oE '/product-images/[^\" ]+' /tmp/catalog.html | head -n1 || true)"
+          echo "First product image path: ${image_path:-<none>}"
+          [[ -n "$image_path" ]] || { echo 'FAIL: no persisted product image found in live catalog.' >&2; exit 1; }
+          headers="$(curl -fsSI --retry 2 --retry-delay 2 --max-time 35 "${base_url}${image_path}")"
+          grep -Eiq '^content-type:[[:space:]]*image/' <<<"$headers" || { echo 'FAIL: product image did not return an image content type.' >&2; printf '%s\n' "$headers"; exit 1; }
+          echo 'PASS: persisted product image is reachable'
 
-          first_product="$(grep -oE '/products/[0-9]+' <<<"$catalog" | head -n1 || true)"
-          [[ -n "$first_product" ]] || { echo 'No product detail link found in live catalog.' >&2; exit 1; }
-          curl -fsS --max-time 30 "${base_url}${first_product}" | grep -Fq 'Add to cart'
+          first_product="$(grep -oE '/products/[0-9]+' /tmp/catalog.html | head -n1 || true)"
+          echo "First product path: ${first_product:-<none>}"
+          [[ -n "$first_product" ]] || { echo 'FAIL: no product detail link found in live catalog.' >&2; exit 1; }
+          detail="$(curl -fsS --retry 2 --retry-delay 2 --max-time 35 "${base_url}${first_product}")"
+          require_marker 'product detail purchase action' 'Add to cart' "$detail"
 
-          echo 'Health, catalog, filters, persisted image, product detail and secure demo login checks passed.'
+          echo 'PASS: full Render storefront smoke test completed.'
