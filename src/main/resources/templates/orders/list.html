@@ -12,7 +12,7 @@
 <main class="page-main premium-account-page"><div class="section-shell">
     <nav class="breadcrumbs" aria-label="Breadcrumb"><a th:href="@{/}">Home</a><span aria-hidden="true">/</span><span>Account</span></nav>
     <div th:replace="~{fragments/messages :: messages}"></div>
-    <header class="premium-account-hero"><div><span class="premium-eyebrow">MY ACCOUNT</span><h1>Order history</h1><p>Follow every order from confirmation to delivery and keep your invoices close.</p></div><a class="button button-ink" th:href="@{/catalog}">Shop the latest edit</a></header>
+    <header class="account-hero premium-account-hero"><div><span class="premium-eyebrow">MY ACCOUNT</span><h1>Order history</h1><p>Follow every order from confirmation to delivery and keep your invoices close.</p></div><a class="button button-ink" th:href="@{/catalog}">Shop the latest edit</a></header>
     <nav class="account-tabs" aria-label="Account sections"><a th:href="@{/dashboard}">Dashboard</a><a class="is-active" th:href="@{/orders}">Orders</a><a th:href="@{/profile}">Profile</a><a th:href="@{/cart}">Bag</a></nav>
 
     <section class="empty-state premium-empty-state" th:if="${orders == null or #lists.isEmpty(orders)}"><span>JS</span><h2>No orders yet.</h2><p>Your first match-day selection will appear here after checkout.</p><a class="button button-ink" th:href="@{/catalog}">Explore the collection</a></section>
