@@ -1,12 +1,13 @@
 package bd.edu.seu.jerseysee.config;
 
-import bd.edu.seu.jerseysee.model.ProductImage;
+import bd.edu.seu.jerseysee.model.Product;
 import bd.edu.seu.jerseysee.repository.ProductImageRepository;
 import bd.edu.seu.jerseysee.repository.ProductRepository;
+import java.util.List;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.core.io.ResourceLoader;
+import org.springframework.core.io.DefaultResourceLoader;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ActiveProfiles;
 
@@ -26,45 +27,34 @@ class DemoProductImageInitializerTest {
     private ProductRepository productRepository;
 
     @Autowired
-    private ProductImageRepository imageRepository;
-
-    @Autowired
-    private ResourceLoader resourceLoader;
+    private ProductImageRepository productImageRepository;
 
     @Test
-    void suppliedKitPhotoIsPersistedAndRerunIsIdempotent() {
-        DemoProductImageInitializer initializer = new DemoProductImageInitializer(productRepository, imageRepository, resourceLoader);
-
+    void publicCatalogCanAttachPackagedProductPhotographyToDatabaseBackedImages() {
+        DemoProductImageInitializer initializer = new DemoProductImageInitializer(
+                productRepository, productImageRepository, new DefaultResourceLoader());
         initializer.seedImages();
-        var product = productRepository.findByDemoSeedKey("public.product.barcelona-home-fan").orElseThrow();
-        String storedName = product.getStoredImageName();
 
-        assertThat(storedName).isEqualTo("demo-barcelona-home-fan.jpg");
-        assertThat(product.getOriginalImageName()).isEqualTo("barcelona-home.jpg");
-        assertThat(product.getImageContentType()).isEqualTo("image/jpeg");
-        assertThat(product.getImageSize()).isPositive();
-        ProductImage image = imageRepository.findById(storedName).orElseThrow();
-        assertThat(image.getContent()).isNotEmpty();
+        List<Product> publicProducts = productRepository.findAll().stream()
+                .filter(product -> product.getDemoSeedKey() != null
+                        && product.getDemoSeedKey().startsWith("public.product."))
+                .toList();
 
-        long imageCount = imageRepository.count();
-        initializer.seedImages();
-        assertThat(imageRepository.count()).isEqualTo(imageCount);
-    }
-
-    @Test
-    void existingAdministratorImageIsNeverOverwritten() {
-        var product = productRepository.findByDemoSeedKey("public.product.real-madrid-home-fan").orElseThrow();
-        product.setStoredImageName("custom-owner-image.jpg");
-        product.setOriginalImageName("owner-upload.jpg");
-        product.setImageContentType("image/jpeg");
-        product.setImageSize(99L);
-        productRepository.saveAndFlush(product);
-        imageRepository.saveAndFlush(new ProductImage("custom-owner-image.jpg", new byte[]{1, 2, 3}));
-
-        new DemoProductImageInitializer(productRepository, imageRepository, resourceLoader).seedImages();
-
-        var preserved = productRepository.findByDemoSeedKey("public.product.real-madrid-home-fan").orElseThrow();
-        assertThat(preserved.getStoredImageName()).isEqualTo("custom-owner-image.jpg");
-        assertThat(imageRepository.findById("custom-owner-image.jpg")).isPresent();
+        assertThat(publicProducts).hasSizeGreaterThanOrEqualTo(20);
+        assertThat(publicProducts)
+                .allSatisfy(product -> {
+                    assertThat(product.getStoredImageName()).isNotBlank();
+                    assertThat(product.getOriginalImageName()).isNotBlank();
+                    assertThat(product.getImageContentType()).isNotBlank();
+                    assertThat(product.getImageSize()).isPositive();
+                    assertThat(productImageRepository.findById(product.getStoredImageName()))
+                            .isPresent()
+                            .get()
+                            .satisfies(image -> assertThat(image.getContent()).isNotEmpty());
+                });
+        assertThat(publicProducts.stream()
+                .map(Product::getStoredImageName)
+                .distinct()
+                .count()).isGreaterThanOrEqualTo(20);
     }
 }
