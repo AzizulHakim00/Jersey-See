@@ -51,7 +51,8 @@ class ModernStorefrontContractTest {
         assertThat(premiumCss)
                 .contains("@media (max-width: 1220px)", "@media (max-width: 980px)", "@media (max-width: 720px)",
                         "@media (max-width: 480px)", "@media (max-width: 360px)", "prefers-reduced-motion: reduce",
-                        "aspect-ratio", "overflow-x: clip")
+                        "aspect-ratio", "overflow-x: clip", ".premium-auth-card", ".manual-demo-credentials",
+                        ".premium-auth-credit", ".premium-account-hero")
                 .doesNotContain("linear-gradient", "radial-gradient");
         assertThat(premiumJs)
                 .contains("IntersectionObserver", "data-product-rail", "scrollBy", "prefers-reduced-motion")
