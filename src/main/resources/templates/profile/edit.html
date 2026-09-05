@@ -9,7 +9,7 @@
 <body class="storefront-body" data-account-layout th:classappend="${currentRole != null and currentRole.name() != 'CUSTOMER'} ? ' staff-body' : ''">
 <div th:if="${currentRole != null and currentRole.name() == 'CUSTOMER'}" th:replace="~{fragments/navigation :: navigation('profile')}"></div>
 <div th:if="${currentRole != null and currentRole.name() != 'CUSTOMER'}" th:replace="~{fragments/admin-sidebar :: sidebar('profile')}"></div>
-<main th:class="${currentRole != null and currentRole.name() != 'CUSTOMER'} ? 'staff-main' : 'page-main premium-account-page'">
+<main th:class="${currentRole != null and currentRole.name() != 'CUSTOMER'} ? 'staff-main' : 'page-main account-page premium-account-page'">
 <div class="section-shell" th:classappend="${currentRole != null and currentRole.name() != 'CUSTOMER'} ? ' staff-content' : ''">
     <div th:replace="~{fragments/messages :: messages}"></div>
     <header class="account-hero premium-account-hero" th:if="${currentRole != null and currentRole.name() == 'CUSTOMER'}"><div><span class="premium-eyebrow">MY ACCOUNT</span><h1>Profile settings</h1><p>Keep your contact and delivery details accurate while your sign-in email and role remain protected.</p></div></header>
