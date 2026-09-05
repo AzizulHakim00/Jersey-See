@@ -13,7 +13,7 @@
         <div class="premium-auth-copy"><span class="premium-eyebrow">JOIN THE SQUAD</span><h1>Your next shirt starts here.</h1><p>Create a customer account to customise shirts, check out securely and follow every order.</p></div>
     </section>
     <section class="auth-panel premium-auth-panel" data-auth-panel>
-        <div class="premium-auth-card premium-auth-card-wide">
+        <div class="modern-auth-card premium-auth-card premium-auth-card-wide">
             <a class="auth-back" th:href="@{/}">← Back to store</a>
             <span class="premium-eyebrow">CUSTOMER REGISTRATION</span><h2>Create your account</h2><p>All fields are required. Passwords need upper- and lower-case letters, a number and a symbol.</p>
             <form class="stack-form" th:action="@{/register}" th:object="${registration}" method="post" novalidate>
@@ -29,7 +29,7 @@
                 <button class="button button-ink button-wide" type="submit">Create customer account</button>
             </form>
             <p class="auth-switch">Already registered? <a th:href="@{/login}">Sign in</a></p>
-            <p class="premium-auth-credit">© 2026 Azizul Hakim Omor. All rights reserved.</p>
+            <p class="auth-owner premium-auth-credit">© 2026 Azizul Hakim Omor. All rights reserved.</p>
         </div>
     </section>
 </main>
