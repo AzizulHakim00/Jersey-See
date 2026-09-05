@@ -1,13 +1,13 @@
 <!DOCTYPE html>
 <html lang="en" xmlns:th="http://www.thymeleaf.org">
 <body>
-<article class="commerce-product-card product-card" th:fragment="productCard(product)" data-commerce-card>
+<article class="commerce-product-card product-card" th:fragment="productCard(product)" data-commerce-card data-premium-reveal>
     <a class="product-media" th:href="@{/products/{id}(id=${product.id})}">
         <span class="product-flag" th:if="${product.featured}">Featured</span>
         <span class="product-type-label"
               th:text="${product.jerseyEdition != null ? #strings.replace(product.jerseyEdition.name(),'_',' ') : #strings.replace(product.productType.name(),'_',' ')}">Edition</span>
         <img th:src="${product.storedImageName != null ? '/product-images/' + product.storedImageName : '/images/product-placeholder.svg'}"
-             th:alt="${product.name}" loading="lazy"
+             th:alt="${product.name}" width="480" height="600" loading="lazy" decoding="async"
              onerror="this.onerror=null;this.src='/images/product-placeholder.svg'">
     </a>
     <div class="product-card-body">
@@ -20,7 +20,7 @@
         </div>
         <div class="product-card-footer">
             <strong>৳<span th:text="${#numbers.formatDecimal(product.basePrice,1,0)}">750</span></strong>
-            <a class="product-arrow" th:href="@{/products/{id}(id=${product.id})}" th:aria-label="|View ${product.name}|">↗</a>
+            <a class="product-arrow" data-premium-press th:href="@{/products/{id}(id=${product.id})}" th:aria-label="|View ${product.name}|">↗</a>
         </div>
     </div>
 </article>
