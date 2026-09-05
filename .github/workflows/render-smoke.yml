@@ -75,8 +75,9 @@ jobs:
 
           product_path="$(grep -oE '/products/[0-9]+' /tmp/catalog.html | head -n1 || true)"
           [[ -n "$product_path" ]] || { echo 'No live product detail link found.' >&2; exit 1; }
-          curl -fsS --max-time 30 "${base_url}${product_path}" -o /tmp/product.html
-          grep -Fq 'Add to cart' /tmp/product.html
+          curl -fsS --max-time 30 "${base_url}${product_path}" -o /tmp/product-guest.html
+          grep -Fq 'Sign in to buy' /tmp/product-guest.html
+          echo "verified guest product detail ${product_path}"
 
           curl -fsS --max-time 30 -c /tmp/cookies.txt "${base_url}/login" -o /tmp/login-session.html
           csrf="$(sed -nE 's/.*name="_csrf"[^>]*value="([^"]+)".*/\1/p' /tmp/login-session.html | head -n1 || true)"
@@ -88,5 +89,9 @@ jobs:
           demo_code="$(curl -sS --max-time 30 -b /tmp/cookies.txt -c /tmp/cookies.txt -D /tmp/demo-headers.txt -o /tmp/demo-body.html -w '%{http_code}' -X POST --data-urlencode "_csrf=${csrf}" "${base_url}/demo-login/customer")"
           echo "customer demo login HTTP ${demo_code}"
           [[ "$demo_code" == "302" || "$demo_code" == "303" ]]
+
+          curl -fsS --max-time 30 -b /tmp/cookies.txt "${base_url}${product_path}" -o /tmp/product-customer.html
+          grep -Fq 'Add to bag' /tmp/product-customer.html
+          echo "verified authenticated purchase controls on ${product_path}"
 
           echo 'Render health, catalog, filters, persisted image, product detail, footer and secure demo login all passed.'
