@@ -115,9 +115,11 @@ class StorefrontTemplateContractTest {
                 .doesNotContain("class=\"category-nav\"", "class=\"store-promise\"");
         assertThat(home).contains("data-product-carousel", "data-carousel-slide", "data-carousel-next", "data-carousel-prev",
                 "data-product-rail", "data-product-rail-next", "data-product-rail-prev");
-        assertThat(login).contains("data-demo-account", "data-demo-email", "data-demo-password");
+        assertThat(login)
+                .contains("data-demo-entry", "th:action=\"@{/demo-login/customer}\"", "th:action=\"@{/demo-login/admin}\"")
+                .doesNotContain("data-demo-password", "Demo123!");
         assertThat(footer).contains("© 2026 JerseySee. Crafted and deployed from Dhaka.");
-        assertThat(javascript).contains("data-product-carousel", "data-demo-account", "prefers-reduced-motion");
+        assertThat(javascript).contains("data-product-carousel", "prefers-reduced-motion");
         assertThat(railJavascript).contains("data-product-rail", "scrollBy", "prefers-reduced-motion");
     }
 
