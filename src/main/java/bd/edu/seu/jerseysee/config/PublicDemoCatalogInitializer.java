@@ -18,6 +18,7 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.context.event.ApplicationReadyEvent;
 import org.springframework.context.annotation.Profile;
 import org.springframework.context.event.EventListener;
+import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -89,6 +90,7 @@ public class PublicDemoCatalogInitializer {
     }
 
     @EventListener(ApplicationReadyEvent.class)
+    @Order(10)
     @Transactional
     public void initialize() {
         Category jerseys = ensureCategory("public.category.jerseys", "Club Jerseys", "Fan, player and retro shirts.");
