@@ -9,7 +9,7 @@
 <body th:classappend="${currentRole != null and currentRole.name() != 'CUSTOMER'} ? ' staff-body' : ' storefront-body'">
 <div th:if="${currentRole != null and currentRole.name() == 'CUSTOMER'}" th:replace="~{fragments/navigation :: navigation('dashboard')}"></div>
 <div th:if="${currentRole != null and currentRole.name() != 'CUSTOMER'}" th:replace="~{fragments/admin-sidebar :: sidebar('dashboard')}"></div>
-<main th:class="${currentRole != null and currentRole.name() != 'CUSTOMER'} ? 'staff-main' : 'page-main premium-account-page'">
+<main th:class="${currentRole != null and currentRole.name() != 'CUSTOMER'} ? 'staff-main' : 'page-main account-page premium-account-page'">
     <div class="section-shell" th:classappend="${currentRole != null and currentRole.name() != 'CUSTOMER'} ? ' staff-content' : ''">
         <div th:replace="~{fragments/messages :: messages}"></div>
 
