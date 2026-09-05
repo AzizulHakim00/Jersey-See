@@ -15,8 +15,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 @SpringBootTest(properties = {
         "spring.datasource.url=jdbc:h2:mem:jerseysee-modern-demo;MODE=MySQL;DB_CLOSE_DELAY=-1;DB_CLOSE_ON_EXIT=FALSE",
         "spring.jpa.hibernate.ddl-auto=create-drop",
-        "app.public-demo.enabled=true",
-        "app.public-demo.password=Demo123!"
+        "app.public-demo.enabled=true"
 })
 @ActiveProfiles("demo")
 @DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_CLASS)
@@ -32,14 +31,14 @@ class ModernDemoCatalogTest {
     private PasswordEncoder passwordEncoder;
 
     @Test
-    void publicDemoAccountsUseProfessionalJerseySeeAddresses() {
+    void publicDemoAccountsUseProfessionalAddressesWithoutKnownBrowserPasswords() {
         var customer = userRepository.findByEmail("customer@jerseysee.demo");
         var administrator = userRepository.findByEmail("admin@jerseysee.demo");
 
         assertThat(customer).isPresent();
         assertThat(administrator).isPresent();
-        assertThat(passwordEncoder.matches("Demo123!", customer.orElseThrow().getPassword())).isTrue();
-        assertThat(passwordEncoder.matches("Demo123!", administrator.orElseThrow().getPassword())).isTrue();
+        assertThat(passwordEncoder.matches("Demo123!", customer.orElseThrow().getPassword())).isFalse();
+        assertThat(passwordEncoder.matches("Demo123!", administrator.orElseThrow().getPassword())).isFalse();
     }
 
     @Test
