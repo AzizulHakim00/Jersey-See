@@ -1,0 +1,59 @@
+name: Render deployment smoke
+
+on:
+  push:
+    branches:
+      - ops/render-deployment-smoke
+
+jobs:
+  verify-render:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - name: Verify deployed application health and storefront
+        shell: bash
+        run: |
+          set -euo pipefail
+          base_url="https://jersey-see.onrender.com"
+
+          for attempt in $(seq 1 40); do
+            response="$(curl -sS --max-time 25 -w '\n%{http_code}' "${base_url}/actuator/health" || true)"
+            code="$(printf '%s\n' "$response" | tail -n1)"
+            body="$(printf '%s\n' "$response" | sed '$d')"
+            echo "Health attempt ${attempt}: HTTP ${code} ${body}"
+            if [[ "$code" == "200" ]] && grep -q '"status"[[:space:]]*:[[:space:]]*"UP"' <<<"$body"; then
+              break
+            fi
+            [[ "$attempt" != "40" ]] || { echo 'Render never became healthy' >&2; exit 1; }
+            sleep 15
+          done
+
+          home="$(curl -fsS --max-time 30 "${base_url}/")"
+          catalog="$(curl -fsS --max-time 30 "${base_url}/catalog")"
+          player="$(curl -fsS --max-time 30 "${base_url}/catalog?edition=PLAYER")"
+          retro="$(curl -fsS --max-time 30 "${base_url}/catalog?edition=RETRO")"
+          login="$(curl -fsS --max-time 30 "${base_url}/login")"
+
+          grep -Fq 'Fresh shirts. Real choices.' <<<"$home"
+          grep -Fq '© 2026 JerseySee. Crafted and deployed from Dhaka.' <<<"$home"
+          grep -Fq 'Barcelona Home Fan Jersey' <<<"$catalog"
+          grep -Fq 'Player Jersey' <<<"$player"
+          grep -Fq 'Retro Jersey' <<<"$retro"
+          grep -Fq 'Secure one-click access' <<<"$login"
+          grep -Fq '/demo-login/customer' <<<"$login"
+          grep -Fq '/demo-login/admin' <<<"$login"
+          if grep -Fq 'Demo123!' <<<"$login"; then
+            echo 'Known demo password leaked into the live login page.' >&2
+            exit 1
+          fi
+
+          image_path="$(grep -oE '/product-images/[^\" ]+' <<<"$catalog" | head -n1 || true)"
+          [[ -n "$image_path" ]] || { echo 'No persisted product image found in live catalog.' >&2; exit 1; }
+          headers="$(curl -fsSI --max-time 30 "${base_url}${image_path}")"
+          grep -Eiq '^content-type:[[:space:]]*image/' <<<"$headers"
+
+          first_product="$(grep -oE '/products/[0-9]+' <<<"$catalog" | head -n1 || true)"
+          [[ -n "$first_product" ]] || { echo 'No product detail link found in live catalog.' >&2; exit 1; }
+          curl -fsS --max-time 30 "${base_url}${first_product}" | grep -Fq 'Add to cart'
+
+          echo 'Health, catalog, filters, persisted image, product detail and secure demo login checks passed.'
