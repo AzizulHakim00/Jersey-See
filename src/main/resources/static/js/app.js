@@ -88,19 +88,6 @@
         startAutoPlay();
     });
 
-    document.querySelectorAll("[data-demo-account]").forEach((button) => {
-        button.addEventListener("click", () => {
-            const email = document.getElementById("username");
-            const password = document.getElementById("password");
-            if (!(email instanceof HTMLInputElement) || !(password instanceof HTMLInputElement)) return;
-            email.value = button.dataset.demoEmail || "";
-            password.value = button.dataset.demoPassword || "";
-            email.dispatchEvent(new Event("input", {bubbles: true}));
-            password.dispatchEvent(new Event("input", {bubbles: true}));
-            password.focus();
-        });
-    });
-
     const sidebar = document.getElementById("staffSidebar");
     const sidebarButton = document.querySelector("[data-sidebar-toggle]");
     const sidebarScrim = document.querySelector("[data-sidebar-scrim]");
