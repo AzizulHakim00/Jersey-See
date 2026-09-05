@@ -23,7 +23,7 @@
     </section>
 
     <section class="auth-panel premium-auth-panel" data-auth-panel>
-        <div class="premium-auth-card">
+        <div class="modern-auth-card premium-auth-card">
             <a class="auth-back" th:href="@{/}">← Back to store</a>
             <span class="premium-eyebrow">Welcome back</span>
             <h2>Sign in to JerseySee</h2>
@@ -49,14 +49,16 @@
 
             <p class="auth-switch">New here? <a th:href="@{/register}">Create a customer account</a></p>
 
-            <aside class="manual-demo-credentials" aria-label="Demo credentials">
+            <aside class="demo-credentials manual-demo-credentials" aria-label="Demo credentials">
                 <h3>Demo credentials (for testing only)</h3>
-                <div><strong>Customer demo</strong><span>Username: customer@demo.local</span><span>Password: Demo123!</span></div>
-                <div><strong>Admin demo</strong><span>Username: admin@demo.local</span><span>Password: Demo123!</span></div>
+                <dl>
+                    <div><dt>Customer</dt><dd>Username: customer@demo.local</dd><dd>Password: Demo123!</dd></div>
+                    <div><dt>Admin</dt><dd>Username: admin@demo.local</dd><dd>Password: Demo123!</dd></div>
+                </dl>
                 <small>Type these demo-only credentials into the normal sign-in form above.</small>
             </aside>
 
-            <p class="premium-auth-credit">© 2026 Azizul Hakim Omor. All rights reserved.</p>
+            <p class="auth-owner premium-auth-credit">© 2026 Azizul Hakim Omor. All rights reserved.</p>
         </div>
     </section>
 </main>
