@@ -1,4 +1,4 @@
-name: Render deployment diagnostics
+name: Render deployment smoke
 
 on:
   push:
@@ -6,45 +6,87 @@ on:
       - ops/render-deployment-smoke
 
 jobs:
-  inspect-render:
+  verify-render:
     runs-on: ubuntu-latest
-    timeout-minutes: 8
+    timeout-minutes: 12
     steps:
-      - name: Inspect live catalog and demo access
+      - name: Wait for the merged storefront and verify it end to end
         shell: bash
         run: |
           set -euo pipefail
           base_url="https://jersey-see.onrender.com"
 
-          curl -fsS --retry 3 --retry-delay 2 --max-time 35 "${base_url}/actuator/health"
-          echo
+          collection_count() {
+            local file="$1"
+            grep -oE '<strong>[0-9]+</strong><span>pieces in the collection</span>' "$file" \
+              | sed -E 's#<strong>([0-9]+)</strong>.*#\1#' | head -n1 || true
+          }
 
-          curl -fsS --retry 3 --retry-delay 2 --max-time 35 "${base_url}/catalog" -o /tmp/catalog.html
-          echo "Catalog bytes: $(wc -c < /tmp/catalog.html)"
-          count="$(grep -oE '<strong>[0-9]+</strong><span>pieces in the collection</span>' /tmp/catalog.html | sed -E 's#<strong>([0-9]+)</strong>.*#\1#' | head -n1 || true)"
-          echo "Rendered collection count: ${count:-unknown}"
-          echo 'Rendered product names:'
-          grep -oE '<h3><a href="/products/[0-9]+">[^<]+' /tmp/catalog.html | sed -E 's#.*>##' | head -n 30 || true
-          echo 'Rendered image paths:'
-          grep -oE '/product-images/[^\" ]+' /tmp/catalog.html | head -n 10 || true
-          echo 'Empty-state marker:'
-          grep -F 'No products match this edit.' /tmp/catalog.html || true
+          ready=false
+          for attempt in $(seq 1 40); do
+            echo "Live deployment check ${attempt}/40"
+            health="$(curl -sS --max-time 25 -w '\n%{http_code}' "${base_url}/actuator/health" || true)"
+            health_code="$(printf '%s\n' "$health" | tail -n1)"
+            health_body="$(printf '%s\n' "$health" | sed '$d')"
 
-          curl -fsS --retry 3 --retry-delay 2 --max-time 35 -c /tmp/cookies.txt "${base_url}/login" -o /tmp/login.html
-          csrf="$(sed -nE 's/.*name="_csrf"[^>]*value="([^"]+)".*/\1/p' /tmp/login.html | head -n1 || true)"
+            catalog_code="$(curl -sS --max-time 30 -o /tmp/catalog.html -w '%{http_code}' "${base_url}/catalog" || true)"
+            login_code="$(curl -sS --max-time 30 -o /tmp/login.html -w '%{http_code}' "${base_url}/login" || true)"
+            count="$(collection_count /tmp/catalog.html 2>/dev/null || true)"
+
+            echo "health=${health_code} catalog=${catalog_code} login=${login_code} products=${count:-unknown}"
+            if [[ "$health_code" == "200" ]] \
+               && grep -q '"status"[[:space:]]*:[[:space:]]*"UP"' <<<"$health_body" \
+               && [[ "$catalog_code" == "200" ]] \
+               && [[ "$login_code" == "200" ]] \
+               && [[ "${count:-0}" =~ ^[0-9]+$ ]] \
+               && (( count > 0 )) \
+               && grep -Fq '/demo-login/customer' /tmp/login.html \
+               && grep -Fq '/demo-login/admin' /tmp/login.html; then
+              ready=true
+              break
+            fi
+            sleep 15
+          done
+
+          [[ "$ready" == "true" ]] || { echo 'Merged Render deployment never became fully ready.' >&2; exit 1; }
+
+          grep -Fq 'Fresh shirts. Real choices.' "$(printf /tmp/home.html)" 2>/dev/null || curl -fsS --max-time 30 "${base_url}/" -o /tmp/home.html
+          grep -Fq 'Fresh shirts. Real choices.' /tmp/home.html
+          grep -Fq '© 2026 JerseySee. Crafted and deployed from Dhaka.' /tmp/home.html
+          grep -Fq 'Secure one-click access' /tmp/login.html
+          if grep -Fq 'Demo123!' /tmp/login.html; then
+            echo 'Known demo password leaked into the live login page.' >&2
+            exit 1
+          fi
+
+          curl -fsS --max-time 30 "${base_url}/catalog?edition=PLAYER" -o /tmp/player.html
+          curl -fsS --max-time 30 "${base_url}/catalog?edition=RETRO" -o /tmp/retro.html
+          player_count="$(collection_count /tmp/player.html)"
+          retro_count="$(collection_count /tmp/retro.html)"
+          echo "player products=${player_count:-0}; retro products=${retro_count:-0}"
+          [[ "${player_count:-0}" =~ ^[0-9]+$ ]] && (( player_count > 0 ))
+          [[ "${retro_count:-0}" =~ ^[0-9]+$ ]] && (( retro_count > 0 ))
+
+          image_path="$(grep -oE '/product-images/[^\" ]+' /tmp/catalog.html | head -n1 || true)"
+          [[ -n "$image_path" ]] || { echo 'No persisted product image is rendered in the live catalog.' >&2; exit 1; }
+          headers="$(curl -fsSI --max-time 30 "${base_url}${image_path}")"
+          grep -Eiq '^content-type:[[:space:]]*image/' <<<"$headers"
+          echo "verified image ${image_path}"
+
+          product_path="$(grep -oE '/products/[0-9]+' /tmp/catalog.html | head -n1 || true)"
+          [[ -n "$product_path" ]] || { echo 'No live product detail link found.' >&2; exit 1; }
+          curl -fsS --max-time 30 "${base_url}${product_path}" -o /tmp/product.html
+          grep -Fq 'Add to cart' /tmp/product.html
+
+          curl -fsS --max-time 30 -c /tmp/cookies.txt "${base_url}/login" -o /tmp/login-session.html
+          csrf="$(sed -nE 's/.*name="_csrf"[^>]*value="([^"]+)".*/\1/p' /tmp/login-session.html | head -n1 || true)"
           if [[ -z "$csrf" ]]; then
-            csrf="$(sed -nE 's/.*value="([^"]+)"[^>]*name="_csrf".*/\1/p' /tmp/login.html | head -n1 || true)"
+            csrf="$(sed -nE 's/.*value="([^"]+)"[^>]*name="_csrf".*/\1/p' /tmp/login-session.html | head -n1 || true)"
           fi
-          echo "CSRF token present: $([[ -n "$csrf" ]] && echo yes || echo no)"
-          [[ -n "$csrf" ]] || exit 1
+          [[ -n "$csrf" ]] || { echo 'CSRF token missing on login page.' >&2; exit 1; }
 
-          code="$(curl -sS --max-time 35 -b /tmp/cookies.txt -c /tmp/cookies.txt -D /tmp/demo-headers.txt -o /tmp/demo-body.txt -w '%{http_code}' -X POST --data-urlencode "_csrf=${csrf}" "${base_url}/demo-login/customer")"
-          echo "Customer demo login HTTP: ${code}"
-          grep -i '^location:' /tmp/demo-headers.txt || true
-          if [[ "$code" == "302" || "$code" == "303" ]]; then
-            echo 'Demo endpoint is active.'
-          else
-            echo 'Demo endpoint is not active.' >&2
-          fi
+          demo_code="$(curl -sS --max-time 30 -b /tmp/cookies.txt -c /tmp/cookies.txt -D /tmp/demo-headers.txt -o /tmp/demo-body.html -w '%{http_code}' -X POST --data-urlencode "_csrf=${csrf}" "${base_url}/demo-login/customer")"
+          echo "customer demo login HTTP ${demo_code}"
+          [[ "$demo_code" == "302" || "$demo_code" == "303" ]]
 
-          exit 0
+          echo 'Render health, catalog, filters, persisted image, product detail, footer and secure demo login all passed.'
