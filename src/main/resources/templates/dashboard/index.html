@@ -2,58 +2,67 @@
 <html lang="en" xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Dashboard | JerseySee</title><link rel="stylesheet" th:href="@{/css/jerseysee.css}">
+    <title>Dashboard | JerseySee</title>
+    <link rel="stylesheet" th:href="@{/css/jerseysee.css}">
+    <link rel="stylesheet" th:href="@{/css/storefront-premium-v2.css}">
 </head>
-<body th:classappend="${currentRole != null and currentRole.name() != 'CUSTOMER'} ? ' staff-body' : ''">
+<body th:classappend="${currentRole != null and currentRole.name() != 'CUSTOMER'} ? ' staff-body' : ' storefront-body'">
 <div th:if="${currentRole != null and currentRole.name() == 'CUSTOMER'}" th:replace="~{fragments/navigation :: navigation('dashboard')}"></div>
 <div th:if="${currentRole != null and currentRole.name() != 'CUSTOMER'}" th:replace="~{fragments/admin-sidebar :: sidebar('dashboard')}"></div>
-<main th:class="${currentRole != null and currentRole.name() != 'CUSTOMER'} ? 'staff-main' : 'page-main'">
-    <div th:replace="~{fragments/messages :: messages}"></div>
+<main th:class="${currentRole != null and currentRole.name() != 'CUSTOMER'} ? 'staff-main' : 'page-main account-page premium-account-page'">
     <div class="section-shell" th:classappend="${currentRole != null and currentRole.name() != 'CUSTOMER'} ? ' staff-content' : ''">
-        <header class="page-header dashboard-header">
-            <div><span class="eyebrow">Command centre</span>
-                <h1 th:text="${currentRole != null ? #strings.capitalize(#strings.toLowerCase(currentRole.name())) + ' dashboard' : 'Dashboard'}">Customer dashboard</h1>
-                <p>Welcome back, <strong th:text="${currentUser != null ? currentUser.name : 'team member'}">User</strong>. Here is the latest JerseySee picture.</p>
-            </div>
-            <a class="button button-lime" th:if="${currentRole != null and currentRole.name() == 'CUSTOMER'}" th:href="@{/catalog}">Shop new arrivals</a>
-            <a class="button button-lime" th:if="${currentRole != null and currentRole.name() != 'CUSTOMER'}" th:href="@{/staff/orders}">Open order queue</a>
-        </header>
+        <div th:replace="~{fragments/messages :: messages}"></div>
 
-        <section class="metric-grid" aria-label="Dashboard summary">
-            <article><span class="metric-icon">ORD</span><strong th:text="${dashboard.orderCount}">0</strong><h2 th:text="${currentRole.name() == 'CUSTOMER' ? 'Your orders' : 'Total orders'}">Orders</h2><p>All recorded orders in this view.</p></article>
-            <article><span class="metric-icon blue">LIVE</span><strong th:text="${dashboard.activeOrderCount}">0</strong><h2>Active orders</h2><p>Still moving through the workflow.</p></article>
-            <article><span class="metric-icon lime">KIT</span><strong th:text="${dashboard.catalogProductCount}">0</strong><h2>Active products</h2><p>Products visible in the shop.</p></article>
-            <article th:if="${currentRole.name() != 'CUSTOMER'}"><span class="metric-icon amber">LOW</span><strong th:text="${dashboard.lowStockCount}">0</strong><h2>Low-stock variants</h2><p>Five units or fewer in the watch list.</p></article>
-            <article th:if="${currentRole.name() == 'CUSTOMER'}"><span class="metric-icon amber">BAG</span><strong th:text="${cartCount}">0</strong><h2>Items in cart</h2><p>Ready when you are.</p></article>
-            <article th:if="${currentRole.name() == 'CASHIER' or currentRole.name() == 'MANAGER' or currentRole.name() == 'ADMIN'}"><span class="metric-icon">PAY</span><strong th:text="${dashboard.pendingPaymentCount}">0</strong><h2>Pending payments</h2><p>Awaiting authorised confirmation.</p></article>
-        </section>
+        <th:block th:if="${currentRole != null and currentRole.name() == 'CUSTOMER'}">
+            <header class="account-hero premium-account-hero">
+                <div><span class="premium-eyebrow">MY ACCOUNT</span><h1>Customer dashboard</h1><p>Welcome back, <strong th:text="${currentUser.name}">Customer</strong>. Manage orders, profile details and your next match-day purchase.</p></div>
+                <a class="button button-ink" th:href="@{/catalog}">Shop new arrivals</a>
+            </header>
+            <nav class="account-tabs" aria-label="Account sections">
+                <a class="is-active" th:href="@{/dashboard}">Dashboard</a>
+                <a th:href="@{/orders}">Orders</a>
+                <a th:href="@{/profile}">Profile</a>
+                <a th:href="@{/cart}">Bag</a>
+            </nav>
 
-        <section class="dashboard-grid">
-            <article class="panel">
-                <header class="panel-header"><div><span class="eyebrow">Latest activity</span><h2>Recent orders</h2></div><a th:href="${currentRole.name() == 'CUSTOMER' ? '/orders' : '/staff/orders'}">View all →</a></header>
-                <div class="empty-state compact" th:if="${dashboard.recentOrders.empty}"><span>◎</span><h3>No orders yet</h3><p>The first order will appear here.</p></div>
-                <div class="table-wrap" th:if="${!dashboard.recentOrders.empty}"><table class="data-table"><thead><tr><th>Order</th><th>Customer</th><th>Status</th><th>Total</th><th></th></tr></thead><tbody>
-                    <tr th:each="order : ${dashboard.recentOrders}"><td><strong>#<span th:text="${order.id}">0</span></strong><small th:if="${order.createdAt != null}" th:text="${#temporals.format(order.createdAt,'dd MMM yyyy')}">Date</small></td><td th:text="${order.customer != null ? order.customer.name : 'Customer'}">Customer</td><td><span class="status-badge" th:classappend="${' status-' + #strings.toLowerCase(order.status.name())}" th:text="${order.status}">PENDING</span></td><td>৳<span th:text="${#numbers.formatDecimal(order.total,1,2)}">0.00</span></td><td><a th:href="${currentRole.name() == 'CUSTOMER' ? '/orders/' + order.id : '/staff/orders/' + order.id}" aria-label="View order">→</a></td></tr>
-                </tbody></table></div>
-            </article>
-            <aside class="panel quick-panel" th:if="${currentRole.name() == 'CUSTOMER'}">
-                <span class="eyebrow">Next move</span><h2>Build the match-day fit.</h2><p>Pick a shirt, select a size, then make it yours with optional printing.</p>
-                <a class="button button-blue" th:href="@{/catalog}">Browse catalog</a><a class="text-link" th:href="@{/profile}">Update delivery profile →</a>
-            </aside>
-            <aside class="panel quick-panel" th:if="${currentRole.name() != 'CUSTOMER'}">
-                <span class="eyebrow">Stock watch</span><h2>Low inventory</h2>
-                <div class="stock-list" th:if="${!dashboard.lowStockVariants.empty}"><th:block th:each="variant : ${dashboard.lowStockVariants}"><a th:if="${currentRole.name() == 'MANAGER' or currentRole.name() == 'ADMIN'}" th:href="@{/staff/products/{id}/edit(id=${variant.product.id})}"><span><strong th:text="${variant.product.name}">Product</strong><small th:text="${variant.sku}">SKU</small></span><b th:text="${variant.stockQuantity}">0</b></a><div class="stock-item" th:unless="${currentRole.name() == 'MANAGER' or currentRole.name() == 'ADMIN'}"><span><strong th:text="${variant.product.name}">Product</strong><small th:text="${variant.sku}">SKU</small></span><b th:text="${variant.stockQuantity}">0</b></div></th:block></div>
-                <div class="empty-note" th:if="${dashboard.lowStockVariants.empty}">No low-stock variants in the current watch list.</div>
-                <a class="text-link" th:if="${currentRole.name() == 'MANAGER' or currentRole.name() == 'ADMIN'}" th:href="@{/staff/products}">Manage inventory →</a>
-            </aside>
-        </section>
+            <section class="metric-grid premium-account-metrics" aria-label="Account summary">
+                <article><span class="metric-icon">ORD</span><strong th:text="${dashboard.orderCount}">0</strong><h2>Total orders</h2><p>Your complete JerseySee order history.</p></article>
+                <article><span class="metric-icon blue">LIVE</span><strong th:text="${dashboard.activeOrderCount}">0</strong><h2>Active orders</h2><p>Orders still moving through fulfilment.</p></article>
+                <article><span class="metric-icon lime">BAG</span><strong th:text="${cartCount}">0</strong><h2>Bag items</h2><p>Products currently waiting in your bag.</p></article>
+                <article><span class="metric-icon amber">KIT</span><strong th:text="${dashboard.catalogProductCount}">0</strong><h2>Products available</h2><p>Live products currently visible in the shop.</p></article>
+            </section>
 
-        <section class="finance-banner" th:if="${currentRole.name() == 'CASHIER' or currentRole.name() == 'MANAGER' or currentRole.name() == 'ADMIN'}">
-            <div><span class="eyebrow">Confirmed payment value</span><strong>৳<span th:text="${#numbers.formatDecimal(dashboard.revenue,1,2)}">0.00</span></strong></div>
-            <p>Calculated only from paid or confirmed payment records.</p><a class="button button-ghost" th:href="@{/staff/payments}">Open payment desk</a>
-        </section>
+            <section class="dashboard-grid premium-dashboard-grid">
+                <article class="panel">
+                    <header class="panel-header"><div><span class="premium-eyebrow">LATEST ACTIVITY</span><h2>Recent orders</h2></div><a th:href="@{/orders}">View all →</a></header>
+                    <div class="empty-state compact" th:if="${dashboard.recentOrders.empty}"><span>JS</span><h3>No orders yet</h3><p>Your first JerseySee order will appear here.</p></div>
+                    <div class="table-wrap" th:if="${!dashboard.recentOrders.empty}"><table class="data-table"><thead><tr><th>Order</th><th>Status</th><th>Total</th><th></th></tr></thead><tbody>
+                    <tr th:each="order : ${dashboard.recentOrders}"><td><strong>#<span th:text="${order.id}">0</span></strong><small th:if="${order.createdAt != null}" th:text="${#temporals.format(order.createdAt,'dd MMM yyyy')}">Date</small></td><td><span class="status-badge" th:classappend="${' status-' + #strings.toLowerCase(order.status.name())}" th:text="${order.status}">PENDING</span></td><td>৳<span th:text="${#numbers.formatDecimal(order.total,1,2)}">0.00</span></td><td><a th:href="@{/orders/{id}(id=${order.id})}">View →</a></td></tr>
+                    </tbody></table></div>
+                </article>
+                <aside class="panel quick-panel"><span class="premium-eyebrow">NEXT MOVE</span><h2>Build the match-day fit.</h2><p>Choose a shirt, select an available size and add optional name-and-number printing before checkout.</p><a class="button button-blue" th:href="@{/catalog}">Browse catalog</a><a class="text-link" th:href="@{/profile}">Update profile →</a></aside>
+            </section>
+        </th:block>
+
+        <th:block th:if="${currentRole != null and currentRole.name() != 'CUSTOMER'}">
+            <header class="page-header dashboard-header"><div><span class="eyebrow">STORE OPERATIONS</span><h1 th:text="${currentRole != null ? #strings.capitalize(#strings.toLowerCase(currentRole.name())) + ' dashboard' : 'Admin dashboard'}">Admin dashboard</h1><p>Manage products, orders, payments and staff from one operational workspace.</p></div><a class="button button-lime" th:if="${currentRole.name() == 'MANAGER' or currentRole.name() == 'ADMIN'}" th:href="@{/staff/products/new}">+ Add Product</a></header>
+            <section class="metric-grid" aria-label="Dashboard summary">
+                <article><span class="metric-icon">KIT</span><strong th:text="${dashboard.catalogProductCount}">0</strong><h2>Total products</h2><p>Products visible in the store.</p></article>
+                <article><span class="metric-icon blue">ORD</span><strong th:text="${dashboard.orderCount}">0</strong><h2>Total orders</h2><p>All recorded customer orders.</p></article>
+                <article><span class="metric-icon lime">LIVE</span><strong th:text="${dashboard.activeOrderCount}">0</strong><h2>Active orders</h2><p>Orders still in progress.</p></article>
+                <article><span class="metric-icon amber">LOW</span><strong th:text="${dashboard.lowStockCount}">0</strong><h2>Low stock</h2><p>Variants at five units or fewer.</p></article>
+                <article th:if="${currentRole.name() == 'CASHIER' or currentRole.name() == 'MANAGER' or currentRole.name() == 'ADMIN'}"><span class="metric-icon">PAY</span><strong th:text="${dashboard.pendingPaymentCount}">0</strong><h2>Pending payments</h2><p>Awaiting confirmation.</p></article>
+                <article th:if="${currentRole.name() == 'CASHIER' or currentRole.name() == 'MANAGER' or currentRole.name() == 'ADMIN'}"><span class="metric-icon">৳</span><strong>৳<span th:text="${#numbers.formatDecimal(dashboard.revenue,1,0)}">0</span></strong><h2>Total revenue</h2><p>Confirmed payment value.</p></article>
+            </section>
+            <section class="dashboard-grid">
+                <article class="panel"><header class="panel-header"><div><span class="eyebrow">RECENT ORDERS</span><h2>Order activity</h2></div><a th:href="@{/staff/orders}">View all →</a></header><div class="empty-state compact" th:if="${dashboard.recentOrders.empty}"><span>ORD</span><h3>No orders yet</h3></div><div class="table-wrap" th:if="${!dashboard.recentOrders.empty}"><table class="data-table"><thead><tr><th>Order</th><th>Customer</th><th>Status</th><th>Total</th><th></th></tr></thead><tbody><tr th:each="order : ${dashboard.recentOrders}"><td>#<span th:text="${order.id}">0</span></td><td th:text="${order.customer != null ? order.customer.name : 'Customer'}">Customer</td><td><span class="status-badge" th:classappend="${' status-' + #strings.toLowerCase(order.status.name())}" th:text="${order.status}">PENDING</span></td><td>৳<span th:text="${#numbers.formatDecimal(order.total,1,2)}">0</span></td><td><a th:href="@{/staff/orders/{id}(id=${order.id})}">View →</a></td></tr></tbody></table></div></article>
+                <aside class="panel quick-panel"><span class="eyebrow">STOCK WATCH</span><h2>Low inventory</h2><div class="stock-list" th:if="${!dashboard.lowStockVariants.empty}"><th:block th:each="variant : ${dashboard.lowStockVariants}"><a th:if="${currentRole.name() == 'MANAGER' or currentRole.name() == 'ADMIN'}" th:href="@{/staff/products/{id}/edit(id=${variant.product.id})}"><span><strong th:text="${variant.product.name}">Product</strong><small th:text="${variant.sku}">SKU</small></span><b th:text="${variant.stockQuantity}">0</b></a><div class="stock-item" th:unless="${currentRole.name() == 'MANAGER' or currentRole.name() == 'ADMIN'}"><span><strong th:text="${variant.product.name}">Product</strong><small th:text="${variant.sku}">SKU</small></span><b th:text="${variant.stockQuantity}">0</b></div></th:block></div><div class="empty-note" th:if="${dashboard.lowStockVariants.empty}">No low-stock variants.</div><a class="text-link" th:if="${currentRole.name() == 'MANAGER' or currentRole.name() == 'ADMIN'}" th:href="@{/staff/products}">Manage inventory →</a></aside>
+            </section>
+        </th:block>
     </div>
 </main>
+<div th:if="${currentRole != null and currentRole.name() == 'CUSTOMER'}" th:replace="~{fragments/footer :: footer}"></div>
 <script th:src="@{/js/app.js}" defer></script>
+<script th:if="${currentRole != null and currentRole.name() == 'CUSTOMER'}" th:src="@{/js/storefront-premium-v2.js}" defer></script>
 </body>
 </html>

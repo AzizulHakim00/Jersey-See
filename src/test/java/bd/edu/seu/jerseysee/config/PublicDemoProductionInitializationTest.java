@@ -2,11 +2,15 @@ package bd.edu.seu.jerseysee.config;
 
 import bd.edu.seu.jerseysee.model.Product;
 import bd.edu.seu.jerseysee.model.ProductImage;
+import bd.edu.seu.jerseysee.model.User;
+import bd.edu.seu.jerseysee.model.enums.Role;
 import bd.edu.seu.jerseysee.repository.ProductImageRepository;
 import bd.edu.seu.jerseysee.repository.ProductRepository;
+import bd.edu.seu.jerseysee.repository.UserRepository;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ActiveProfiles;
 
@@ -33,6 +37,12 @@ class PublicDemoProductionInitializationTest {
     @Autowired
     private ProductImageRepository imageRepository;
 
+    @Autowired
+    private UserRepository userRepository;
+
+    @Autowired
+    private PasswordEncoder passwordEncoder;
+
     @Test
     void productionStartupSeedsCatalogBeforeAttachingRealJerseyImages() {
         assertThat(productRepository.count()).isEqualTo(35);
@@ -49,5 +59,16 @@ class PublicDemoProductionInitializationTest {
                 .hasSizeGreaterThan(100);
         assertThat(image.getContent()[0]).isEqualTo((byte) 0xFF);
         assertThat(image.getContent()[1]).isEqualTo((byte) 0xD8);
+    }
+
+    @Test
+    void productionStartupSeedsVisibleManualDemoAccountsWithKnownDemoOnlyPassword() {
+        User customer = userRepository.findByEmail("customer@demo.local").orElseThrow();
+        assertThat(customer.getRole()).isEqualTo(Role.CUSTOMER);
+        assertThat(passwordEncoder.matches("Demo123!", customer.getPassword())).isTrue();
+
+        User admin = userRepository.findByEmail("admin@demo.local").orElseThrow();
+        assertThat(admin.getRole()).isEqualTo(Role.ADMIN);
+        assertThat(passwordEncoder.matches("Demo123!", admin.getPassword())).isTrue();
     }
 }

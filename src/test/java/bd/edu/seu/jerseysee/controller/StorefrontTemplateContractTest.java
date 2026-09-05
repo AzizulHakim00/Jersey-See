@@ -102,25 +102,23 @@ class StorefrontTemplateContractTest {
     }
 
     @Test
-    void modernStorefrontUsesSingleNavigationProductCarouselAndProfessionalFooter() throws IOException {
+    void premiumV2ReplacesTheRetiredCarouselAndOneClickDemoContract() throws IOException {
         String navigation = read(TEMPLATES.resolve("fragments/navigation.html"));
         String home = read(TEMPLATES.resolve("home/index.html"));
         String login = read(TEMPLATES.resolve("auth/login.html"));
         String footer = read(TEMPLATES.resolve("fragments/footer.html"));
-        String javascript = read(STATIC.resolve("js/app.js"));
-        String railJavascript = read(STATIC.resolve("js/storefront-final.js"));
+        String premiumJavascript = read(STATIC.resolve("js/storefront-premium-v2.js"));
 
         assertThat(navigation)
-                .contains("data-storefront-header", "data-primary-shop-nav")
+                .contains("data-storefront-header", "data-primary-shop-nav", "BOOTS")
                 .doesNotContain("class=\"category-nav\"", "class=\"store-promise\"");
-        assertThat(home).contains("data-product-carousel", "data-carousel-slide", "data-carousel-next", "data-carousel-prev",
-                "data-product-rail", "data-product-rail-next", "data-product-rail-prev");
+        assertThat(home).contains("FOOTBALL LIVES HERE", "Wear The Passion", "data-product-rail",
+                "data-product-rail-next", "data-product-rail-prev", "storefront-premium-v2.css");
         assertThat(login)
-                .contains("data-demo-entry", "th:action=\"@{/demo-login/customer}\"", "th:action=\"@{/demo-login/admin}\"")
-                .doesNotContain("data-demo-password", "Demo123!");
-        assertThat(footer).contains("© 2026 JerseySee. Crafted and deployed from Dhaka.");
-        assertThat(javascript).contains("data-product-carousel", "prefers-reduced-motion");
-        assertThat(railJavascript).contains("data-product-rail", "scrollBy", "prefers-reduced-motion");
+                .contains("Demo credentials (for testing only)", "customer@demo.local", "admin@demo.local", "Demo123!")
+                .doesNotContain("/demo-login/customer", "/demo-login/admin", "data-demo-entry");
+        assertThat(footer).contains("© 2026 Azizul Hakim Omor. All rights reserved.");
+        assertThat(premiumJavascript).contains("data-product-rail", "scrollBy", "prefers-reduced-motion");
     }
 
     @Test

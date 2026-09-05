@@ -1,8 +1,6 @@
 <!DOCTYPE html>
 <html lang="en" xmlns:th="http://www.thymeleaf.org">
 <body>
-<link rel="stylesheet" th:href="@{/css/storefront-modern.css}">
-<link rel="stylesheet" th:href="@{/css/storefront-final.css}">
 <header class="store-header" th:fragment="navigation(activePage)" data-storefront-header>
     <div class="store-nav section-shell">
         <button class="menu-toggle modern-menu-toggle" type="button" data-menu-toggle data-mobile-menu-toggle
@@ -11,21 +9,22 @@
         </button>
 
         <a class="brand modern-brand" th:href="@{/}" aria-label="JerseySee home">
-            <img th:src="@{/images/brand-mark.svg}" alt="" width="44" height="44">
+            <img th:src="@{/images/brand-mark.svg}" alt="" width="39" height="44">
             <span><strong>JerseySee</strong><small>Football store</small></span>
         </a>
 
         <nav class="primary-shop-nav" id="mobileMenu" data-primary-shop-nav data-mobile-menu aria-label="Primary navigation">
             <div class="primary-shop-links">
                 <a th:href="@{/}" th:classappend="${activePage == 'home'} ? ' is-active' : ''">Home</a>
-                <a th:href="@{/catalog}" th:classappend="${activePage == 'catalog'} ? ' is-active' : ''">Shop all</a>
+                <a th:href="@{/catalog}" th:classappend="${activePage == 'catalog'} ? ' is-active' : ''">Shop</a>
                 <a th:href="@{/catalog(edition='PLAYER')}">Player edition</a>
                 <a th:href="@{/catalog(edition='RETRO')}">Retro</a>
+                <a th:href="@{/catalog(productType='BOOTS')}">BOOTS</a>
             </div>
 
             <div class="mobile-account-links" th:if="${currentUser != null}">
                 <span class="mobile-account-title">Your account</span>
-                <a th:if="${currentRole != null and currentRole.name() != 'CUSTOMER'}" th:href="@{/dashboard}">Dashboard</a>
+                <a th:href="@{/dashboard}">Dashboard</a>
                 <a th:href="@{/profile}">Profile</a>
                 <a th:if="${currentRole != null and currentRole.name() == 'CUSTOMER'}" th:href="@{/orders}">Orders</a>
             </div>
@@ -50,7 +49,7 @@
                 <span>Sign in</span>
             </a>
             <a class="nav-icon-link" th:if="${currentUser != null and currentRole != null and currentRole.name() == 'CUSTOMER'}"
-               th:href="@{/profile}" aria-label="Open account">
+               th:href="@{/dashboard}" aria-label="Open account">
                 <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="8" r="4"></circle><path d="M4.5 21c.5-5 3-7.5 7.5-7.5S19 16 19.5 21"></path></svg>
                 <span>Account</span>
             </a>

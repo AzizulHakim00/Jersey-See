@@ -22,7 +22,7 @@ class PublicDemoAdminReadOnlyFilterTest {
 
     @Test
     void publicDemoAdminCanReadStaffPages() throws Exception {
-        authenticate("admin@jerseysee.demo");
+        authenticate("admin@demo.local");
         MockHttpServletRequest request = new MockHttpServletRequest("GET", "/staff/products");
         MockHttpServletResponse response = new MockHttpServletResponse();
         RecordingChain chain = new RecordingChain();
@@ -35,7 +35,7 @@ class PublicDemoAdminReadOnlyFilterTest {
 
     @Test
     void publicDemoAdminCannotMutateStaffPages() throws Exception {
-        authenticate("admin@jerseysee.demo");
+        authenticate("admin@demo.local");
         MockHttpServletRequest request = new MockHttpServletRequest("POST", "/staff/products");
         MockHttpServletResponse response = new MockHttpServletResponse();
         RecordingChain chain = new RecordingChain();

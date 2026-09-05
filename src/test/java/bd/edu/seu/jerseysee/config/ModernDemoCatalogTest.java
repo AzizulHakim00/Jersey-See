@@ -31,14 +31,14 @@ class ModernDemoCatalogTest {
     private PasswordEncoder passwordEncoder;
 
     @Test
-    void publicDemoAccountsUseProfessionalAddressesWithoutKnownBrowserPasswords() {
-        var customer = userRepository.findByEmail("customer@jerseysee.demo");
-        var administrator = userRepository.findByEmail("admin@jerseysee.demo");
+    void publicDemoAccountsUseTheDocumentedManualLoginCredentials() {
+        var customer = userRepository.findByEmail("customer@demo.local");
+        var administrator = userRepository.findByEmail("admin@demo.local");
 
         assertThat(customer).isPresent();
         assertThat(administrator).isPresent();
-        assertThat(passwordEncoder.matches("Demo123!", customer.orElseThrow().getPassword())).isFalse();
-        assertThat(passwordEncoder.matches("Demo123!", administrator.orElseThrow().getPassword())).isFalse();
+        assertThat(passwordEncoder.matches("Demo123!", customer.orElseThrow().getPassword())).isTrue();
+        assertThat(passwordEncoder.matches("Demo123!", administrator.orElseThrow().getPassword())).isTrue();
     }
 
     @Test

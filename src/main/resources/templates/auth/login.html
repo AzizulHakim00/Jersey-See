@@ -2,33 +2,32 @@
 <html lang="en" xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1">
-    <meta name="description" content="Sign in to your JerseySee account or explore the public demo accounts.">
+    <meta name="description" content="Sign in to JerseySee, a premium football ecommerce store.">
     <title>Sign in | JerseySee</title>
     <link rel="icon" th:href="@{/images/brand-mark.svg}" type="image/svg+xml">
     <link rel="stylesheet" th:href="@{/css/jerseysee.css}">
-    <link rel="stylesheet" th:href="@{/css/storefront-modern.css}">
-    <link rel="stylesheet" th:href="@{/css/storefront-final.css}">
+    <link rel="stylesheet" th:href="@{/css/storefront-premium-v2.css}">
 </head>
-<body class="auth-body modern-auth-body">
-<main class="modern-auth-shell">
-    <section class="auth-editorial" data-auth-campaign>
+<body class="auth-body premium-auth-body">
+<main class="premium-auth-shell">
+    <section class="premium-auth-visual" data-auth-campaign>
         <a class="brand modern-brand" th:href="@{/}" aria-label="JerseySee home">
-            <img th:src="@{/images/brand-mark.svg}" alt="" width="44" height="44">
+            <img th:src="@{/images/brand-mark.svg}" alt="" width="39" height="44">
             <span><strong>JerseySee</strong><small>Football store</small></span>
         </a>
-        <div class="auth-editorial-copy">
-            <span class="modern-eyebrow">Your football wardrobe</span>
-            <h1>Back in for match day.</h1>
-            <p>Track orders, manage your profile and keep your next shirt ready without the oversized poster-style login screen.</p>
+        <div class="premium-auth-copy">
+            <span class="premium-eyebrow">YOUR FOOTBALL WARDROBE</span>
+            <h1>Good players.<br>Better fans.</h1>
+            <p>Join a football-first store built around premium jerseys, retro classics and match-day identity.</p>
         </div>
     </section>
 
-    <section class="auth-panel" data-auth-panel>
-        <div class="modern-auth-card">
+    <section class="auth-panel premium-auth-panel" data-auth-panel>
+        <div class="modern-auth-card premium-auth-card">
             <a class="auth-back" th:href="@{/}">← Back to store</a>
-            <span class="modern-eyebrow">Welcome back</span>
+            <span class="premium-eyebrow">Welcome back</span>
             <h2>Sign in to JerseySee</h2>
-            <p>Use the email attached to your account.</p>
+            <p>Access your account to continue.</p>
 
             <div th:replace="~{fragments/messages :: messages}"></div>
             <div class="inline-alert danger" th:if="${param.error != null}" role="alert">Email or password was not recognised.</div>
@@ -50,32 +49,20 @@
 
             <p class="auth-switch">New here? <a th:href="@{/register}">Create a customer account</a></p>
 
-            <div class="demo-access">
-                <div class="demo-access-header">
-                    <h3>Demo accounts</h3>
-                    <span>Secure one-click access</span>
-                </div>
-                <div class="demo-login-grid" aria-label="Demo accounts">
-                    <form th:action="@{/demo-login/customer}" method="post" data-demo-entry>
-                        <button type="submit" class="demo-account">
-                            <span>Customer demo</span>
-                            <strong>Browse, cart &amp; checkout</strong>
-                            <small>Enter customer demo</small>
-                        </button>
-                    </form>
-                    <form th:action="@{/demo-login/admin}" method="post" data-demo-entry>
-                        <button type="submit" class="demo-account">
-                            <span>Admin demo</span>
-                            <strong>Review store operations</strong>
-                            <small>Enter admin demo</small>
-                        </button>
-                    </form>
-                </div>
-                <p style="margin:12px 0 0;color:#6f746f;font-size:.68rem">Demo access is created server-side, so no demo password is embedded in the page.</p>
-            </div>
+            <aside class="demo-credentials manual-demo-credentials" aria-label="Demo credentials">
+                <h3>Demo credentials (for testing only)</h3>
+                <dl>
+                    <div><dt>Customer</dt><dd>Username: customer@demo.local</dd><dd>Password: Demo123!</dd></div>
+                    <div><dt>Admin</dt><dd>Username: admin@demo.local</dd><dd>Password: Demo123!</dd></div>
+                </dl>
+                <small>Type these demo-only credentials into the normal sign-in form above.</small>
+            </aside>
+
+            <p class="auth-owner premium-auth-credit">© 2026 Azizul Hakim Omor. All rights reserved.</p>
         </div>
     </section>
 </main>
 <script th:src="@{/js/app.js}" defer></script>
+<script th:src="@{/js/storefront-premium-v2.js}" defer></script>
 </body>
 </html>

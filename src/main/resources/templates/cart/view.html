@@ -1,46 +1,26 @@
 <!DOCTYPE html>
 <html lang="en" xmlns:th="http://www.thymeleaf.org">
-<head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1"><meta name="description" content="Review your JerseySee shopping bag."><title>Your bag | JerseySee</title><link rel="stylesheet" th:href="@{/css/jerseysee.css}"></head>
+<head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1"><meta name="description" content="Review your JerseySee shopping bag."><title>Your bag | JerseySee</title><link rel="stylesheet" th:href="@{/css/jerseysee.css}"><link rel="stylesheet" th:href="@{/css/storefront-premium-v2.css}"></head>
 <body class="storefront-body">
 <div th:replace="~{fragments/navigation :: navigation('cart')}"></div>
-<main class="page-main cart-page"><div class="section-shell">
+<main class="page-main cart-page premium-cart-page"><div class="section-shell">
     <nav class="breadcrumbs" aria-label="Breadcrumb"><a th:href="@{/}">Home</a><span aria-hidden="true">/</span><span>Shopping bag</span></nav>
     <div th:replace="~{fragments/messages :: messages}"></div>
-    <header class="page-header commerce-page-header"><div><span class="eyebrow">Your selection</span><h1>Shopping bag.</h1><p>Review sizes, printing and quantities before secure checkout.</p></div><a class="arrow-link" th:href="@{/catalog}">Continue shopping <span aria-hidden="true">↗</span></a></header>
+    <header class="page-header commerce-page-header"><div><span class="premium-eyebrow">YOUR SELECTION</span><h1>Shopping bag</h1><p>Review sizes, printing and quantities before secure checkout.</p></div><a class="arrow-link" th:href="@{/catalog}">Continue shopping <span aria-hidden="true">↗</span></a></header>
     <div th:object="${addToCart}"><div class="global-errors" th:if="${#fields.hasErrors()}"><p th:each="error : ${#fields.errors('*')}" th:text="${error}">Cart error</p></div></div>
-
     <section class="empty-state premium-empty-state" th:if="${shoppingCart.empty}"><span>JS</span><h2>Your bag is waiting.</h2><p>Discover a shirt, choose an in-stock size and make it yours.</p><a class="button button-ink" th:href="@{/catalog}">Explore the collection</a></section>
-
     <section class="cart-layout premium-cart-layout" th:if="${!shoppingCart.empty}">
-        <div class="cart-lines" data-cart-lines>
-            <div class="cart-lines-heading"><span th:text="${shoppingCart.totalQuantity + ' item' + (shoppingCart.totalQuantity == 1 ? '' : 's')}">Items</span><span>Price</span></div>
+        <div class="cart-lines" data-cart-lines><div class="cart-lines-heading"><span th:text="${shoppingCart.totalQuantity + ' item' + (shoppingCart.totalQuantity == 1 ? '' : 's')}">Items</span><span>Price</span></div>
             <article class="cart-line premium-cart-line" th:each="item : ${shoppingCart.items}">
-                <div class="cart-product-art"><img th:src="${item.storedImageName != null ? '/product-images/' + item.storedImageName : '/images/product-placeholder.svg'}" th:alt="${item.productName}" onerror="this.onerror=null;this.src='/images/product-placeholder.svg'"></div>
-                <div class="cart-line-copy">
-                    <span class="product-meta" th:text="${item.sku}">SKU</span>
-                    <h2 th:text="${item.productName}">Product</h2>
-                    <dl class="cart-line-meta"><div><dt>Size</dt><dd th:text="${#strings.replace(item.size.name(),'_',' ')}">M</dd></div><div><dt>Printing</dt><dd th:text="${item.printingType}">NONE</dd></div><div th:if="${item.printingType.name() != 'NONE'}"><dt>Personalisation</dt><dd><span th:text="${item.printingName}">NAME</span> <span th:text="${item.printingNumber}">10</span></dd></div></dl>
-                    <small>৳<span th:text="${#numbers.formatDecimal(item.unitPrice,1,2)}">0.00</span><span th:if="${item.printingCharge > 0}"> + ৳<span th:text="${#numbers.formatDecimal(item.printingCharge,1,2)}">0.00</span> printing</span> each</small>
-                </div>
-                <div class="cart-line-actions">
-                    <form th:action="@{/cart/items/{lineId}(lineId=${item.lineId})}" method="post">
-                        <label th:for="${'qty-' + item.lineId}">Quantity</label>
-                        <div class="quantity-control"><button type="button" data-qty-minus aria-label="Decrease quantity">−</button><input th:id="${'qty-' + item.lineId}" name="quantity" type="number" min="1" max="10" th:value="${item.quantity}"><button type="button" data-qty-plus aria-label="Increase quantity">+</button></div>
-                        <button class="text-button" type="submit">Update quantity</button>
-                    </form>
-                    <form th:action="@{/cart/items/{lineId}/remove(lineId=${item.lineId})}" method="post" data-confirm="Remove this item from the bag?"><button class="text-button danger-text" type="submit">Remove</button></form>
-                </div>
+                <div class="cart-product-art"><img th:src="${item.storedImageName != null ? '/product-images/' + item.storedImageName : '/images/product-placeholder.svg'}" th:alt="${item.productName}" width="240" height="300" loading="lazy" decoding="async" onerror="this.onerror=null;this.src='/images/product-placeholder.svg'"></div>
+                <div class="cart-line-copy"><span class="product-meta" th:text="${item.sku}">SKU</span><h2 th:text="${item.productName}">Product</h2><dl class="cart-line-meta"><div><dt>Size</dt><dd th:text="${#strings.replace(item.size.name(),'_',' ')}">M</dd></div><div><dt>Printing</dt><dd th:text="${item.printingType}">NONE</dd></div><div th:if="${item.printingType.name() != 'NONE'}"><dt>Personalisation</dt><dd><span th:text="${item.printingName}">NAME</span> <span th:text="${item.printingNumber}">10</span></dd></div></dl><small>৳<span th:text="${#numbers.formatDecimal(item.unitPrice,1,2)}">0.00</span><span th:if="${item.printingCharge > 0}"> + ৳<span th:text="${#numbers.formatDecimal(item.printingCharge,1,2)}">0.00</span> printing</span> each</small></div>
+                <div class="cart-line-actions"><form th:action="@{/cart/items/{lineId}(lineId=${item.lineId})}" method="post"><label th:for="${'qty-' + item.lineId}">Quantity</label><div class="quantity-control"><button type="button" data-qty-minus aria-label="Decrease quantity">−</button><input th:id="${'qty-' + item.lineId}" name="quantity" type="number" min="1" max="10" th:value="${item.quantity}"><button type="button" data-qty-plus aria-label="Increase quantity">+</button></div><button class="text-button" type="submit">Update quantity</button></form><form th:action="@{/cart/items/{lineId}/remove(lineId=${item.lineId})}" method="post" data-confirm="Remove this item from the bag?"><button class="text-button danger-text" type="submit">Remove</button></form></div>
                 <strong class="line-total">৳<span th:text="${#numbers.formatDecimal(item.lineSubtotal,1,2)}">0.00</span></strong>
             </article>
         </div>
-        <aside class="summary-card premium-summary-card" data-order-summary>
-            <span class="eyebrow">Order summary</span><h2>Your total</h2>
-            <dl><div><dt>Items</dt><dd th:text="${shoppingCart.totalQuantity}">0</dd></div><div><dt>Subtotal</dt><dd>৳<span th:text="${#numbers.formatDecimal(shoppingCart.subtotal,1,2)}">0.00</span></dd></div><div><dt>Delivery</dt><dd>৳<span th:text="${#numbers.formatDecimal(deliveryFee,1,2)}">100.00</span></dd></div><div class="summary-total"><dt>Estimated total</dt><dd>৳<span th:text="${#numbers.formatDecimal(shoppingCart.subtotal.add(deliveryFee),1,2)}">0.00</span></dd></div></dl>
-            <a class="button button-crimson button-wide" th:href="@{/checkout}">Continue to checkout <span aria-hidden="true">→</span></a>
-            <div class="summary-assurances"><p><span aria-hidden="true">✓</span> Stock checked again at checkout</p><p><span aria-hidden="true">✓</span> Server-controlled prices</p><p><span aria-hidden="true">✓</span> Secure account order history</p></div>
-        </aside>
+        <aside class="summary-card premium-summary-card" data-order-summary><span class="premium-eyebrow">ORDER SUMMARY</span><h2>Your total</h2><dl><div><dt>Items</dt><dd th:text="${shoppingCart.totalQuantity}">0</dd></div><div><dt>Subtotal</dt><dd>৳<span th:text="${#numbers.formatDecimal(shoppingCart.subtotal,1,2)}">0.00</span></dd></div><div><dt>Delivery</dt><dd>৳<span th:text="${#numbers.formatDecimal(deliveryFee,1,2)}">100.00</span></dd></div><div class="summary-total"><dt>Estimated total</dt><dd>৳<span th:text="${#numbers.formatDecimal(shoppingCart.subtotal.add(deliveryFee),1,2)}">0.00</span></dd></div></dl><a class="button button-ink button-wide" th:href="@{/checkout}">Continue to checkout <span aria-hidden="true">→</span></a><div class="summary-assurances"><p><span aria-hidden="true">✓</span> Stock checked again at checkout</p><p><span aria-hidden="true">✓</span> Server-controlled prices</p><p><span aria-hidden="true">✓</span> Secure account order history</p></div></aside>
     </section>
 </div></main>
 <div th:replace="~{fragments/footer :: footer}"></div>
-<script th:src="@{/js/app.js}" defer></script>
+<script th:src="@{/js/app.js}" defer></script><script th:src="@{/js/storefront-premium-v2.js}" defer></script>
 </body></html>
