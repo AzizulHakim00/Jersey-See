@@ -24,6 +24,7 @@ import static org.assertj.core.api.Assertions.assertThat;
         "spring.jpa.hibernate.ddl-auto=create-drop",
         "app.demo-data.enabled=false",
         "app.demo-catalog.enabled=true",
+        "app.public-demo.enabled=false",
         "app.seed-admin.enabled=false"
 })
 @ActiveProfiles("production")
