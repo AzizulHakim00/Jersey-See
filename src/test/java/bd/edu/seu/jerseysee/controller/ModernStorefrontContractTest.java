@@ -28,9 +28,13 @@ class ModernStorefrontContractTest {
                 .contains("data-product-carousel", "data-carousel-slide", "data-carousel-next", "data-carousel-prev")
                 .contains("data-product-rail", "data-product-rail-track", "data-product-rail-next", "data-product-rail-prev")
                 .doesNotContain("collection-grid");
-        assertThat(login).contains("data-demo-account", "data-demo-email", "data-demo-password", "storefront-final.css");
+        assertThat(login)
+                .contains("data-demo-account", "th:action=\"@{/demo-login/customer}\"", "th:action=\"@{/demo-login/admin}\"", "storefront-final.css")
+                .doesNotContain("data-demo-password", "Demo123!");
         assertThat(footer).contains("© 2026 JerseySee. Crafted and deployed from Dhaka.", "৳5,000");
-        assertThat(javascript).contains("data-product-carousel", "data-demo-account", "prefers-reduced-motion");
+        assertThat(javascript)
+                .contains("data-product-carousel", "prefers-reduced-motion")
+                .doesNotContain("dataset.demoPassword");
         assertThat(railJavascript).contains("data-product-rail", "scrollBy", "prefers-reduced-motion");
     }
 
