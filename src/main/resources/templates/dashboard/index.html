@@ -14,7 +14,7 @@
         <div th:replace="~{fragments/messages :: messages}"></div>
 
         <th:block th:if="${currentRole != null and currentRole.name() == 'CUSTOMER'}">
-            <header class="premium-account-hero">
+            <header class="account-hero premium-account-hero">
                 <div><span class="premium-eyebrow">MY ACCOUNT</span><h1>Customer dashboard</h1><p>Welcome back, <strong th:text="${currentUser.name}">Customer</strong>. Manage orders, profile details and your next match-day purchase.</p></div>
                 <a class="button button-ink" th:href="@{/catalog}">Shop new arrivals</a>
             </header>
