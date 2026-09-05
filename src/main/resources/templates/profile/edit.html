@@ -12,7 +12,7 @@
 <main th:class="${currentRole != null and currentRole.name() != 'CUSTOMER'} ? 'staff-main' : 'page-main premium-account-page'">
 <div class="section-shell" th:classappend="${currentRole != null and currentRole.name() != 'CUSTOMER'} ? ' staff-content' : ''">
     <div th:replace="~{fragments/messages :: messages}"></div>
-    <header class="premium-account-hero" th:if="${currentRole != null and currentRole.name() == 'CUSTOMER'}"><div><span class="premium-eyebrow">MY ACCOUNT</span><h1>Profile settings</h1><p>Keep your contact and delivery details accurate while your sign-in email and role remain protected.</p></div></header>
+    <header class="account-hero premium-account-hero" th:if="${currentRole != null and currentRole.name() == 'CUSTOMER'}"><div><span class="premium-eyebrow">MY ACCOUNT</span><h1>Profile settings</h1><p>Keep your contact and delivery details accurate while your sign-in email and role remain protected.</p></div></header>
     <nav class="account-tabs" th:if="${currentRole != null and currentRole.name() == 'CUSTOMER'}" aria-label="Account sections"><a th:href="@{/dashboard}">Dashboard</a><a th:href="@{/orders}">Orders</a><a class="is-active" th:href="@{/profile}">Profile</a><a th:href="@{/cart}">Bag</a></nav>
     <header class="page-header" th:if="${currentRole != null and currentRole.name() != 'CUSTOMER'}"><div><span class="eyebrow">Your account</span><h1>Profile settings</h1><p>Keep contact and delivery information accurate.</p></div></header>
     <section class="profile-layout">
