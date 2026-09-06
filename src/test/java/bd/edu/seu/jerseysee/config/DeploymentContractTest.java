@@ -10,14 +10,14 @@ import static org.assertj.core.api.Assertions.assertThat;
 class DeploymentContractTest {
 
     @Test
-    void renderAndDockerUseDatabaseReadinessAndTheRuntimePort() throws IOException {
+    void renderAndDockerUseProcessReadinessAndTheRuntimePort() throws IOException {
         String dockerfile = Files.readString(Path.of("Dockerfile"));
         String render = Files.readString(Path.of("render.yaml"));
         String production = Files.readString(Path.of("src/main/resources/application-production.properties"));
 
         assertThat(render).contains("healthCheckPath: /actuator/health");
         assertThat(production).contains("server.address=0.0.0.0", "server.port=${PORT:8080}",
-                "management.health.db.enabled=true");
+                "management.health.db.enabled=false");
         assertThat(dockerfile)
                 .contains("clean verify", "${PORT:-8080}/actuator/health")
                 .doesNotContain("http://127.0.0.1:8080/actuator/health");
@@ -33,6 +33,23 @@ class DeploymentContractTest {
                         "spring.datasource.driver-class-name=com.mysql.cj.jdbc.Driver",
                         "spring.jpa.database-platform=org.hibernate.dialect.MySQLDialect")
                 .doesNotContain("jdbc:h2:", "org.h2.Driver");
+    }
+
+    @Test
+    void productionColdStartDoesNotBlockOnRemoteDatabaseBootstrap() throws IOException {
+        String production = Files.readString(Path.of("src/main/resources/application-production.properties"));
+        String render = Files.readString(Path.of("render.yaml"));
+
+        assertThat(production).contains(
+                "spring.main.lazy-initialization=true",
+                "spring.jpa.hibernate.ddl-auto=none",
+                "spring.jpa.properties.hibernate.boot.allow_jdbc_metadata_access=false",
+                "spring.jpa.properties.jakarta.persistence.database-product-name=MySQL",
+                "spring.jpa.properties.jakarta.persistence.database-major-version=8",
+                "spring.datasource.hikari.initialization-fail-timeout=-1",
+                "spring.datasource.hikari.minimum-idle=0");
+        assertThat(render).contains(
+                "- key: APP_SEED_ADMIN_ENABLED\n        value: \"false\"");
     }
 
     @Test
