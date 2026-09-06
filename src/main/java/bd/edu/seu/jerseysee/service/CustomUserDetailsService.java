@@ -2,6 +2,7 @@ package bd.edu.seu.jerseysee.service;
 
 import bd.edu.seu.jerseysee.model.User;
 import bd.edu.seu.jerseysee.repository.UserRepository;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
@@ -9,6 +10,7 @@ import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 
 @Service
+@Lazy(false)
 public class CustomUserDetailsService implements UserDetailsService {
 
     private final UserRepository userRepository;

@@ -53,3 +53,58 @@ jobs:
           test -s hero.webp
           retry_curl "$BASE_URL/images/media/login-player.webp" login-player.webp
           test -s login-player.webp
+
+          # Exercise the exact admin form-login path that previously failed on
+          # the first POST after a lazily initialized production startup.
+          curl --fail --silent --show-error --location \
+            --connect-timeout 10 --max-time 30 \
+            --cookie-jar admin.cookies \
+            "$BASE_URL/login" -o admin-login.html
+
+          csrf="$(python3 - <<'PY'
+          from html.parser import HTMLParser
+
+          class CsrfParser(HTMLParser):
+              def __init__(self):
+                  super().__init__()
+                  self.value = ""
+
+              def handle_starttag(self, tag, attrs):
+                  if tag != "input":
+                      return
+                  values = dict(attrs)
+                  if values.get("name") == "_csrf":
+                      self.value = values.get("value", "")
+
+          parser = CsrfParser()
+          with open("admin-login.html", encoding="utf-8") as source:
+              parser.feed(source.read())
+          print(parser.value)
+          PY
+          )"
+          test -n "$csrf"
+
+          login_status="$(curl --silent --show-error \
+            --connect-timeout 10 --max-time 30 \
+            --cookie admin.cookies --cookie-jar admin.cookies \
+            --request POST "$BASE_URL/login" \
+            --data-urlencode "username=admin@demo.local" \
+            --data-urlencode "password=Demo123!" \
+            --data-urlencode "_csrf=$csrf" \
+            --dump-header admin-login.headers \
+            --output admin-login-response.html \
+            --write-out "%{http_code}")"
+
+          if [ "$login_status" != "302" ]; then
+            echo "Admin login returned HTTP $login_status instead of 302" >&2
+            cat admin-login.headers >&2 || true
+            exit 1
+          fi
+          grep -Eiq '^location:[[:space:]]*(https?://[^/]+)?/dashboard([?#][^[:space:]]*)?[[:space:]]*$' admin-login.headers
+
+          curl --fail --silent --show-error --location \
+            --connect-timeout 10 --max-time 30 \
+            --cookie admin.cookies \
+            "$BASE_URL/dashboard" -o admin-dashboard.html
+          grep -Fq "Admin dashboard" admin-dashboard.html
+          grep -Fq "STORE OPERATIONS" admin-dashboard.html
