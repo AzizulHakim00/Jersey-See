@@ -59,6 +59,21 @@ class DemoProductImageInitializerTest {
     }
 
     @Test
+    void seededBootBallAndTrainingProductsUsePhotographicWebpMedia() {
+        DemoProductImageInitializer initializer = new DemoProductImageInitializer(
+                productRepository, productImageRepository, new DefaultResourceLoader());
+        initializer.seedImages();
+
+        assertRealWebp("public.product.premium-football-boots");
+        assertRealWebp("public.product.indoor-futsal-shoes");
+        assertRealWebp("public.product.training-sneakers");
+        assertRealWebp("public.product.match-football");
+        assertRealWebp("public.product.training-football");
+        assertRealWebp("public.product.mini-supporter-ball");
+        assertRealWebp("public.product.training-top");
+    }
+
+    @Test
     void seedImagesRepairsSeededProductWhoseStoredImageReferenceIsMissing() {
         Product product = productRepository.findByDemoSeedKey("public.product.barcelona-home-fan").orElseThrow();
         product.setStoredImageName("missing-legacy-image.jpg");
@@ -75,5 +90,13 @@ class DemoProductImageInitializerTest {
         assertThat(repaired.getStoredImageName()).isNotEqualTo("missing-legacy-image.jpg");
         assertThat(productImageRepository.findById(repaired.getStoredImageName())).isPresent();
         assertThat(repaired.getImageSize()).isPositive();
+    }
+
+    private void assertRealWebp(String seedKey) {
+        Product product = productRepository.findByDemoSeedKey(seedKey).orElseThrow();
+        assertThat(product.getStoredImageName()).endsWith(".webp");
+        assertThat(product.getOriginalImageName()).endsWith(".webp");
+        assertThat(product.getImageContentType()).isEqualTo("image/webp");
+        assertThat(productImageRepository.findById(product.getStoredImageName())).isPresent();
     }
 }
