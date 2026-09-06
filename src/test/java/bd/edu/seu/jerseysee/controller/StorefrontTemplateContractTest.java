@@ -122,6 +122,26 @@ class StorefrontTemplateContractTest {
     }
 
     @Test
+    void staffPagesUsePremiumShellWithoutHorizontalSidebarSlider() throws IOException {
+        String sidebar = read(TEMPLATES.resolve("fragments/admin-sidebar.html"));
+        String repairCss = read(STATIC.resolve("css/storefront-repair.css"));
+
+        assertThat(sidebar).contains("storefront-premium-v2.css", "storefront-repair.css");
+        assertThat(repairCss).contains("overflow-x: hidden", "transform: none !important", "width: calc(100% - 248px)");
+        assertThat(repairCss).contains("@media (max-width: 720px)", "width: 100%");
+    }
+
+    @Test
+    void premiumFallbackAndLoginArtworkNeverShowComingSoonCopy() throws IOException {
+        String placeholder = read(STATIC.resolve("images/product-placeholder.svg"));
+        String login = read(TEMPLATES.resolve("auth/login.html"));
+
+        assertThat(placeholder.toUpperCase()).doesNotContain("COMING SOON");
+        assertThat(login).contains("auth-footballer.svg", "storefront-repair.css");
+        assertThat(Files.exists(STATIC.resolve("images/auth-footballer.svg"))).isTrue();
+    }
+
+    @Test
     void renderedAssociationFetchIntentIsExplicit() throws IOException {
         String products = Files.readString(Path.of("src/main/java/bd/edu/seu/jerseysee/repository/ProductRepository.java"));
         String employees = Files.readString(Path.of("src/main/java/bd/edu/seu/jerseysee/repository/EmployeeProfileRepository.java"));

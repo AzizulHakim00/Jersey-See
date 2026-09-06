@@ -76,6 +76,25 @@ class SecurityAccessTest {
     }
 
     @Test
+    @WithMockUser(username = "admin@demo.local", roles = "ADMIN")
+    void demoAdministratorCanPerformNormalAdminMutations() throws Exception {
+        mockMvc.perform(post("/staff/employees").with(csrf())
+                        .param("name", "Demo Cashier")
+                        .param("email", "demo.cashier@example.com")
+                        .param("phone", "01800000001")
+                        .param("address", "Dhaka")
+                        .param("password", "Password1!")
+                        .param("passwordConfirmation", "Password1!")
+                        .param("role", "CASHIER")
+                        .param("employeeCode", "EMP-DEMO")
+                        .param("position", "Cashier")
+                        .param("salary", "25000.00")
+                        .param("joiningDate", "2026-09-01"))
+                .andExpect(status().is3xxRedirection())
+                .andExpect(redirectedUrl("/staff/employees?created"));
+    }
+
+    @Test
     void registrationCanonicalizesWhitespaceEmailBeforeValidationAndServiceUse() throws Exception {
         mockMvc.perform(post("/register").with(csrf())
                         .param("name", "Amina Rahman")

@@ -1,0 +1,151 @@
+/* JerseySee operational repair layer.
+   Kept intentionally small and loaded after the premium storefront styles. */
+
+/* Keep retail/customer content in normal flow beneath the sticky header. */
+.store-header {
+    position: sticky !important;
+    top: 0;
+    z-index: 100;
+}
+.storefront-body > main,
+.storefront-body .page-main {
+    position: relative;
+    z-index: 1;
+    min-width: 0;
+}
+.storefront-body .page-main {
+    margin-top: 0 !important;
+}
+.primary-shop-nav,
+.primary-shop-links,
+.nav-actions {
+    min-width: 0;
+}
+@media (min-width: 981px) {
+    .primary-shop-nav {
+        overflow: visible !important;
+    }
+    .primary-shop-links {
+        overflow: visible !important;
+        flex-wrap: nowrap;
+    }
+}
+
+/* Stronger football-first homepage hero, closer to the approved visual. */
+.premium-home-player {
+    width: min(82%, 620px) !important;
+    height: 510px !important;
+    object-fit: contain !important;
+    object-position: center bottom !important;
+    filter: drop-shadow(0 28px 36px rgba(0,0,0,.38)) !important;
+}
+
+/* Staff workspace: no horizontal sidebar slider and no content underlay. */
+.staff-body {
+    overflow-x: hidden;
+}
+.staff-sidebar {
+    overflow-y: auto !important;
+    overflow-x: hidden !important;
+}
+.staff-nav {
+    min-width: 0;
+    overflow-x: hidden;
+}
+.staff-nav a,
+.staff-nav a:hover,
+.staff-nav a.is-active {
+    transform: none !important;
+    max-width: 100%;
+}
+.staff-main {
+    margin-left: 248px !important;
+    width: calc(100% - 248px);
+    max-width: calc(100% - 248px);
+    overflow-x: hidden;
+}
+.staff-content {
+    max-width: 100%;
+}
+.staff-content .table-wrap {
+    max-width: 100%;
+}
+
+/* Login artwork aligned with the approved football-first preview. */
+.premium-auth-visual {
+    isolation: isolate;
+}
+.premium-auth-visual::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    z-index: 1;
+    pointer-events: none;
+    background: linear-gradient(90deg, rgba(7,20,44,.12) 15%, rgba(7,20,44,.02) 58%, rgba(7,20,44,.30) 100%);
+}
+.premium-auth-player {
+    position: absolute;
+    z-index: 1;
+    right: -5%;
+    bottom: -3%;
+    width: min(72%, 660px);
+    height: 88%;
+    object-fit: contain;
+    object-position: right bottom;
+    filter: drop-shadow(0 28px 34px rgba(0,0,0,.36));
+    pointer-events: none;
+}
+.premium-auth-visual .modern-brand,
+.premium-auth-copy {
+    z-index: 3 !important;
+}
+.premium-auth-copy {
+    max-width: 560px;
+    text-shadow: 0 2px 18px rgba(0,0,0,.28);
+}
+.premium-auth-copy p {
+    max-width: 420px;
+}
+
+@media (max-width: 980px) {
+    .staff-main {
+        margin-left: 224px !important;
+        width: calc(100% - 224px);
+        max-width: calc(100% - 224px);
+    }
+    .premium-auth-player {
+        right: -12%;
+        width: 80%;
+    }
+    .premium-home-player {
+        width: min(90%, 560px) !important;
+    }
+}
+
+@media (max-width: 720px) {
+    .staff-main {
+        margin-left: 0 !important;
+        width: 100%;
+        max-width: 100%;
+    }
+    .premium-auth-player {
+        right: -6%;
+        bottom: -12%;
+        width: 68%;
+        height: 92%;
+        opacity: .72;
+    }
+    .premium-auth-copy {
+        max-width: 72%;
+    }
+    .premium-home-player {
+        width: min(92%, 430px) !important;
+        height: 320px !important;
+    }
+    .account-tabs {
+        scrollbar-width: none;
+    }
+    .account-tabs::-webkit-scrollbar {
+        display: none;
+    }
+}

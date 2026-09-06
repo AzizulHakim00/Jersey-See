@@ -52,9 +52,13 @@ public class DemoProductImageInitializer {
     }
 
     private void seedProductImage(Product product, DemoImage image) {
-        if (product.getStoredImageName() != null && !product.getStoredImageName().isBlank()) {
+        String currentStoredName = product.getStoredImageName();
+        if (currentStoredName != null
+                && !currentStoredName.isBlank()
+                && imageRepository.findById(currentStoredName).isPresent()) {
             return;
         }
+
         try {
             LoadedImage loaded = loadImage(image);
             String storedName = "demo-" + image.storedSlug() + loaded.extension();
