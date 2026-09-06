@@ -100,7 +100,7 @@ jobs:
             cat admin-login.headers >&2 || true
             exit 1
           fi
-          grep -Eiq '^location:[[:space:]]*/dashboard([[:space:]]|$)' admin-login.headers
+          grep -Eiq '^location:[[:space:]]*(https?://[^/]+)?/dashboard([?#][^[:space:]]*)?[[:space:]]*$' admin-login.headers
 
           curl --fail --silent --show-error --location \
             --connect-timeout 10 --max-time 30 \
