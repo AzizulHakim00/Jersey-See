@@ -1,0 +1,1 @@
+Expected before implementation: RealMediaDashboardPerformanceContractTest fails because photographic media paths/assets, compact dashboard classes, and lightweight premium JS/CSS are not implemented yet.
