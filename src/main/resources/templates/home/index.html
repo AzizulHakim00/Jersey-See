@@ -22,12 +22,9 @@
                 <div class="premium-hero-note">More than a jersey. A football identity.</div>
             </div>
             <div class="premium-hero-media">
-                <img th:if="${heroProduct != null}"
-                     th:src="${heroProduct.storedImageName != null ? '/product-images/' + heroProduct.storedImageName : '/images/product-placeholder.svg'}"
-                     th:alt="${heroProduct.name}" width="650" height="760" loading="eager" fetchpriority="high" decoding="async"
-                     onerror="this.onerror=null;this.src='/images/product-placeholder.svg'">
-                <img th:if="${heroProduct == null}" th:src="@{/images/hero-kit.svg}" alt="JerseySee premium football jersey"
-                     width="650" height="760" loading="eager" fetchpriority="high" decoding="async">
+                <img class="premium-home-player" th:src="@{/images/auth-footballer.svg}"
+                     alt="JerseySee football player in a premium match-day kit" width="720" height="920"
+                     loading="eager" fetchpriority="high" decoding="async">
                 <a class="premium-hero-product" th:if="${heroProduct != null}" th:href="@{/products/{id}(id=${heroProduct.id})}">
                     <small th:text="${heroProduct.clubOrCountry != null ? heroProduct.clubOrCountry : 'JerseySee selection'}">JerseySee selection</small>
                     <strong th:text="${heroProduct.name}">Featured jersey</strong>
