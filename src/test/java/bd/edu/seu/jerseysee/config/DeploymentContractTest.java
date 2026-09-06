@@ -38,6 +38,7 @@ class DeploymentContractTest {
     @Test
     void productionColdStartDoesNotBlockOnRemoteDatabaseBootstrap() throws IOException {
         String production = Files.readString(Path.of("src/main/resources/application-production.properties"));
+        String render = Files.readString(Path.of("render.yaml"));
 
         assertThat(production).contains(
                 "spring.main.lazy-initialization=true",
@@ -47,6 +48,8 @@ class DeploymentContractTest {
                 "spring.jpa.properties.jakarta.persistence.database-major-version=8",
                 "spring.datasource.hikari.initialization-fail-timeout=-1",
                 "spring.datasource.hikari.minimum-idle=0");
+        assertThat(render).contains(
+                "- key: APP_SEED_ADMIN_ENABLED\n        value: \"false\"");
     }
 
     @Test
