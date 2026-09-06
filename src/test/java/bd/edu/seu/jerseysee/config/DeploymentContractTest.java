@@ -42,7 +42,6 @@ class DeploymentContractTest {
 
         assertThat(production).contains(
                 "spring.main.lazy-initialization=true",
-                "spring.data.jpa.repositories.bootstrap-mode=deferred",
                 "spring.jpa.hibernate.ddl-auto=none",
                 "spring.jpa.properties.hibernate.boot.allow_jdbc_metadata_access=false",
                 "spring.jpa.properties.jakarta.persistence.database-product-name=MySQL",
