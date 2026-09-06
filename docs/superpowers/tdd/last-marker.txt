@@ -1,0 +1,1 @@
+CI should now be allowed to demonstrate the failing contract.
