@@ -122,6 +122,38 @@ class StorefrontTemplateContractTest {
     }
 
     @Test
+    void staffPagesUsePremiumShellWithoutHorizontalSidebarSlider() throws IOException {
+        String premiumCss = read(STATIC.resolve("css/storefront-premium-v2.css"));
+        String products = read(TEMPLATES.resolve("staff/products/list.html"));
+        String productForm = read(TEMPLATES.resolve("staff/products/form.html"));
+        String orders = read(TEMPLATES.resolve("staff/orders/list.html"));
+        String orderDetail = read(TEMPLATES.resolve("staff/orders/detail.html"));
+        String payments = read(TEMPLATES.resolve("staff/payments/list.html"));
+        String employees = read(TEMPLATES.resolve("staff/employees/list.html"));
+        String employeeForm = read(TEMPLATES.resolve("staff/employees/form.html"));
+
+        assertThat(premiumCss).contains("overflow-x: hidden");
+        assertThat(premiumCss).doesNotContain(".staff-nav a:hover, .staff-nav a.is-active { background: var(--js-blue); color: #fff; transform: translateX(2px);");
+        assertThat(products).contains("storefront-premium-v2.css");
+        assertThat(productForm).contains("storefront-premium-v2.css");
+        assertThat(orders).contains("storefront-premium-v2.css");
+        assertThat(orderDetail).contains("storefront-premium-v2.css");
+        assertThat(payments).contains("storefront-premium-v2.css");
+        assertThat(employees).contains("storefront-premium-v2.css");
+        assertThat(employeeForm).contains("storefront-premium-v2.css");
+    }
+
+    @Test
+    void premiumFallbackAndLoginArtworkNeverShowComingSoonCopy() throws IOException {
+        String placeholder = read(STATIC.resolve("images/product-placeholder.svg"));
+        String login = read(TEMPLATES.resolve("auth/login.html"));
+
+        assertThat(placeholder.toUpperCase()).doesNotContain("COMING SOON");
+        assertThat(login).contains("auth-footballer.svg");
+        assertThat(Files.exists(STATIC.resolve("images/auth-footballer.svg"))).isTrue();
+    }
+
+    @Test
     void renderedAssociationFetchIntentIsExplicit() throws IOException {
         String products = Files.readString(Path.of("src/main/java/bd/edu/seu/jerseysee/repository/ProductRepository.java"));
         String employees = Files.readString(Path.of("src/main/java/bd/edu/seu/jerseysee/repository/EmployeeProfileRepository.java"));
