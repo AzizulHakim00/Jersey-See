@@ -1,0 +1,1 @@
+This directory records test-first checkpoints for the current repair branch.

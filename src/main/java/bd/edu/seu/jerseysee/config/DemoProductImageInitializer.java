@@ -52,9 +52,9 @@ public class DemoProductImageInitializer {
     }
 
     private void seedProductImage(Product product, DemoImage image) {
+        String expectedStoredName = "demo-" + image.storedSlug() + image.extension();
         String currentStoredName = product.getStoredImageName();
-        if (currentStoredName != null
-                && !currentStoredName.isBlank()
+        if (expectedStoredName.equals(currentStoredName)
                 && imageRepository.findById(currentStoredName).isPresent()) {
             return;
         }
@@ -122,13 +122,14 @@ public class DemoProductImageInitializer {
         addJpeg(images, "ac-milan-retro", "ac-milan-retro.jpg");
         addJpeg(images, "juventus-94-95-retro", "juventus-94-95-retro.jpg");
 
-        addSvg(images, "premium-football-boots", "jerseysee-football-boots.svg");
-        addSvg(images, "indoor-futsal-shoes", "jerseysee-football-boots.svg");
-        addSvg(images, "training-sneakers", "jerseysee-football-boots.svg");
-        addSvg(images, "match-football", "jerseysee-match-ball.svg");
-        addSvg(images, "training-football", "jerseysee-match-ball.svg");
-        addSvg(images, "mini-supporter-ball", "jerseysee-match-ball.svg");
-        addSvg(images, "training-top", "jerseysee-training-wear.svg");
+        addWebp(images, "premium-football-boots", "product-boot-white.webp");
+        addWebp(images, "indoor-futsal-shoes", "product-boot-black.webp");
+        addWebp(images, "training-sneakers", "product-boot-white.webp");
+        addWebp(images, "match-football", "product-ball.webp");
+        addWebp(images, "training-football", "product-ball.webp");
+        addWebp(images, "mini-supporter-ball", "product-ball.webp");
+        addWebp(images, "training-top", "product-training-top.webp");
+
         addSvg(images, "training-trousers", "jerseysee-training-wear.svg");
         addSvg(images, "coach-jacket", "jerseysee-training-wear.svg");
         addSvg(images, "supporter-cap", "jerseysee-accessory.svg");
@@ -141,6 +142,11 @@ public class DemoProductImageInitializer {
     private static void addJpeg(Map<String, DemoImage> images, String productSlug, String resourceName) {
         images.put("public.product." + productSlug,
                 new DemoImage(productSlug, resourceName, ".jpg", "image/jpeg"));
+    }
+
+    private static void addWebp(Map<String, DemoImage> images, String productSlug, String resourceName) {
+        images.put("public.product." + productSlug,
+                new DemoImage(productSlug, resourceName, ".webp", "image/webp"));
     }
 
     private static void addSvg(Map<String, DemoImage> images, String productSlug, String resourceName) {

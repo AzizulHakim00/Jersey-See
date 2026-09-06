@@ -1,0 +1,1 @@
+The red-state contract is limited to media placement, dashboard presentation hooks, and frontend motion behavior. It intentionally does not alter business logic, security, persistence, or commerce routes.

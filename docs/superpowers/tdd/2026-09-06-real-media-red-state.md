@@ -1,0 +1,3 @@
+# Real Media / Dashboard Repair TDD Red State
+
+The branch first introduces `RealMediaDashboardPerformanceContractTest` before production changes. The expected Maven failure is that the homepage/login still reference SVG footballer/placeholder assets, the new `/images/media/*.webp` assets do not exist yet, the dashboard lacks the new compact dashboard classes/repair stylesheet contract, and premium JS still uses observer/smooth-scrolling behavior. Production changes are intentionally deferred until this failure is observed in CI.

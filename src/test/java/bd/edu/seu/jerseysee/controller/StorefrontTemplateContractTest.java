@@ -137,8 +137,8 @@ class StorefrontTemplateContractTest {
         String login = read(TEMPLATES.resolve("auth/login.html"));
 
         assertThat(placeholder.toUpperCase()).doesNotContain("COMING SOON");
-        assertThat(login).contains("auth-footballer.svg", "storefront-repair.css");
-        assertThat(Files.exists(STATIC.resolve("images/auth-footballer.svg"))).isTrue();
+        assertThat(login).contains("/images/media/login-player.webp", "storefront-repair.css");
+        assertThat(Files.exists(STATIC.resolve("images/media/login-player.webp"))).isTrue();
     }
 
     @Test
