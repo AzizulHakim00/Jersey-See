@@ -1,0 +1,55 @@
+name: Live Render smoke test
+
+on:
+  push:
+    branches: [ main ]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  smoke:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    env:
+      BASE_URL: https://jersey-see.onrender.com
+    steps:
+      - name: Wait for Render and verify live storefront
+        shell: bash
+        run: |
+          set -euo pipefail
+          retry_curl() {
+            local url="$1"
+            local out="$2"
+            for attempt in $(seq 1 24); do
+              if curl --fail --silent --show-error --location --connect-timeout 10 --max-time 30 "$url" -o "$out"; then
+                return 0
+              fi
+              echo "Attempt ${attempt}/24 failed for ${url}; waiting 20s..."
+              sleep 20
+            done
+            echo "Timed out waiting for ${url}" >&2
+            return 1
+          }
+
+          retry_curl "$BASE_URL/actuator/health" health.json
+          grep -Eq '"status"\s*:\s*"UP"' health.json
+
+          retry_curl "$BASE_URL/" home.html
+          grep -Fq "Wear The Passion" home.html
+          grep -Fq "/images/media/home-hero.webp" home.html
+          grep -Fq "Shop by category" home.html
+
+          retry_curl "$BASE_URL/login" login.html
+          grep -Fq "Sign in to JerseySee" login.html
+          grep -Fq "/images/media/login-player.webp" login.html
+          grep -Fq "Demo credentials (for testing only)" login.html
+
+          retry_curl "$BASE_URL/dashboard" dashboard-guest.html
+          grep -Fq "Sign in to JerseySee" dashboard-guest.html
+
+          retry_curl "$BASE_URL/images/media/home-hero.webp" hero.webp
+          test -s hero.webp
+          retry_curl "$BASE_URL/images/media/login-player.webp" login-player.webp
+          test -s login-player.webp
