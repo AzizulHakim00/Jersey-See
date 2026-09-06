@@ -1,7 +1,10 @@
 /* JerseySee operational repair layer.
-   Kept intentionally small and loaded after the premium storefront styles. */
+   Loaded after the premium storefront styles. */
 
 /* Keep retail/customer content in normal flow beneath the sticky header. */
+html {
+    scroll-behavior: auto !important;
+}
 .store-header {
     position: sticky !important;
     top: 0;
@@ -31,13 +34,94 @@
     }
 }
 
-/* Stronger football-first homepage hero, closer to the approved visual. */
+/* Remove nonessential animation work. */
+.js [data-premium-reveal] {
+    opacity: 1 !important;
+    transform: none !important;
+    transition: none !important;
+}
+.product-rail {
+    scroll-behavior: auto !important;
+}
+.commerce-product-card,
+.commerce-product-card:hover,
+.premium-category-card img,
+.premium-category-card:hover img,
+.product-media img,
+.commerce-product-card:hover .product-media img,
+.product-rail-arrow,
+.product-rail-arrow:hover,
+.nav-icon-link,
+.nav-icon-link:hover,
+.button,
+.button:hover,
+.button:active {
+    transform: none !important;
+}
+.commerce-product-card,
+.product-media img,
+.premium-category-card img,
+.product-rail-arrow,
+.button,
+.nav-icon-link {
+    transition-duration: 120ms !important;
+}
+.commerce-product-card:hover {
+    box-shadow: 0 5px 18px rgba(7,20,44,.07) !important;
+}
+
+/* Homepage: fill the hero with supplied real photography. */
+.premium-home-hero {
+    min-height: 500px;
+}
+.premium-hero-inner {
+    min-height: 500px;
+}
+.premium-hero-media {
+    min-height: 500px;
+    overflow: hidden;
+    border-left: 1px solid rgba(255,255,255,.09);
+}
+.premium-hero-media::before {
+    display: none !important;
+}
 .premium-home-player {
-    width: min(82%, 620px) !important;
-    height: 510px !important;
-    object-fit: contain !important;
-    object-position: center bottom !important;
-    filter: drop-shadow(0 28px 36px rgba(0,0,0,.38)) !important;
+    position: absolute !important;
+    inset: 0 !important;
+    z-index: 1;
+    width: 100% !important;
+    max-width: none !important;
+    height: 100% !important;
+    object-fit: cover !important;
+    object-position: center center !important;
+    filter: none !important;
+    padding: 0 !important;
+}
+.premium-hero-media::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    z-index: 1;
+    pointer-events: none;
+    background: rgba(7,20,44,.12);
+}
+.premium-hero-product {
+    z-index: 3 !important;
+}
+.premium-category-card img {
+    opacity: .88 !important;
+}
+.premium-category-card::after {
+    height: 48% !important;
+    background: rgba(5,16,37,.72) !important;
+}
+.premium-campaign-media img {
+    width: 100% !important;
+    height: 100% !important;
+    min-height: 260px !important;
+    object-fit: cover !important;
+    object-position: center !important;
+    padding: 0 !important;
 }
 
 /* Staff workspace: no horizontal sidebar slider and no content underlay. */
@@ -71,9 +155,10 @@
     max-width: 100%;
 }
 
-/* Login artwork aligned with the approved football-first preview. */
+/* Login: use supplied real player photography as a full-height visual. */
 .premium-auth-visual {
     isolation: isolate;
+    overflow: hidden;
 }
 .premium-auth-visual::after {
     content: "";
@@ -81,47 +166,239 @@
     inset: 0;
     z-index: 1;
     pointer-events: none;
-    background: linear-gradient(90deg, rgba(7,20,44,.12) 15%, rgba(7,20,44,.02) 58%, rgba(7,20,44,.30) 100%);
+    background: linear-gradient(90deg, rgba(7,20,44,.18) 0%, rgba(7,20,44,.34) 62%, rgba(7,20,44,.62) 100%);
 }
 .premium-auth-player {
     position: absolute;
-    z-index: 1;
-    right: -5%;
-    bottom: -3%;
-    width: min(72%, 660px);
-    height: 88%;
-    object-fit: contain;
-    object-position: right bottom;
-    filter: drop-shadow(0 28px 34px rgba(0,0,0,.36));
+    z-index: 0;
+    inset: 0;
+    width: 100%;
+    max-width: none;
+    height: 100%;
+    object-fit: cover;
+    object-position: center 42%;
+    filter: none;
     pointer-events: none;
 }
 .premium-auth-visual .modern-brand,
 .premium-auth-copy {
+    position: relative;
     z-index: 3 !important;
 }
 .premium-auth-copy {
     max-width: 560px;
-    text-shadow: 0 2px 18px rgba(0,0,0,.28);
+    text-shadow: 0 2px 18px rgba(0,0,0,.34);
 }
 .premium-auth-copy p {
     max-width: 420px;
 }
 
+/* Preview-like customer/admin dashboards. */
+.customer-dashboard-shell,
+.admin-dashboard-shell {
+    background: #f7f8fb;
+}
+.customer-dashboard-shell > .section-shell {
+    padding-top: 26px;
+}
+.dashboard-welcome {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 24px;
+    margin-bottom: 18px;
+    padding: 23px 24px;
+    border: 1px solid #e4e8ef;
+    border-radius: 14px;
+    background: #fff;
+    box-shadow: 0 4px 18px rgba(7,20,44,.045);
+}
+.dashboard-welcome-copy h1 {
+    margin: 5px 0 4px;
+    font-size: clamp(1.65rem, 2.4vw, 2.35rem);
+    line-height: 1.05;
+    letter-spacing: -.04em;
+}
+.dashboard-welcome-copy p {
+    margin: 0;
+    color: #667085;
+    font-size: .8rem;
+}
+.dashboard-user-card,
+.dashboard-admin-actions {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+.dashboard-user-card > span:nth-child(2) {
+    display: grid;
+    min-width: 140px;
+}
+.dashboard-user-card small {
+    color: #7a8492;
+    font-size: .6rem;
+}
+.dashboard-user-card strong {
+    font-size: .78rem;
+}
+.dashboard-avatar {
+    width: 42px;
+    height: 42px;
+    display: grid;
+    place-items: center;
+    border-radius: 50%;
+    background: #dfe7f5;
+    color: #071a3d;
+    font-weight: 850;
+}
+.dashboard-role-chip {
+    min-height: 34px;
+    display: inline-flex;
+    align-items: center;
+    padding: 0 12px;
+    border: 1px solid #dce2eb;
+    border-radius: 999px;
+    background: #fff;
+    color: #5c6675;
+    font-size: .65rem;
+    font-weight: 800;
+}
+.dashboard-account-tabs {
+    margin-bottom: 18px !important;
+    background: #fff !important;
+    box-shadow: 0 2px 10px rgba(7,20,44,.03);
+}
+.dashboard-summary-grid {
+    gap: 12px !important;
+    margin-bottom: 18px !important;
+}
+.dashboard-summary-card {
+    min-height: 112px !important;
+    padding: 16px 17px !important;
+    border-radius: 12px !important;
+    box-shadow: 0 3px 14px rgba(7,20,44,.04) !important;
+}
+.dashboard-summary-card .metric-icon {
+    float: left;
+    margin-right: 12px;
+}
+.dashboard-summary-card > strong {
+    margin: 1px 0 0 !important;
+    font-size: 1.25rem !important;
+}
+.dashboard-summary-card h2 {
+    margin-top: 12px !important;
+    clear: both;
+}
+.dashboard-summary-card p {
+    margin-top: 3px !important;
+    line-height: 1.35;
+}
+.admin-summary-grid {
+    grid-template-columns: repeat(3, minmax(0,1fr)) !important;
+}
+.dashboard-content-grid {
+    grid-template-columns: minmax(0, 1.75fr) minmax(255px, .65fr) !important;
+    gap: 16px !important;
+}
+.dashboard-orders-card,
+.dashboard-side-card {
+    border-radius: 12px !important;
+    box-shadow: 0 4px 18px rgba(7,20,44,.04) !important;
+}
+.dashboard-orders-card .panel-header {
+    padding: 16px 18px !important;
+}
+.dashboard-data-table th {
+    background: #fafbfc !important;
+}
+.dashboard-data-table td {
+    padding: 11px 12px !important;
+}
+.dashboard-view-link {
+    min-width: 54px;
+    min-height: 30px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border: 1px solid #dce4ef;
+    border-radius: 6px;
+    color: #1557d6;
+    text-decoration: none;
+    font-size: .64rem;
+    font-weight: 800;
+}
+.dashboard-side-card {
+    padding: 24px;
+    background: #071a3d !important;
+    color: #fff;
+}
+.dashboard-side-card h2 {
+    margin: 9px 0 10px;
+    font-family: Georgia, "Times New Roman", serif;
+    font-size: 1.75rem;
+    font-weight: 500;
+    line-height: 1.02;
+}
+.dashboard-side-card p,
+.dashboard-side-card .empty-note {
+    color: #cbd6e9;
+    font-size: .76rem;
+}
+.dashboard-side-actions {
+    display: grid;
+    gap: 9px;
+    margin-top: 18px;
+}
+.dashboard-side-card .button-ghost {
+    background: rgba(255,255,255,.07);
+    color: #fff;
+    border-color: rgba(255,255,255,.22);
+}
+.dashboard-side-card .text-link {
+    margin-top: 7px;
+    color: #e4c77d;
+    font-size: .7rem;
+    text-decoration: none;
+}
+.admin-stock-card .stock-list a,
+.admin-stock-card .stock-item {
+    border-bottom-color: rgba(255,255,255,.12) !important;
+    color: #fff;
+}
+.admin-stock-card .stock-list small {
+    color: #aebbd0;
+}
+
+@media (max-width: 1180px) {
+    .dashboard-welcome {
+        align-items: flex-start;
+    }
+    .dashboard-user-card,
+    .dashboard-admin-actions {
+        flex-wrap: wrap;
+        justify-content: flex-end;
+    }
+    .admin-summary-grid {
+        grid-template-columns: repeat(2, minmax(0,1fr)) !important;
+    }
+}
 @media (max-width: 980px) {
     .staff-main {
         margin-left: 224px !important;
         width: calc(100% - 224px);
         max-width: calc(100% - 224px);
     }
-    .premium-auth-player {
-        right: -12%;
-        width: 80%;
-    }
     .premium-home-player {
-        width: min(90%, 560px) !important;
+        object-position: center !important;
+    }
+    .dashboard-content-grid {
+        grid-template-columns: 1fr !important;
+    }
+    .dashboard-side-card {
+        min-height: 0;
     }
 }
-
 @media (max-width: 720px) {
     .staff-main {
         margin-left: 0 !important;
@@ -129,23 +406,43 @@
         max-width: 100%;
     }
     .premium-auth-player {
-        right: -6%;
-        bottom: -12%;
-        width: 68%;
-        height: 92%;
-        opacity: .72;
+        object-position: center 38%;
+        opacity: .82;
     }
     .premium-auth-copy {
-        max-width: 72%;
+        max-width: 78%;
+    }
+    .premium-hero-media {
+        min-height: 310px;
     }
     .premium-home-player {
-        width: min(92%, 430px) !important;
-        height: 320px !important;
+        height: 100% !important;
     }
     .account-tabs {
         scrollbar-width: none;
     }
     .account-tabs::-webkit-scrollbar {
         display: none;
+    }
+    .dashboard-welcome {
+        display: grid;
+        padding: 18px;
+    }
+    .dashboard-user-card,
+    .dashboard-admin-actions {
+        justify-content: flex-start;
+    }
+    .dashboard-summary-grid,
+    .admin-summary-grid {
+        grid-template-columns: repeat(2, minmax(0,1fr)) !important;
+    }
+}
+@media (max-width: 480px) {
+    .dashboard-summary-grid,
+    .admin-summary-grid {
+        grid-template-columns: 1fr !important;
+    }
+    .dashboard-user-card .button {
+        width: 100%;
     }
 }

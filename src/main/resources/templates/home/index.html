@@ -7,6 +7,7 @@
     <link rel="icon" th:href="@{/images/brand-mark.svg}" type="image/svg+xml">
     <link rel="stylesheet" th:href="@{/css/jerseysee.css}">
     <link rel="stylesheet" th:href="@{/css/storefront-premium-v2.css}">
+    <link rel="stylesheet" th:href="@{/css/storefront-repair.css}">
 </head>
 <body class="storefront-body premium-home">
 <div th:replace="~{fragments/navigation :: navigation('home')}"></div>
@@ -22,8 +23,8 @@
                 <div class="premium-hero-note">More than a jersey. A football identity.</div>
             </div>
             <div class="premium-hero-media">
-                <img class="premium-home-player" th:src="@{/images/auth-footballer.svg}"
-                     alt="JerseySee football player in a premium match-day kit" width="720" height="920"
+                <img class="premium-home-player" th:src="@{/images/media/home-hero.webp}"
+                     alt="Two football players sharing a match-day moment in a stadium" width="1200" height="400"
                      loading="eager" fetchpriority="high" decoding="async">
                 <a class="premium-hero-product" th:if="${heroProduct != null}" th:href="@{/products/{id}(id=${heroProduct.id})}">
                     <small th:text="${heroProduct.clubOrCountry != null ? heroProduct.clubOrCountry : 'JerseySee selection'}">JerseySee selection</small>
@@ -36,44 +37,34 @@
 
     <div data-service-strip th:replace="~{fragments/service-strip :: serviceStrip}"></div>
 
-    <section class="premium-section" data-premium-reveal>
+    <section class="premium-section">
         <div class="section-shell">
             <header class="premium-section-heading">
                 <div><span class="premium-eyebrow">Explore the store</span><h2>Shop by category</h2></div>
                 <a th:href="@{/catalog}">View all →</a>
             </header>
-            <div class="premium-category-grid" th:if="${featuredProducts != null and #lists.size(featuredProducts) > 3}">
+            <div class="premium-category-grid">
                 <a class="premium-category-card" th:href="@{/catalog(edition='PLAYER')}">
-                    <img th:src="${featuredProducts[0].storedImageName != null ? '/product-images/' + featuredProducts[0].storedImageName : '/images/product-placeholder.svg'}"
-                         alt="Player edition football jerseys" width="520" height="360" loading="lazy" decoding="async">
+                    <img th:src="@{/images/media/category-player.webp}" alt="Player edition football jersey collection" width="900" height="675" loading="lazy" decoding="async">
                     <span>Closer match fit</span><strong>Player Edition</strong><b>→</b>
                 </a>
                 <a class="premium-category-card" th:href="@{/catalog(edition='RETRO')}">
-                    <img th:src="${featuredProducts[1].storedImageName != null ? '/product-images/' + featuredProducts[1].storedImageName : '/images/product-placeholder.svg'}"
-                         alt="Retro football jersey classics" width="520" height="360" loading="lazy" decoding="async">
+                    <img th:src="@{/images/media/category-retro.webp}" alt="Retro football classics" width="900" height="675" loading="lazy" decoding="async">
                     <span>Archive-inspired</span><strong>Retro Classics</strong><b>→</b>
                 </a>
                 <a class="premium-category-card" th:href="@{/catalog(productType='BOOTS')}">
-                    <img th:src="${featuredProducts[2].storedImageName != null ? '/product-images/' + featuredProducts[2].storedImageName : '/images/product-placeholder.svg'}"
-                         alt="Football boots collection" width="520" height="360" loading="lazy" decoding="async">
+                    <img th:src="@{/images/media/category-boots.webp}" alt="Football boots collection" width="900" height="675" loading="lazy" decoding="async">
                     <span>Built for the pitch</span><strong>Football Boots</strong><b>→</b>
                 </a>
                 <a class="premium-category-card" th:href="@{/catalog}">
-                    <img th:src="${featuredProducts[3].storedImageName != null ? '/product-images/' + featuredProducts[3].storedImageName : '/images/product-placeholder.svg'}"
-                         alt="New football jersey arrivals" width="520" height="360" loading="lazy" decoding="async">
+                    <img th:src="@{/images/media/category-new-arrivals.webp}" alt="New football jersey arrivals" width="900" height="675" loading="lazy" decoding="async">
                     <span>Fresh football colours</span><strong>New Arrivals</strong><b>→</b>
                 </a>
-            </div>
-            <div class="premium-category-grid" th:if="${featuredProducts == null or #lists.size(featuredProducts) <= 3}">
-                <a class="premium-category-card" th:href="@{/catalog(edition='PLAYER')}"><img th:src="@{/images/hero-kit.svg}" alt="Player edition jerseys" width="520" height="360"><span>Closer match fit</span><strong>Player Edition</strong><b>→</b></a>
-                <a class="premium-category-card" th:href="@{/catalog(edition='RETRO')}"><img th:src="@{/images/product-placeholder.svg}" alt="Retro jerseys" width="520" height="360"><span>Archive-inspired</span><strong>Retro Classics</strong><b>→</b></a>
-                <a class="premium-category-card" th:href="@{/catalog(productType='BOOTS')}"><img th:src="@{/images/product-placeholder.svg}" alt="Football boots" width="520" height="360"><span>Built for the pitch</span><strong>Football Boots</strong><b>→</b></a>
-                <a class="premium-category-card" th:href="@{/catalog}"><img th:src="@{/images/product-placeholder.svg}" alt="New football arrivals" width="520" height="360"><span>Fresh football colours</span><strong>New Arrivals</strong><b>→</b></a>
             </div>
         </div>
     </section>
 
-    <section class="premium-section" data-premium-reveal>
+    <section class="premium-section">
         <div class="section-shell">
             <header class="premium-section-heading">
                 <div><span class="premium-eyebrow">Curated now</span><h2>Featured jerseys</h2></div>
@@ -94,8 +85,7 @@
         </div>
     </section>
 
-    <section class="premium-secondary-campaign" data-premium-reveal
-             th:with="campaignProduct=${featuredProducts != null and #lists.size(featuredProducts) > 1 ? featuredProducts[1] : null}">
+    <section class="premium-secondary-campaign">
         <div class="section-shell premium-campaign-box">
             <div class="premium-campaign-copy">
                 <span class="premium-eyebrow">Different clubs. Same passion.</span>
@@ -104,11 +94,7 @@
                 <a class="premium-hero-cta" th:href="@{/catalog(productType='JERSEY')}">Shop all jerseys →</a>
             </div>
             <div class="premium-campaign-media">
-                <img th:if="${campaignProduct != null}"
-                     th:src="${campaignProduct.storedImageName != null ? '/product-images/' + campaignProduct.storedImageName : '/images/product-placeholder.svg'}"
-                     th:alt="${campaignProduct.name}" width="650" height="430" loading="lazy" decoding="async"
-                     onerror="this.onerror=null;this.src='/images/product-placeholder.svg'">
-                <img th:if="${campaignProduct == null}" th:src="@{/images/custom-printing.svg}" alt="Custom football jersey" width="650" height="430" loading="lazy" decoding="async">
+                <img th:src="@{/images/media/campaign-retro.webp}" alt="Two classic football players together on the pitch" width="1200" height="400" loading="lazy" decoding="async">
             </div>
         </div>
     </section>

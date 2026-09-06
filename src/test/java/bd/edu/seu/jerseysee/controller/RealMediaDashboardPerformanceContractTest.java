@@ -55,13 +55,14 @@ class RealMediaDashboardPerformanceContractTest {
     @Test
     void premiumPresentationAvoidsObserverDrivenRevealAndSmoothScrollWork() throws IOException {
         String premiumJs = read(STATIC.resolve("js/storefront-premium-v2.js"));
-        String premiumCss = read(STATIC.resolve("css/storefront-premium-v2.css"));
+        String repairCss = read(STATIC.resolve("css/storefront-repair.css"));
 
         assertThat(premiumJs)
-                .contains("data-product-rail", "scrollBy", "behavior: \"auto\"")
+                .contains("data-product-rail", "scrollBy", "behavior: \"auto\"", "prefers-reduced-motion")
                 .doesNotContain("IntersectionObserver", "ResizeObserver", "behavior: \"smooth\"");
-        assertThat(premiumCss)
-                .doesNotContain("scroll-behavior: smooth", "opacity: 0; transform: translateY(12px)");
+        assertThat(repairCss)
+                .contains("scroll-behavior: auto !important", ".js [data-premium-reveal]",
+                        "opacity: 1 !important", "transition: none !important");
     }
 
     private String read(Path path) throws IOException {

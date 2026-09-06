@@ -48,9 +48,10 @@ class ModernStorefrontContractTest {
     }
 
     @Test
-    void premiumAssetsAreResponsiveStableAndRespectReducedMotion() throws IOException {
+    void premiumAssetsAreResponsiveStableAndUseLightweightMotion() throws IOException {
         String premiumCss = read(STATIC.resolve("css/storefront-premium-v2.css"));
         String premiumJs = read(STATIC.resolve("js/storefront-premium-v2.js"));
+        String repairCss = read(STATIC.resolve("css/storefront-repair.css"));
         String productCard = read(TEMPLATES.resolve("fragments/product-card.html"));
 
         assertThat(premiumCss)
@@ -59,8 +60,10 @@ class ModernStorefrontContractTest {
                         "aspect-ratio", "overflow-x: clip", ".modern-auth-card", ".demo-credentials", ".auth-owner", ".account-hero")
                 .doesNotContain("linear-gradient", "radial-gradient");
         assertThat(premiumJs)
-                .contains("IntersectionObserver", "data-product-rail", "scrollBy", "prefers-reduced-motion")
-                .doesNotContain("Demo123!", "demoEmail", "demoPassword");
+                .contains("data-product-rail", "scrollBy", "prefers-reduced-motion", "behavior: \"auto\"")
+                .doesNotContain("IntersectionObserver", "ResizeObserver", "behavior: \"smooth\"",
+                        "Demo123!", "demoEmail", "demoPassword");
+        assertThat(repairCss).contains("scroll-behavior: auto !important", "transition: none !important");
         assertThat(productCard)
                 .contains("loading=\"lazy\"", "decoding=\"async\"", "width=\"480\"", "height=\"600\"");
     }

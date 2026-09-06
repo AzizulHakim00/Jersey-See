@@ -16,7 +16,9 @@
             <img th:src="@{/images/brand-mark.svg}" alt="" width="39" height="44">
             <span><strong>JerseySee</strong><small>Football store</small></span>
         </a>
-        <img class="premium-auth-player" th:src="@{/images/auth-footballer.svg}" alt="Football player wearing a JerseySee kit" width="720" height="920" decoding="async">
+        <img class="premium-auth-player" th:src="@{/images/media/login-player.webp}"
+             alt="Football player in a stadium wearing a number ten shirt" width="900" height="1948"
+             loading="eager" fetchpriority="high" decoding="async">
         <div class="premium-auth-copy">
             <span class="premium-eyebrow">YOUR FOOTBALL WARDROBE</span>
             <h1>Good players.<br>Better fans.</h1>
@@ -65,6 +67,5 @@
     </section>
 </main>
 <script th:src="@{/js/app.js}" defer></script>
-<script th:src="@{/js/storefront-premium-v2.js}" defer></script>
 </body>
 </html>
