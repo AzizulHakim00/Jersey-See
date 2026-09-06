@@ -2,6 +2,7 @@ package bd.edu.seu.jerseysee.config;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
@@ -13,6 +14,7 @@ import org.springframework.security.web.SecurityFilterChain;
 public class SecurityConfig {
 
     @Bean
+    @Lazy(false)
     SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http.authorizeHttpRequests(authorize -> authorize
                         .requestMatchers("/", "/catalog/**", "/products/**", "/product-images/**", "/register", "/login",
@@ -22,7 +24,11 @@ public class SecurityConfig {
                         .requestMatchers("/staff/employees/**").hasAnyRole("MANAGER", "ADMIN")
                         .requestMatchers("/staff/**").hasAnyRole("SALESMAN", "CASHIER", "MANAGER", "ADMIN")
                         .anyRequest().authenticated())
-                .formLogin(form -> form.loginPage("/login").defaultSuccessUrl("/dashboard", true).permitAll())
+                .formLogin(form -> form
+                        .loginPage("/login")
+                        .loginProcessingUrl("/login")
+                        .defaultSuccessUrl("/dashboard", true)
+                        .permitAll())
                 .exceptionHandling(exceptions -> exceptions.accessDeniedPage("/access-denied"))
                 .logout(logout -> logout.logoutSuccessUrl("/login?logout").permitAll());
         return http.build();
