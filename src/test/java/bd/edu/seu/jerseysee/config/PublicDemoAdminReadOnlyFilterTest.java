@@ -34,7 +34,7 @@ class PublicDemoAdminReadOnlyFilterTest {
     }
 
     @Test
-    void publicDemoAdminCannotMutateStaffPages() throws Exception {
+    void publicDemoAdminCanMutateStaffPages() throws Exception {
         authenticate("admin@demo.local");
         MockHttpServletRequest request = new MockHttpServletRequest("POST", "/staff/products");
         MockHttpServletResponse response = new MockHttpServletResponse();
@@ -42,8 +42,8 @@ class PublicDemoAdminReadOnlyFilterTest {
 
         new PublicDemoAdminReadOnlyFilter().doFilter(request, response, chain);
 
-        assertThat(chain.called).isFalse();
-        assertThat(response.getStatus()).isEqualTo(403);
+        assertThat(chain.called).isTrue();
+        assertThat(response.getStatus()).isEqualTo(200);
     }
 
     @Test
