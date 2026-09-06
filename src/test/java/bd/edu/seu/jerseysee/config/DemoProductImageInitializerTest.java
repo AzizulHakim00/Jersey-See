@@ -57,4 +57,23 @@ class DemoProductImageInitializerTest {
                 .distinct()
                 .count()).isGreaterThanOrEqualTo(20);
     }
+
+    @Test
+    void seedImagesRepairsSeededProductWhoseStoredImageReferenceIsMissing() {
+        Product product = productRepository.findByDemoSeedKey("public.product.barcelona-home-fan").orElseThrow();
+        product.setStoredImageName("missing-legacy-image.jpg");
+        product.setOriginalImageName("missing-legacy-image.jpg");
+        product.setImageContentType("image/jpeg");
+        product.setImageSize(123L);
+        productRepository.saveAndFlush(product);
+
+        DemoProductImageInitializer initializer = new DemoProductImageInitializer(
+                productRepository, productImageRepository, new DefaultResourceLoader());
+        initializer.seedImages();
+
+        Product repaired = productRepository.findByDemoSeedKey("public.product.barcelona-home-fan").orElseThrow();
+        assertThat(repaired.getStoredImageName()).isNotEqualTo("missing-legacy-image.jpg");
+        assertThat(productImageRepository.findById(repaired.getStoredImageName())).isPresent();
+        assertThat(repaired.getImageSize()).isPositive();
+    }
 }
