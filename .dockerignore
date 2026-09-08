@@ -1,6 +1,5 @@
 target
 .git
-.github
 .idea
 .superpowers
 *.iml
