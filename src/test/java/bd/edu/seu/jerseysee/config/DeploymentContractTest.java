@@ -53,14 +53,14 @@ class DeploymentContractTest {
     }
 
     @Test
-    void portfolioProductionEnablesThePublicStorefrontCatalogByDefault() throws IOException {
+    void productionDoesNotReseedPublicDemoRowsAfterTheDatabaseHasBeenBootstrapped() throws IOException {
         String render = Files.readString(Path.of("render.yaml"));
         String production = Files.readString(Path.of("src/main/resources/application-production.properties"));
 
         assertThat(render).contains(
-                "- key: JERSEYSEE_PUBLIC_DEMO_ENABLED\n        value: \"true\"");
+                "- key: JERSEYSEE_PUBLIC_DEMO_ENABLED\n        value: \"false\"");
         assertThat(production).contains(
-                "app.public-demo.enabled=${JERSEYSEE_PUBLIC_DEMO_ENABLED:true}");
+                "app.public-demo.enabled=${JERSEYSEE_PUBLIC_DEMO_ENABLED:false}");
     }
 
     @Test
