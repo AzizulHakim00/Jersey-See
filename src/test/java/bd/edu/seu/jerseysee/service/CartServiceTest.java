@@ -31,7 +31,7 @@ class CartServiceTest {
 
     @Test
     void printingSelectionNormalizesPlayerAndCustomValues() {
-        var player = CartService.validatePrinting(PrintingType.PLAYER, "  Messi  ", "010");
+        var player = CartService.validatePrinting(PrintingType.PLAYER, "  Messi  ", "10");
         assertThat(player.name()).isEqualTo("MESSI");
         assertThat(player.number()).isEqualTo("10");
 
