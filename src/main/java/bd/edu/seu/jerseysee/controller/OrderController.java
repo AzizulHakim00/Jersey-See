@@ -1,10 +1,10 @@
 package bd.edu.seu.jerseysee.controller;
 
-import bd.edu.seu.jerseysee.cart.ShoppingCart;
 import bd.edu.seu.jerseysee.dto.CheckoutDTO;
 import bd.edu.seu.jerseysee.model.CustomerOrder;
 import bd.edu.seu.jerseysee.model.User;
 import bd.edu.seu.jerseysee.model.enums.OrderStatus;
+import bd.edu.seu.jerseysee.service.CartService;
 import bd.edu.seu.jerseysee.service.InvoiceService;
 import bd.edu.seu.jerseysee.service.OrderService;
 import bd.edu.seu.jerseysee.service.UserService;
@@ -23,11 +23,9 @@ import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.SessionAttributes;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 @Controller
-@SessionAttributes("shoppingCart")
 public class OrderController {
 
     private static final MediaType UTF8_TEXT = new MediaType("text", "plain", StandardCharsets.UTF_8);
@@ -35,40 +33,41 @@ public class OrderController {
     private final OrderService orderService;
     private final InvoiceService invoiceService;
     private final UserService userService;
+    private final CartService cartService;
 
-    public OrderController(OrderService orderService, InvoiceService invoiceService, UserService userService) {
+    public OrderController(OrderService orderService, InvoiceService invoiceService, UserService userService,
+            CartService cartService) {
         this.orderService = orderService;
         this.invoiceService = invoiceService;
         this.userService = userService;
-    }
-
-    @ModelAttribute("shoppingCart")
-    public ShoppingCart shoppingCart() {
-        return new ShoppingCart();
+        this.cartService = cartService;
     }
 
     @GetMapping("/checkout")
     @PreAuthorize("hasRole('CUSTOMER')")
-    public String checkoutForm(@ModelAttribute("shoppingCart") ShoppingCart shoppingCart, Model model) {
-        model.addAttribute("checkout", new CheckoutDTO());
+    public String checkoutForm(Authentication authentication, Model model) {
+        User customer = currentUser(authentication);
+        model.addAttribute("shoppingCart", cartService.getCart(customer));
+        if (!model.containsAttribute("checkout")) {
+            model.addAttribute("checkout", new CheckoutDTO());
+        }
         return "orders/checkout";
     }
 
     @PostMapping("/checkout")
     @PreAuthorize("hasRole('CUSTOMER')")
     public String checkout(Authentication authentication, @Valid @ModelAttribute("checkout") CheckoutDTO checkout,
-            BindingResult bindingResult, @ModelAttribute("shoppingCart") ShoppingCart shoppingCart, Model model) {
+            BindingResult bindingResult, Model model) {
+        User customer = currentUser(authentication);
         if (bindingResult.hasErrors()) {
-            return checkoutFormWithCart(model);
+            return checkoutFormWithCart(customer, model);
         }
         try {
-            User customer = userService.getRequiredByEmail(authentication.getName());
-            CustomerOrder order = orderService.checkout(customer, shoppingCart, checkout);
-            shoppingCart.clear();
+            CustomerOrder order = orderService.checkout(customer, checkout);
             return "redirect:/orders/" + order.getId() + "?created";
         } catch (IllegalArgumentException exception) {
             bindingResult.reject("checkout", exception.getMessage());
-            return checkoutFormWithCart(model);
+            return checkoutFormWithCart(customer, model);
         }
     }
 
@@ -139,7 +138,8 @@ public class OrderController {
         return userService.getRequiredByEmail(authentication.getName());
     }
 
-    private String checkoutFormWithCart(Model model) {
+    private String checkoutFormWithCart(User customer, Model model) {
+        model.addAttribute("shoppingCart", cartService.getCart(customer));
         return "orders/checkout";
     }
 }

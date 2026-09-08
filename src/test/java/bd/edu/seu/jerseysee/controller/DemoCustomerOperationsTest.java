@@ -38,9 +38,11 @@ class DemoCustomerOperationsTest {
     @Autowired
     private MockMvc mockMvc;
 
+    private User customer;
+
     @BeforeEach
     void configureDemoCustomer() {
-        User customer = new User();
+        customer = new User();
         customer.setName("Demo Customer");
         customer.setEmail(DEMO_CUSTOMER);
         customer.setRole(Role.CUSTOMER);
@@ -50,7 +52,7 @@ class DemoCustomerOperationsTest {
 
     @Test
     @WithMockUser(username = DEMO_CUSTOMER, roles = "CUSTOMER")
-    void demoCustomerCanAddProductToBag() throws Exception {
+    void demoCustomerCanAddProductToBagUsingAuthenticatedDatabaseOwner() throws Exception {
         mockMvc.perform(post("/cart/items").with(csrf())
                         .param("variantId", "1")
                         .param("quantity", "1")
@@ -58,7 +60,7 @@ class DemoCustomerOperationsTest {
                 .andExpect(status().is3xxRedirection())
                 .andExpect(redirectedUrl("/cart?added"));
 
-        verify(cartService).add(any(), any());
+        verify(cartService).add(eq(customer), any());
     }
 
     @Test

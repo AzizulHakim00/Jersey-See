@@ -33,6 +33,30 @@ jobs:
             return 1
           }
 
+          extract_csrf() {
+            python3 - "$1" <<'PY'
+          from html.parser import HTMLParser
+          import sys
+
+          class CsrfParser(HTMLParser):
+              def __init__(self):
+                  super().__init__()
+                  self.value = ""
+
+              def handle_starttag(self, tag, attrs):
+                  if tag != "input":
+                      return
+                  values = dict(attrs)
+                  if values.get("name") == "_csrf":
+                      self.value = values.get("value", "")
+
+          parser = CsrfParser()
+          with open(sys.argv[1], encoding="utf-8") as source:
+              parser.feed(source.read())
+          print(parser.value)
+          PY
+          }
+
           retry_curl "$BASE_URL/actuator/health" health.json
           grep -Eq '"status"\s*:\s*"UP"' health.json
 
@@ -61,27 +85,7 @@ jobs:
             --cookie-jar admin.cookies \
             "$BASE_URL/login" -o admin-login.html
 
-          csrf="$(python3 - <<'PY'
-          from html.parser import HTMLParser
-
-          class CsrfParser(HTMLParser):
-              def __init__(self):
-                  super().__init__()
-                  self.value = ""
-
-              def handle_starttag(self, tag, attrs):
-                  if tag != "input":
-                      return
-                  values = dict(attrs)
-                  if values.get("name") == "_csrf":
-                      self.value = values.get("value", "")
-
-          parser = CsrfParser()
-          with open("admin-login.html", encoding="utf-8") as source:
-              parser.feed(source.read())
-          print(parser.value)
-          PY
-          )"
+          csrf="$(extract_csrf admin-login.html)"
           test -n "$csrf"
 
           login_status="$(curl --silent --show-error \
@@ -108,3 +112,235 @@ jobs:
             "$BASE_URL/dashboard" -o admin-dashboard.html
           grep -Fq "Admin dashboard" admin-dashboard.html
           grep -Fq "STORE OPERATIONS" admin-dashboard.html
+
+          # PERSISTENT_CART_SMOKE uses the demo customer only. It creates one
+          # uniquely marked cart line, verifies that line after a completely
+          # fresh login session, then removes only that line. It never checks out.
+          PERSISTENT_CART_SMOKE="PERSISTENT SMOKE"
+
+          login_customer() {
+            local cookie_jar="$1"
+            local prefix="$2"
+            rm -f "$cookie_jar"
+            curl --fail --silent --show-error --location \
+              --connect-timeout 10 --max-time 30 \
+              --cookie-jar "$cookie_jar" \
+              "$BASE_URL/login" -o "${prefix}-login.html"
+
+            local customer_csrf
+            customer_csrf="$(extract_csrf "${prefix}-login.html")"
+            test -n "$customer_csrf"
+
+            local customer_login_status
+            customer_login_status="$(curl --silent --show-error \
+              --connect-timeout 10 --max-time 30 \
+              --cookie "$cookie_jar" --cookie-jar "$cookie_jar" \
+              --request POST "$BASE_URL/login" \
+              --data-urlencode "username=customer@demo.local" \
+              --data-urlencode "password=Demo123!" \
+              --data-urlencode "_csrf=$customer_csrf" \
+              --dump-header "${prefix}-login.headers" \
+              --output "${prefix}-login-response.html" \
+              --write-out "%{http_code}")"
+
+            if [ "$customer_login_status" != "302" ]; then
+              echo "Customer login returned HTTP $customer_login_status instead of 302" >&2
+              cat "${prefix}-login.headers" >&2 || true
+              exit 1
+            fi
+            grep -Eiq '^location:[[:space:]]*(https?://[^/]+)?/dashboard([?#][^[:space:]]*)?[[:space:]]*$' "${prefix}-login.headers"
+          }
+
+          find_smoke_line_id() {
+            python3 - "$1" "$PERSISTENT_CART_SMOKE" <<'PY'
+          import re
+          import sys
+
+          with open(sys.argv[1], encoding="utf-8") as source:
+              html = source.read()
+          marker = sys.argv[2]
+          for article in re.findall(r'<article\b[^>]*class="[^"]*cart-line[^"]*"[^>]*>.*?</article>', html, re.S):
+              if marker not in article:
+                  continue
+              match = re.search(r'action="/cart/items/([^"/]+)/remove"', article)
+              if match:
+                  print(match.group(1))
+                  break
+          PY
+          }
+
+          remove_smoke_line_if_present() {
+            local cookie_jar="$1"
+            local cart_file="$2"
+            curl --fail --silent --show-error --location \
+              --connect-timeout 10 --max-time 30 \
+              --cookie "$cookie_jar" \
+              "$BASE_URL/cart" -o "$cart_file"
+
+            local stale_line_id
+            stale_line_id="$(find_smoke_line_id "$cart_file")"
+            if [ -z "$stale_line_id" ]; then
+              return 0
+            fi
+
+            local remove_csrf
+            remove_csrf="$(extract_csrf "$cart_file")"
+            test -n "$remove_csrf"
+            local remove_status
+            remove_status="$(curl --silent --show-error \
+              --connect-timeout 10 --max-time 30 \
+              --cookie "$cookie_jar" \
+              --request POST "$BASE_URL/cart/items/$stale_line_id/remove" \
+              --data-urlencode "_csrf=$remove_csrf" \
+              --dump-header stale-remove.headers \
+              --output stale-remove.html \
+              --write-out "%{http_code}")"
+            if [ "$remove_status" != "302" ]; then
+              echo "Could not remove stale persistent-cart smoke line (HTTP $remove_status)" >&2
+              exit 1
+            fi
+          }
+
+          login_customer customer.cookies customer
+          remove_smoke_line_if_present customer.cookies customer-cart-initial.html
+
+          curl --fail --silent --show-error --location \
+            --connect-timeout 10 --max-time 30 \
+            --cookie customer.cookies \
+            "$BASE_URL/catalog" -o customer-catalog.html
+
+          product_path="$(python3 - <<'PY'
+          from html.parser import HTMLParser
+
+          class ProductParser(HTMLParser):
+              def __init__(self):
+                  super().__init__()
+                  self.path = ""
+
+              def handle_starttag(self, tag, attrs):
+                  if self.path or tag != "a":
+                      return
+                  href = dict(attrs).get("href", "")
+                  if href.startswith("/products/") and href[len("/products/"):].isdigit():
+                      self.path = href
+
+          parser = ProductParser()
+          with open("customer-catalog.html", encoding="utf-8") as source:
+              parser.feed(source.read())
+          print(parser.path)
+          PY
+          )"
+          test -n "$product_path"
+
+          curl --fail --silent --show-error --location \
+            --connect-timeout 10 --max-time 30 \
+            --cookie customer.cookies \
+            "$BASE_URL$product_path" -o customer-product.html
+
+          variant_id="$(python3 - <<'PY'
+          from html.parser import HTMLParser
+
+          class VariantParser(HTMLParser):
+              def __init__(self):
+                  super().__init__()
+                  self.value = ""
+
+              def handle_starttag(self, tag, attrs):
+                  if self.value or tag != "option":
+                      return
+                  values = dict(attrs)
+                  candidate = values.get("value", "")
+                  if candidate.isdigit() and "disabled" not in values:
+                      self.value = candidate
+
+          parser = VariantParser()
+          with open("customer-product.html", encoding="utf-8") as source:
+              parser.feed(source.read())
+          print(parser.value)
+          PY
+          )"
+          test -n "$variant_id"
+
+          customer_csrf="$(extract_csrf customer-product.html)"
+          test -n "$customer_csrf"
+          add_status="$(curl --silent --show-error \
+            --connect-timeout 10 --max-time 30 \
+            --cookie customer.cookies \
+            --request POST "$BASE_URL/cart/items" \
+            --data-urlencode "variantId=$variant_id" \
+            --data-urlencode "quantity=1" \
+            --data-urlencode "printingType=CUSTOM" \
+            --data-urlencode "printingName=$PERSISTENT_CART_SMOKE" \
+            --data-urlencode "printingNumber=88" \
+            --data-urlencode "_csrf=$customer_csrf" \
+            --dump-header customer-add.headers \
+            --output customer-add.html \
+            --write-out "%{http_code}")"
+          if [ "$add_status" != "302" ]; then
+            echo "Persistent-cart smoke add returned HTTP $add_status instead of 302" >&2
+            exit 1
+          fi
+          grep -Eiq '^location:[[:space:]]*(https?://[^/]+)?/cart\?added[[:space:]]*$' customer-add.headers
+
+          curl --fail --silent --show-error --location \
+            --connect-timeout 10 --max-time 30 \
+            --cookie customer.cookies \
+            "$BASE_URL/cart" -o cart-before-logout.html
+          line_id_before="$(find_smoke_line_id cart-before-logout.html)"
+          test -n "$line_id_before"
+
+          logout_csrf="$(extract_csrf cart-before-logout.html)"
+          test -n "$logout_csrf"
+          logout_status="$(curl --silent --show-error \
+            --connect-timeout 10 --max-time 30 \
+            --cookie customer.cookies \
+            --request POST "$BASE_URL/logout" \
+            --data-urlencode "_csrf=$logout_csrf" \
+            --dump-header customer-logout.headers \
+            --output customer-logout.html \
+            --write-out "%{http_code}")"
+          if [ "$logout_status" != "302" ]; then
+            echo "Customer logout returned HTTP $logout_status instead of 302" >&2
+            exit 1
+          fi
+
+          login_customer fresh-customer.cookies fresh-customer
+          curl --fail --silent --show-error --location \
+            --connect-timeout 10 --max-time 30 \
+            --cookie fresh-customer.cookies \
+            "$BASE_URL/cart" -o cart-after-login.html
+
+          line_id_after="$(find_smoke_line_id cart-after-login.html)"
+          if [ -z "$line_id_after" ]; then
+            echo "persisted cart line missing after fresh login" >&2
+            exit 1
+          fi
+          if [ "$line_id_before" != "$line_id_after" ]; then
+            echo "persisted cart line changed identity after fresh login" >&2
+            exit 1
+          fi
+
+          cleanup_csrf="$(extract_csrf cart-after-login.html)"
+          test -n "$cleanup_csrf"
+          cleanup_status="$(curl --silent --show-error \
+            --connect-timeout 10 --max-time 30 \
+            --cookie fresh-customer.cookies \
+            --request POST "$BASE_URL/cart/items/$line_id_after/remove" \
+            --data-urlencode "_csrf=$cleanup_csrf" \
+            --dump-header customer-remove.headers \
+            --output customer-remove.html \
+            --write-out "%{http_code}")"
+          if [ "$cleanup_status" != "302" ]; then
+            echo "Persistent-cart smoke cleanup returned HTTP $cleanup_status instead of 302" >&2
+            exit 1
+          fi
+          grep -Eiq '^location:[[:space:]]*(https?://[^/]+)?/cart\?removed[[:space:]]*$' customer-remove.headers
+
+          curl --fail --silent --show-error --location \
+            --connect-timeout 10 --max-time 30 \
+            --cookie fresh-customer.cookies \
+            "$BASE_URL/cart" -o customer-cart-cleaned.html
+          if [ -n "$(find_smoke_line_id customer-cart-cleaned.html)" ]; then
+            echo "Persistent-cart smoke line remained after cleanup" >&2
+            exit 1
+          fi

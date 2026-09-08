@@ -4,10 +4,15 @@ import bd.edu.seu.jerseysee.cart.CartItem;
 import bd.edu.seu.jerseysee.cart.ShoppingCart;
 import bd.edu.seu.jerseysee.dto.AddToCartDTO;
 import bd.edu.seu.jerseysee.exception.ResourceNotFoundException;
+import bd.edu.seu.jerseysee.model.CustomerCartItem;
 import bd.edu.seu.jerseysee.model.ProductVariant;
+import bd.edu.seu.jerseysee.model.User;
 import bd.edu.seu.jerseysee.model.enums.PrintingType;
+import bd.edu.seu.jerseysee.model.enums.Role;
+import bd.edu.seu.jerseysee.repository.CustomerCartItemRepository;
 import bd.edu.seu.jerseysee.repository.ProductVariantRepository;
 import java.math.BigDecimal;
+import java.util.List;
 import java.util.Locale;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -18,65 +23,111 @@ public class CartService {
     public static final BigDecimal PLAYER_PRINTING_CHARGE = new BigDecimal("200.00");
     public static final BigDecimal CUSTOM_PRINTING_CHARGE = new BigDecimal("300.00");
 
+    private final CustomerCartItemRepository cartRepository;
     private final ProductVariantRepository variantRepository;
 
-    public CartService(ProductVariantRepository variantRepository) {
+    public CartService(CustomerCartItemRepository cartRepository, ProductVariantRepository variantRepository) {
+        this.cartRepository = cartRepository;
         this.variantRepository = variantRepository;
     }
 
     @Transactional(readOnly = true)
-    public CartItem add(ShoppingCart cart, AddToCartDTO input) {
-        if (cart == null || input == null || input.getVariantId() == null) {
+    public ShoppingCart getCart(User customer) {
+        requireCustomer(customer);
+        ShoppingCart cart = new ShoppingCart();
+        for (CustomerCartItem persisted : cartRepository.findDetailedByCustomerId(customer.getId())) {
+            cart.addItem(toViewItem(persisted));
+        }
+        return cart;
+    }
+
+    @Transactional
+    public void add(User customer, AddToCartDTO input) {
+        requireCustomer(customer);
+        if (input == null || input.getVariantId() == null) {
             throw new IllegalArgumentException("Cart item data is incomplete.");
         }
         requireLineQuantity(input.getQuantity());
         PrintingSelection printing = validatePrinting(input.getPrintingType(), input.getPrintingName(),
                 input.getPrintingNumber());
         ProductVariant variant = availableVariant(input.getVariantId());
-        CartItem matching = cart.getItems().stream()
-                .filter(item -> item.matches(input.getVariantId(), printing.type(), printing.name(), printing.number()))
+        List<CustomerCartItem> existing = cartRepository.findDetailedByCustomerId(customer.getId());
+        CustomerCartItem matching = existing.stream()
+                .filter(item -> matches(item, input.getVariantId(), printing))
                 .findFirst()
                 .orElse(null);
         int mergedQuantity = input.getQuantity() + (matching == null ? 0 : matching.getQuantity());
         requireLineQuantity(mergedQuantity);
-        requireStock(cart.quantityForVariant(input.getVariantId()), input.getQuantity(), variant);
+        int alreadyInCart = existing.stream()
+                .filter(item -> input.getVariantId().equals(item.getProductVariant().getId()))
+                .mapToInt(CustomerCartItem::getQuantity)
+                .sum();
+        requireStock(alreadyInCart, input.getQuantity(), variant);
 
-        BigDecimal unitPrice = unitPrice(variant);
-        BigDecimal printingCharge = printingCharge(printing.type());
-        if (matching != null) {
-            matching.setQuantity(mergedQuantity);
-            matching.refreshPrice(unitPrice, printingCharge);
-            return matching;
+        if (matching == null) {
+            matching = new CustomerCartItem();
+            matching.setCustomer(customer);
+            matching.setProductVariant(variant);
+            matching.setPrintingType(printing.type());
+            matching.setPrintingName(printing.name());
+            matching.setPrintingNumber(printing.number());
         }
-        CartItem item = new CartItem(input.getVariantId(), variant.getProduct().getName(),
-                variant.getProduct().getStoredImageName(), variant.getSku(), variant.getSize(), input.getQuantity(),
-                unitPrice, printing.type(), printing.name(), printing.number(), printingCharge);
-        cart.addItem(item);
-        return item;
+        matching.setQuantity(mergedQuantity);
+        cartRepository.saveAndFlush(matching);
+    }
+
+    @Transactional
+    public void updateQuantity(User customer, String lineId, int quantity) {
+        requireCustomer(customer);
+        requireLineQuantity(quantity);
+        if (lineId == null || lineId.isBlank()) {
+            throw new IllegalArgumentException("Cart line not found.");
+        }
+        List<CustomerCartItem> existing = cartRepository.findDetailedByCustomerId(customer.getId());
+        CustomerCartItem item = existing.stream()
+                .filter(candidate -> lineId.equals(candidate.getLineId()))
+                .findFirst()
+                .orElseThrow(() -> new IllegalArgumentException("Cart line not found."));
+        ProductVariant variant = availableVariant(item.getProductVariant().getId());
+        int otherQuantity = existing.stream()
+                .filter(candidate -> item.getProductVariant().getId().equals(candidate.getProductVariant().getId()))
+                .filter(candidate -> !lineId.equals(candidate.getLineId()))
+                .mapToInt(CustomerCartItem::getQuantity)
+                .sum();
+        requireStock(otherQuantity, quantity, variant);
+        item.setQuantity(quantity);
+        cartRepository.saveAndFlush(item);
+    }
+
+    @Transactional
+    public void remove(User customer, String lineId) {
+        requireCustomer(customer);
+        if (lineId == null || lineId.isBlank()) {
+            throw new IllegalArgumentException("Cart line not found.");
+        }
+        CustomerCartItem item = cartRepository.findByLineIdAndCustomerId(lineId, customer.getId())
+                .orElseThrow(() -> new IllegalArgumentException("Cart line not found."));
+        cartRepository.delete(item);
+        cartRepository.flush();
     }
 
     @Transactional(readOnly = true)
-    public CartItem updateQuantity(ShoppingCart cart, String lineId, int quantity) {
-        if (cart == null || lineId == null) {
-            throw new IllegalArgumentException("Cart line was not found.");
-        }
-        requireLineQuantity(quantity);
-        CartItem item = cart.getItems().stream()
-                .filter(candidate -> lineId.equals(candidate.getLineId()))
-                .findFirst()
-                .orElseThrow(() -> new IllegalArgumentException("Cart line was not found."));
-        ProductVariant variant = availableVariant(item.getVariantId());
-        int otherQuantity = cart.quantityForVariant(item.getVariantId()) - item.getQuantity();
-        requireStock(otherQuantity, quantity, variant);
-        item.setQuantity(quantity);
-        item.refreshPrice(unitPrice(variant), printingCharge(item.getPrintingType()));
-        return item;
+    public int getTotalQuantity(User customer) {
+        requireCustomer(customer);
+        return cartRepository.totalQuantityForCustomer(customer.getId());
     }
 
-    public void remove(ShoppingCart cart, String lineId) {
-        if (cart == null || lineId == null || !cart.removeItem(lineId)) {
-            throw new IllegalArgumentException("Cart line was not found.");
-        }
+    @Transactional
+    public List<CustomerCartItem> lockCartRows(User customer) {
+        requireCustomer(customer);
+        return cartRepository.findByCustomerIdForUpdate(customer.getId());
+    }
+
+    @Transactional
+    public void clearCart(User customer) {
+        requireCustomer(customer);
+        cartRepository.deleteAllByCustomerId(customer.getId());
+        cartRepository.flush();
     }
 
     static BigDecimal unitPrice(ProductVariant variant) {
@@ -122,6 +173,24 @@ public class CartService {
         return new PrintingSelection(effectiveType, name, number);
     }
 
+    private CartItem toViewItem(CustomerCartItem item) {
+        ProductVariant variant = item.getProductVariant();
+        if (variant == null || variant.getProduct() == null) {
+            throw new IllegalStateException("Cart line is missing its product variant.");
+        }
+        return new CartItem(item.getLineId(), variant.getId(), variant.getProduct().getName(),
+                variant.getProduct().getStoredImageName(), variant.getSku(), variant.getSize(), item.getQuantity(),
+                unitPrice(variant), item.getPrintingType(), item.getPrintingName(), item.getPrintingNumber(),
+                printingCharge(item.getPrintingType()));
+    }
+
+    private boolean matches(CustomerCartItem item, Long variantId, PrintingSelection printing) {
+        return variantId.equals(item.getProductVariant().getId())
+                && item.getPrintingType() == printing.type()
+                && java.util.Objects.equals(item.getPrintingName(), printing.name())
+                && java.util.Objects.equals(item.getPrintingNumber(), printing.number());
+    }
+
     private ProductVariant availableVariant(Long variantId) {
         ProductVariant variant = variantRepository.findWithProductById(variantId)
                 .orElseThrow(() -> new ResourceNotFoundException("Product variant not found."));
@@ -136,6 +205,12 @@ public class CartService {
         if (requested > available) {
             throw new IllegalArgumentException(
                     "Only " + available + " item(s) remain in stock for " + variant.getSku() + ".");
+        }
+    }
+
+    private void requireCustomer(User customer) {
+        if (customer == null || customer.getId() == null || !customer.isEnabled() || customer.getRole() != Role.CUSTOMER) {
+            throw new IllegalArgumentException("A valid customer account is required.");
         }
     }
 

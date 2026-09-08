@@ -1,6 +1,5 @@
 package bd.edu.seu.jerseysee.model;
 
-import bd.edu.seu.jerseysee.cart.ShoppingCart;
 import bd.edu.seu.jerseysee.dto.AddToCartDTO;
 import bd.edu.seu.jerseysee.dto.CheckoutDTO;
 import bd.edu.seu.jerseysee.dto.PaymentConfirmationDTO;
@@ -30,43 +29,24 @@ import org.springframework.test.context.transaction.TestTransaction;
 import static org.assertj.core.api.Assertions.assertThat;
 
 @DataJpaTest
-@Import({OrderService.class, PaymentService.class})
+@Import({CartService.class, OrderService.class, PaymentService.class})
 class CheckoutPersistenceTest {
 
-    @Autowired
-    private UserRepository userRepository;
-
-    @Autowired
-    private CategoryRepository categoryRepository;
-
-    @Autowired
-    private ProductVariantRepository variantRepository;
-
-    @Autowired
-    private CustomerOrderRepository orderRepository;
-
-    @Autowired
-    private PaymentRepository paymentRepository;
-
-    @Autowired
-    private OrderService orderService;
-
-    @Autowired
-    private PaymentService paymentService;
-
-    @Autowired
-    private EntityManager entityManager;
+    @Autowired private UserRepository userRepository;
+    @Autowired private CategoryRepository categoryRepository;
+    @Autowired private ProductVariantRepository variantRepository;
+    @Autowired private CustomerOrderRepository orderRepository;
+    @Autowired private PaymentRepository paymentRepository;
+    @Autowired private CartService cartService;
+    @Autowired private OrderService orderService;
+    @Autowired private PaymentService paymentService;
+    @Autowired private EntityManager entityManager;
 
     @Test
     void checkoutPersistsAndReloadsOwningPaymentRelationship() {
         User customer = userRepository.saveAndFlush(customer());
         ProductVariant variant = persistVariant();
-        AddToCartDTO add = new AddToCartDTO();
-        add.setVariantId(variant.getId());
-        add.setQuantity(1);
-        add.setPrintingType(PrintingType.NONE);
-        ShoppingCart cart = new ShoppingCart();
-        new CartService(variantRepository).add(cart, add);
+        addToCart(customer, variant);
         CheckoutDTO checkout = new CheckoutDTO();
         checkout.setDeliveryRecipientName("Amina Rahman");
         checkout.setDeliveryPhone("01700000000");
@@ -74,7 +54,7 @@ class CheckoutPersistenceTest {
         checkout.setPaymentMethod(PaymentMethod.CARD);
         checkout.setTransactionId("card-demo-1");
 
-        CustomerOrder saved = orderService.checkout(customer, cart, checkout);
+        CustomerOrder saved = orderService.checkout(customer, checkout);
         Long orderId = saved.getId();
         entityManager.flush();
         entityManager.clear();
@@ -90,15 +70,16 @@ class CheckoutPersistenceTest {
             assertThat(item.getSku()).isEqualTo("NAT-L");
             assertThat(item.getUnitPrice()).isEqualByComparingTo("1250.00");
         });
+        assertThat(cartService.getCart(customer).isEmpty()).isTrue();
     }
 
     @Test
     void rootLockedCancellationPersistsFinalStateAcrossSeparateTransactions() {
         User customer = userRepository.saveAndFlush(customer("mutation@example.com"));
         ProductVariant variant = persistVariant("Mutation Jerseys", "MUT-L");
-        ShoppingCart cart = cartFor(variant);
+        addToCart(customer, variant);
         CheckoutDTO checkout = checkout(PaymentMethod.CARD, "card-demo-2");
-        CustomerOrder created = orderService.checkout(customer, cart, checkout);
+        CustomerOrder created = orderService.checkout(customer, checkout);
         Long orderId = created.getId();
         Long paymentId = created.getPayment().getId();
 
@@ -125,14 +106,12 @@ class CheckoutPersistenceTest {
         assertThat(reloadedPayment.getPaymentDate()).isNotNull();
     }
 
-    private ShoppingCart cartFor(ProductVariant variant) {
+    private void addToCart(User customer, ProductVariant variant) {
         AddToCartDTO add = new AddToCartDTO();
         add.setVariantId(variant.getId());
         add.setQuantity(1);
         add.setPrintingType(PrintingType.NONE);
-        ShoppingCart cart = new ShoppingCart();
-        new CartService(variantRepository).add(cart, add);
-        return cart;
+        cartService.add(customer, add);
     }
 
     private CheckoutDTO checkout(PaymentMethod method, String transactionId) {

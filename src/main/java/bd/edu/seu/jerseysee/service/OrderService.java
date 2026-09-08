@@ -1,9 +1,8 @@
 package bd.edu.seu.jerseysee.service;
 
-import bd.edu.seu.jerseysee.cart.CartItem;
-import bd.edu.seu.jerseysee.cart.ShoppingCart;
 import bd.edu.seu.jerseysee.dto.CheckoutDTO;
 import bd.edu.seu.jerseysee.exception.ResourceNotFoundException;
+import bd.edu.seu.jerseysee.model.CustomerCartItem;
 import bd.edu.seu.jerseysee.model.CustomerOrder;
 import bd.edu.seu.jerseysee.model.OrderItem;
 import bd.edu.seu.jerseysee.model.Payment;
@@ -41,21 +40,26 @@ public class OrderService {
 
     private final CustomerOrderRepository orderRepository;
     private final ProductVariantRepository variantRepository;
+    private final CartService cartService;
 
-    public OrderService(CustomerOrderRepository orderRepository, ProductVariantRepository variantRepository) {
+    public OrderService(CustomerOrderRepository orderRepository, ProductVariantRepository variantRepository,
+            CartService cartService) {
         this.orderRepository = orderRepository;
         this.variantRepository = variantRepository;
+        this.cartService = cartService;
     }
 
     @Transactional
-    public CustomerOrder checkout(User customer, ShoppingCart cart, CheckoutDTO input) {
+    public CustomerOrder checkout(User customer, CheckoutDTO input) {
         requireCustomer(customer);
-        if (cart == null || cart.isEmpty()) {
+        CheckoutValues checkout = validateCheckout(input);
+        List<CustomerCartItem> cartItems = cartService.lockCartRows(customer);
+        if (cartItems.isEmpty()) {
             throw new IllegalArgumentException("Your cart is empty.");
         }
-        CheckoutValues checkout = validateCheckout(input);
-        Map<Long, ProductVariant> lockedVariants = lockVariants(cart.getItems());
-        validateStock(cart.getItems(), lockedVariants);
+
+        Map<Long, ProductVariant> lockedVariants = lockVariants(cartItems);
+        validateStock(cartItems, lockedVariants);
 
         CustomerOrder order = new CustomerOrder();
         order.setCustomer(customer);
@@ -65,14 +69,15 @@ public class OrderService {
         order.setStatus(OrderStatus.PENDING);
 
         BigDecimal subtotal = BigDecimal.ZERO;
-        for (CartItem cartItem : cart.getItems()) {
-            ProductVariant variant = lockedVariants.get(cartItem.getVariantId());
+        for (CustomerCartItem cartItem : cartItems) {
+            ProductVariant variant = lockedVariants.get(cartItem.getProductVariant().getId());
             CartService.PrintingSelection printing = CartService.validatePrinting(cartItem.getPrintingType(),
                     cartItem.getPrintingName(), cartItem.getPrintingNumber());
             BigDecimal unitPrice = CartService.unitPrice(variant);
             BigDecimal printingCharge = CartService.printingCharge(printing.type());
             BigDecimal lineSubtotal = unitPrice.add(printingCharge)
                     .multiply(BigDecimal.valueOf(cartItem.getQuantity()));
+
             OrderItem item = new OrderItem();
             item.setProductVariant(variant);
             item.setProductName(variant.getProduct().getName());
@@ -88,8 +93,9 @@ public class OrderService {
             order.addItem(item);
             subtotal = subtotal.add(lineSubtotal);
         }
+
         lockedVariants.forEach((id, variant) -> variant.setStockQuantity(
-                variant.getStockQuantity() - quantityForVariant(cart.getItems(), id)));
+                variant.getStockQuantity() - quantityForVariant(cartItems, id)));
         order.setSubtotal(subtotal);
         order.setDeliveryFee(DELIVERY_FEE);
         order.setTotal(subtotal.add(DELIVERY_FEE));
@@ -100,7 +106,10 @@ public class OrderService {
         payment.setTransactionId(checkout.transactionId());
         payment.setStatus(PaymentStatus.PENDING);
         order.setPayment(payment);
-        return orderRepository.saveAndFlush(order);
+
+        CustomerOrder saved = orderRepository.saveAndFlush(order);
+        cartService.clearCart(customer);
+        return saved;
     }
 
     @Transactional(readOnly = true)
@@ -158,9 +167,16 @@ public class OrderService {
         return order;
     }
 
-    private Map<Long, ProductVariant> lockVariants(List<CartItem> items) {
+    private Map<Long, ProductVariant> lockVariants(List<CustomerCartItem> items) {
         Map<Long, ProductVariant> locked = new LinkedHashMap<>();
-        for (Long variantId : new TreeSet<>(items.stream().map(CartItem::getVariantId).toList())) {
+        TreeSet<Long> variantIds = new TreeSet<>();
+        for (CustomerCartItem item : items) {
+            if (item.getProductVariant() == null || item.getProductVariant().getId() == null) {
+                throw new IllegalStateException("Cart line is missing its product variant.");
+            }
+            variantIds.add(item.getProductVariant().getId());
+        }
+        for (Long variantId : variantIds) {
             ProductVariant variant = variantRepository.findByIdForUpdate(variantId)
                     .orElseThrow(() -> new ResourceNotFoundException("Product variant not found."));
             if (variant.getProduct() == null || !variant.getProduct().isActive()) {
@@ -171,8 +187,8 @@ public class OrderService {
         return locked;
     }
 
-    private void validateStock(List<CartItem> items, Map<Long, ProductVariant> lockedVariants) {
-        for (CartItem item : items) {
+    private void validateStock(List<CustomerCartItem> items, Map<Long, ProductVariant> lockedVariants) {
+        for (CustomerCartItem item : items) {
             if (item.getQuantity() < 1 || item.getQuantity() > 10) {
                 throw new IllegalArgumentException("Quantity must be between 1 and 10 per cart line.");
             }
@@ -186,10 +202,11 @@ public class OrderService {
         }
     }
 
-    private int quantityForVariant(List<CartItem> items, Long variantId) {
+    private int quantityForVariant(List<CustomerCartItem> items, Long variantId) {
         return items.stream()
-                .filter(item -> variantId.equals(item.getVariantId()))
-                .mapToInt(CartItem::getQuantity)
+                .filter(item -> item.getProductVariant() != null
+                        && variantId.equals(item.getProductVariant().getId()))
+                .mapToInt(CustomerCartItem::getQuantity)
                 .sum();
     }
 

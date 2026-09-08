@@ -2,6 +2,7 @@ package bd.edu.seu.jerseysee.controller;
 
 import bd.edu.seu.jerseysee.config.SecurityConfig;
 import bd.edu.seu.jerseysee.model.Product;
+import bd.edu.seu.jerseysee.service.CartService;
 import bd.edu.seu.jerseysee.service.FileStorageService;
 import bd.edu.seu.jerseysee.service.ProductService;
 import bd.edu.seu.jerseysee.service.UserService;
@@ -32,6 +33,9 @@ class ProductImageControllerTest {
 
     @MockitoBean
     private UserService userService;
+
+    @MockitoBean
+    private CartService cartService;
 
     @Autowired
     private MockMvc mockMvc;
