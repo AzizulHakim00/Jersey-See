@@ -40,7 +40,6 @@ import org.springframework.context.annotation.Import;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.http.MediaType;
-import org.springframework.mock.web.MockHttpSession;
 import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.util.ReflectionTestUtils;
@@ -112,6 +111,7 @@ class PageRenderingTest {
         product = product(category);
         order = order(product.getVariants().get(0));
         payment = order.getPayment();
+        ShoppingCart cart = cartProjection();
 
         when(productService.featuredProducts()).thenReturn(List.of(product));
         when(productService.categories()).thenReturn(List.of(category));
@@ -131,6 +131,8 @@ class PageRenderingTest {
         when(userService.getRequiredByEmail("admin@example.com")).thenReturn(user(Role.ADMIN));
         when(userService.getProfile(any())).thenReturn(profile());
 
+        when(cartService.getCart(any())).thenReturn(cart);
+        when(cartService.getTotalQuantity(any())).thenReturn(cart.getTotalQuantity());
         when(orderService.listFor(any())).thenReturn(List.of(order));
         when(orderService.getAccessible(eq(31L), any())).thenReturn(order);
         when(paymentService.listFor(any())).thenReturn(List.of(payment));
@@ -225,13 +227,13 @@ class PageRenderingTest {
     @Test
     @WithMockUser(username = "customer@example.com", roles = "CUSTOMER")
     void populatedCartRenders() throws Exception {
-        assertPage(get("/cart").session(cartSession()), "cart/view", "data-order-summary");
+        assertPage(get("/cart"), "cart/view", "data-order-summary");
     }
 
     @Test
     @WithMockUser(username = "customer@example.com", roles = "CUSTOMER")
     void checkoutRendersDeliveryAndPaymentFields() throws Exception {
-        assertPage(get("/checkout").session(cartSession()), "orders/checkout", "data-checkout-layout");
+        assertPage(get("/checkout"), "orders/checkout", "data-checkout-layout");
     }
 
     @Test
@@ -317,7 +319,7 @@ class PageRenderingTest {
     @Test
     @WithMockUser(username = "customer@example.com", roles = "CUSTOMER")
     void checkoutValidationErrorsRenderWithPreservedCart() throws Exception {
-        mockMvc.perform(post("/checkout").session(cartSession()).with(csrf()))
+        mockMvc.perform(post("/checkout").with(csrf()))
                 .andExpect(status().isOk())
                 .andExpect(view().name("orders/checkout"))
                 .andExpect(model().attributeHasFieldErrors("checkout", "deliveryRecipientName", "deliveryPhone",
@@ -369,14 +371,12 @@ class PageRenderingTest {
                 .andExpect(content().string(containsString(expectedText)));
     }
 
-    private MockHttpSession cartSession() {
+    private ShoppingCart cartProjection() {
         ShoppingCart cart = new ShoppingCart();
         cart.addItem(new CartItem(21L, product.getName(), "DHK-HOME-M", SizeOption.M, 2,
                 new BigDecimal("2490.00"), PrintingType.CUSTOM, "RAHMAN", "10",
                 CartService.CUSTOM_PRINTING_CHARGE));
-        MockHttpSession session = new MockHttpSession();
-        session.setAttribute("shoppingCart", cart);
-        return session;
+        return cart;
     }
 
     private Category category() {
