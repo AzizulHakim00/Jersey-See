@@ -1,0 +1,56 @@
+name: Keep Render warm backup
+
+on:
+  schedule:
+    - cron: "5,15,25,35,45,55 * * * *"
+  workflow_dispatch:
+  push:
+    branches: [ main ]
+    paths:
+      - .github/workflows/keep-render-warm-backup.yml
+
+permissions:
+  contents: read
+
+concurrency:
+  group: keep-render-warm-backup
+  cancel-in-progress: false
+
+jobs:
+  ping:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Keep Render alive through cold starts
+        shell: bash
+        run: |
+          set -euo pipefail
+          url="https://jersey-see.onrender.com/actuator/health"
+          deadline=$((SECONDS + 240))
+          attempt=0
+
+          while (( SECONDS < deadline )); do
+            attempt=$((attempt + 1))
+            echo "Health attempt ${attempt}"
+
+            if curl \
+              --fail \
+              --silent \
+              --show-error \
+              --location \
+              --connect-timeout 10 \
+              --max-time 30 \
+              --user-agent "JerseySee-GitHub-KeepWarm/2.0" \
+              "$url" \
+              -o health.json; then
+              if grep -Eq '"status"\s*:\s*"UP"' health.json; then
+                cat health.json
+                exit 0
+              fi
+            fi
+
+            sleep 5
+          done
+
+          echo "Render did not report UP within the 4-minute cold-start window."
+          exit 1
