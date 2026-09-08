@@ -1,8 +1,7 @@
 package bd.edu.seu.jerseysee.service;
 
-import bd.edu.seu.jerseysee.cart.ShoppingCart;
-import bd.edu.seu.jerseysee.dto.AddToCartDTO;
 import bd.edu.seu.jerseysee.dto.CheckoutDTO;
+import bd.edu.seu.jerseysee.model.CustomerCartItem;
 import bd.edu.seu.jerseysee.model.CustomerOrder;
 import bd.edu.seu.jerseysee.model.OrderItem;
 import bd.edu.seu.jerseysee.model.Product;
@@ -17,6 +16,7 @@ import bd.edu.seu.jerseysee.model.enums.SizeOption;
 import bd.edu.seu.jerseysee.repository.CustomerOrderRepository;
 import bd.edu.seu.jerseysee.repository.ProductVariantRepository;
 import java.math.BigDecimal;
+import java.util.List;
 import java.util.Optional;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -43,31 +43,33 @@ class OrderServiceTest {
     @Mock
     private CustomerOrderRepository orderRepository;
 
+    @Mock
     private CartService cartService;
+
     private OrderService orderService;
     private ProductVariant variant;
     private User customer;
 
     @BeforeEach
     void setUp() {
-        cartService = new CartService(variantRepository);
-        orderService = new OrderService(orderRepository, variantRepository);
+        orderService = new OrderService(orderRepository, variantRepository, cartService);
         variant = variant("National Home Jersey", "NAT-L", "1000.00", "50.00", 5);
         ReflectionTestUtils.setField(variant, "id", 7L);
         customer = user("customer@example.com", Role.CUSTOMER);
     }
 
     @Test
-    void checkoutRepricesFromLockedRowsDecrementsStockAndCreatesPendingPayment() {
-        ShoppingCart cart = cart(2, PrintingType.CUSTOM, "  jamal bhuyan ", "6");
+    void checkoutRepricesFromLockedRowsDecrementsStockCreatesPendingPaymentAndClearsCart() {
+        CustomerCartItem cartItem = cartItem(2, PrintingType.CUSTOM, "JAMAL BHUYAN", "6");
         variant.getProduct().setBasePrice(new BigDecimal("1100.00"));
         variant.setPriceAdjustment(new BigDecimal("100.00"));
+        when(cartService.lockCartRows(customer)).thenReturn(List.of(cartItem));
         when(variantRepository.findByIdForUpdate(7L)).thenReturn(Optional.of(variant));
         when(orderRepository.saveAndFlush(any(CustomerOrder.class)))
                 .thenAnswer(invocation -> invocation.getArgument(0));
         CheckoutDTO checkout = checkout(PaymentMethod.BKASH, " txn-123 ");
 
-        CustomerOrder order = orderService.checkout(customer, cart, checkout);
+        CustomerOrder order = orderService.checkout(customer, checkout);
 
         assertThat(variant.getStockQuantity()).isEqualTo(3);
         assertThat(order.getSubtotal()).isEqualByComparingTo("3000.00");
@@ -86,50 +88,64 @@ class OrderServiceTest {
         assertThat(order.getPayment().getStatus()).isEqualTo(PaymentStatus.PENDING);
         assertThat(order.getPayment().getAmount()).isEqualByComparingTo("3100.00");
         assertThat(order.getPayment().getTransactionId()).isEqualTo("txn-123");
-        assertThat(cart.getItems()).hasSize(1);
+        verify(cartService).clearCart(customer);
     }
 
     @Test
-    void checkoutRejectsFreshStockShortageWithoutSavingOrDecrementing() {
-        ShoppingCart cart = cart(2, PrintingType.NONE, null, null);
+    void checkoutRejectsFreshStockShortageWithoutSavingDecrementingOrClearingCart() {
+        CustomerCartItem cartItem = cartItem(2, PrintingType.NONE, null, null);
         variant.setStockQuantity(1);
+        when(cartService.lockCartRows(customer)).thenReturn(List.of(cartItem));
         when(variantRepository.findByIdForUpdate(7L)).thenReturn(Optional.of(variant));
 
         assertThatIllegalArgumentException()
-                .isThrownBy(() -> orderService.checkout(customer, cart,
+                .isThrownBy(() -> orderService.checkout(customer,
                         checkout(PaymentMethod.CASH_ON_DELIVERY, null)))
                 .withMessage("Insufficient stock for NAT-L.");
 
         assertThat(variant.getStockQuantity()).isEqualTo(1);
         verify(orderRepository, never()).saveAndFlush(any());
+        verify(cartService, never()).clearCart(any());
     }
 
     @Test
-    void checkoutRequiresTransactionIdForElectronicPaymentsBeforeChangingStock() {
-        ShoppingCart cart = cart(1, PrintingType.NONE, null, null);
-
+    void checkoutRequiresTransactionIdForElectronicPaymentsBeforeLockingCartOrStock() {
         assertThatIllegalArgumentException()
-                .isThrownBy(() -> orderService.checkout(customer, cart, checkout(PaymentMethod.NAGAD, "  ")))
+                .isThrownBy(() -> orderService.checkout(customer, checkout(PaymentMethod.NAGAD, "  ")))
                 .withMessage("Transaction ID is required for NAGAD payments.");
 
+        verify(cartService, never()).lockCartRows(any());
         verify(variantRepository, never()).findByIdForUpdate(any());
         verify(orderRepository, never()).saveAndFlush(any());
         assertThat(variant.getStockQuantity()).isEqualTo(5);
     }
 
     @Test
-    void checkoutRejectsMalformedDeliveryPhoneBeforeLockingStock() {
-        ShoppingCart cart = cart(1, PrintingType.NONE, null, null);
+    void checkoutRejectsMalformedDeliveryPhoneBeforeLockingCartOrStock() {
         CheckoutDTO checkout = checkout(PaymentMethod.CASH_ON_DELIVERY, null);
         checkout.setDeliveryPhone("not a phone");
 
         assertThatIllegalArgumentException()
-                .isThrownBy(() -> orderService.checkout(customer, cart, checkout))
+                .isThrownBy(() -> orderService.checkout(customer, checkout))
                 .withMessage("Enter a valid delivery phone number.");
 
+        verify(cartService, never()).lockCartRows(any());
         verify(variantRepository, never()).findByIdForUpdate(any());
         verify(orderRepository, never()).saveAndFlush(any());
         assertThat(variant.getStockQuantity()).isEqualTo(5);
+    }
+
+    @Test
+    void checkoutRejectsEmptyPersistentCartWithoutCreatingOrder() {
+        when(cartService.lockCartRows(customer)).thenReturn(List.of());
+
+        assertThatIllegalArgumentException()
+                .isThrownBy(() -> orderService.checkout(customer, checkout(PaymentMethod.CASH_ON_DELIVERY, null)))
+                .withMessage("Your cart is empty.");
+
+        verify(variantRepository, never()).findByIdForUpdate(any());
+        verify(orderRepository, never()).saveAndFlush(any());
+        verify(cartService, never()).clearCart(any());
     }
 
     @Test
@@ -194,17 +210,15 @@ class OrderServiceTest {
                 .isInstanceOf(AccessDeniedException.class);
     }
 
-    private ShoppingCart cart(int quantity, PrintingType printingType, String name, String number) {
-        when(variantRepository.findWithProductById(7L)).thenReturn(Optional.of(variant));
-        AddToCartDTO input = new AddToCartDTO();
-        input.setVariantId(7L);
-        input.setQuantity(quantity);
-        input.setPrintingType(printingType);
-        input.setPrintingName(name);
-        input.setPrintingNumber(number);
-        ShoppingCart cart = new ShoppingCart();
-        cartService.add(cart, input);
-        return cart;
+    private CustomerCartItem cartItem(int quantity, PrintingType printingType, String name, String number) {
+        CustomerCartItem item = new CustomerCartItem();
+        item.setCustomer(customer);
+        item.setProductVariant(variant);
+        item.setQuantity(quantity);
+        item.setPrintingType(printingType);
+        item.setPrintingName(name);
+        item.setPrintingNumber(number);
+        return item;
     }
 
     private CheckoutDTO checkout(PaymentMethod method, String transactionId) {
