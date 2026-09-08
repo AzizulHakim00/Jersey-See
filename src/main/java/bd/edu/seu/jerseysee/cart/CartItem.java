@@ -30,14 +30,21 @@ public class CartItem implements Serializable {
     public CartItem(Long variantId, String productName, String sku, SizeOption size, int quantity,
             BigDecimal unitPrice, PrintingType printingType, String printingName, String printingNumber,
             BigDecimal printingCharge) {
-        this(variantId, productName, null, sku, size, quantity, unitPrice, printingType, printingName,
-                printingNumber, printingCharge);
+        this(UUID.randomUUID().toString(), variantId, productName, null, sku, size, quantity, unitPrice, printingType,
+                printingName, printingNumber, printingCharge);
     }
 
     public CartItem(Long variantId, String productName, String storedImageName, String sku, SizeOption size,
             int quantity, BigDecimal unitPrice, PrintingType printingType, String printingName,
             String printingNumber, BigDecimal printingCharge) {
-        this.lineId = UUID.randomUUID().toString();
+        this(UUID.randomUUID().toString(), variantId, productName, storedImageName, sku, size, quantity, unitPrice,
+                printingType, printingName, printingNumber, printingCharge);
+    }
+
+    public CartItem(String lineId, Long variantId, String productName, String storedImageName, String sku,
+            SizeOption size, int quantity, BigDecimal unitPrice, PrintingType printingType, String printingName,
+            String printingNumber, BigDecimal printingCharge) {
+        this.lineId = Objects.requireNonNull(lineId, "lineId");
         this.variantId = variantId;
         this.productName = productName;
         this.storedImageName = storedImageName;
