@@ -53,6 +53,12 @@ Deleting a customer should cascade-delete that customer's cart rows. Deleting a 
 
 The migration must not modify or recreate any existing customer, product, order, payment, or image table and must not enable the disabled production demo seeders.
 
+### Transition from the current session cart
+
+There is no reliable way to migrate an already-open in-memory HTTP session cart through the deployment that replaces the application process, because those cart objects are not in MySQL and the process restart can discard them before the new code can read them. Therefore this deployment has one explicit transition rule: carts created **after** the persistent-cart release are durable; any cart that exists only in an old server session before the release may be lost once during that deployment.
+
+Do not add a permanent session fallback or dual-write mechanism. After the release, MySQL is the single source of truth for cart state.
+
 ## Repository Layer
 
 Create `CustomerCartItemRepository extends JpaRepository<CustomerCartItem, Long>` with focused ownership-safe queries:
