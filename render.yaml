@@ -19,7 +19,7 @@ services:
       - key: JERSEYSEE_DEMO_CATALOG_ENABLED
         value: "false"
       - key: JERSEYSEE_PUBLIC_DEMO_ENABLED
-        value: "true"
+        value: "false"
       - key: APP_SEED_ADMIN_ENABLED
         value: "false"
       - key: APP_SEED_ADMIN_EMAIL
