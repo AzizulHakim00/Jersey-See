@@ -13,13 +13,14 @@ class RenderSelfKeepWarmContractTest {
             "src/main/java/bd/edu/seu/jerseysee/config/RenderSelfKeepWarm.java");
 
     @Test
-    void productionServicePingsItsPublicHealthEndpointEveryFiveMinutes() throws IOException {
+    void productionServicePingsCheapPublicEndpointEveryFiveMinutes() throws IOException {
         assertTrue(Files.exists(SOURCE), "Render self keep-warm component must exist");
 
         String source = Files.readString(SOURCE);
         assertTrue(source.contains("@Profile(\"production\")"));
         assertTrue(source.contains("@Scheduled"));
         assertTrue(source.contains("300000"), "keep-warm interval must be five minutes");
-        assertTrue(source.contains("https://jersey-see.onrender.com/actuator/health"));
+        assertTrue(source.contains("https://jersey-see.onrender.com/login"));
+        assertTrue(source.contains("Self keep-warm established with HTTP"));
     }
 }
