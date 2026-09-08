@@ -2,7 +2,7 @@ name: Keep Render warm
 
 on:
   schedule:
-    - cron: "*/5 * * * *"
+    - cron: "0,10,20,30,40,50 * * * *"
   workflow_dispatch:
   push:
     branches: [ main ]
@@ -13,29 +13,44 @@ permissions:
   contents: read
 
 concurrency:
-  group: keep-render-warm
-  cancel-in-progress: true
+  group: keep-render-warm-primary
+  cancel-in-progress: false
 
 jobs:
   ping:
     runs-on: ubuntu-latest
-    timeout-minutes: 2
+    timeout-minutes: 5
     steps:
-      - name: Ping Render health endpoint
+      - name: Keep Render alive through cold starts
         shell: bash
         run: |
           set -euo pipefail
-          curl \
-            --fail \
-            --silent \
-            --show-error \
-            --location \
-            --connect-timeout 10 \
-            --max-time 30 \
-            --retry 2 \
-            --retry-delay 5 \
-            --retry-all-errors \
-            --user-agent "JerseySee-GitHub-KeepWarm/1.0" \
-            https://jersey-see.onrender.com/actuator/health \
-            -o health.json
-          grep -Eq '"status"\s*:\s*"UP"' health.json
+          url="https://jersey-see.onrender.com/actuator/health"
+          deadline=$((SECONDS + 240))
+          attempt=0
+
+          while (( SECONDS < deadline )); do
+            attempt=$((attempt + 1))
+            echo "Health attempt ${attempt}"
+
+            if curl \
+              --fail \
+              --silent \
+              --show-error \
+              --location \
+              --connect-timeout 10 \
+              --max-time 30 \
+              --user-agent "JerseySee-GitHub-KeepWarm/2.0" \
+              "$url" \
+              -o health.json; then
+              if grep -Eq '"status"\s*:\s*"UP"' health.json; then
+                cat health.json
+                exit 0
+              fi
+            fi
+
+            sleep 5
+          done
+
+          echo "Render did not report UP within the 4-minute cold-start window."
+          exit 1
