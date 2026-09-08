@@ -1,6 +1,5 @@
 package bd.edu.seu.jerseysee.service;
 
-import bd.edu.seu.jerseysee.cart.ShoppingCart;
 import bd.edu.seu.jerseysee.dto.CheckoutDTO;
 import bd.edu.seu.jerseysee.exception.ResourceNotFoundException;
 import bd.edu.seu.jerseysee.model.CustomerCartItem;
@@ -111,13 +110,6 @@ public class OrderService {
         CustomerOrder saved = orderRepository.saveAndFlush(order);
         cartService.clearCart(customer);
         return saved;
-    }
-
-    /** Transitional compatibility while MVC endpoints are moved off session cart state. */
-    @Deprecated(forRemoval = true)
-    @Transactional
-    public CustomerOrder checkout(User customer, ShoppingCart ignoredSessionCart, CheckoutDTO input) {
-        return checkout(customer, input);
     }
 
     @Transactional(readOnly = true)
