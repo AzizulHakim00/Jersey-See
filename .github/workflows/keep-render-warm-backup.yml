@@ -1,19 +1,19 @@
-name: Keep Render warm
+name: Keep Render warm backup
 
 on:
   schedule:
-    - cron: "0,10,20,30,40,50 * * * *"
+    - cron: "5,15,25,35,45,55 * * * *"
   workflow_dispatch:
   push:
     branches: [ main ]
     paths:
-      - .github/workflows/keep-render-warm.yml
+      - .github/workflows/keep-render-warm-backup.yml
 
 permissions:
   contents: read
 
 concurrency:
-  group: keep-render-warm-primary
+  group: keep-render-warm-backup
   cancel-in-progress: false
 
 jobs:

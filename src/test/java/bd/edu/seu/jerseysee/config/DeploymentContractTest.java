@@ -62,4 +62,26 @@ class DeploymentContractTest {
         assertThat(production).contains(
                 "app.public-demo.enabled=${JERSEYSEE_PUBLIC_DEMO_ENABLED:true}");
     }
+
+    @Test
+    void freeRenderKeepWarmHasStaggeredIndependentSchedulesAndColdStartRetries() throws IOException {
+        String primary = Files.readString(Path.of(".github/workflows/keep-render-warm.yml"));
+        String backup = Files.readString(Path.of(".github/workflows/keep-render-warm-backup.yml"));
+
+        assertThat(primary).contains(
+                "cron: \"0,10,20,30,40,50 * * * *\"",
+                "group: keep-render-warm-primary",
+                "cancel-in-progress: false",
+                "timeout-minutes: 5",
+                "deadline=$((SECONDS + 240))",
+                "JerseySee-GitHub-KeepWarm/2.0");
+
+        assertThat(backup).contains(
+                "cron: \"5,15,25,35,45,55 * * * *\"",
+                "group: keep-render-warm-backup",
+                "cancel-in-progress: false",
+                "timeout-minutes: 5",
+                "deadline=$((SECONDS + 240))",
+                "JerseySee-GitHub-KeepWarm/2.0");
+    }
 }
