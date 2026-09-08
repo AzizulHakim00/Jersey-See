@@ -67,7 +67,7 @@ class PersistentCartWebFlowTest {
     @Test
     @WithMockUser(username = EMAIL, roles = "CUSTOMER")
     void cartProjectionIsReloadedFromDatabaseForEveryBrowserSession() throws Exception {
-        ShoppingCart databaseCart = mock(ShoppingCart.class);
+        ShoppingCart databaseCart = new ShoppingCart();
         when(cartService.getCart(customer)).thenReturn(databaseCart);
 
         MockHttpSession firstSession = new MockHttpSession();
@@ -90,7 +90,7 @@ class PersistentCartWebFlowTest {
     @Test
     @WithMockUser(username = EMAIL, roles = "CUSTOMER")
     void navbarCountUsesPersistentCartInsteadOfStaleSessionState() throws Exception {
-        ShoppingCart databaseCart = mock(ShoppingCart.class);
+        ShoppingCart databaseCart = new ShoppingCart();
         ShoppingCart staleSessionCart = mock(ShoppingCart.class);
         when(staleSessionCart.getTotalQuantity()).thenReturn(99);
         when(cartService.getCart(customer)).thenReturn(databaseCart);
@@ -108,7 +108,7 @@ class PersistentCartWebFlowTest {
     @Test
     @WithMockUser(username = EMAIL, roles = "CUSTOMER")
     void checkoutFormReloadsPersistentCartEvenWhenSessionContainsAnotherCart() throws Exception {
-        ShoppingCart databaseCart = mock(ShoppingCart.class);
+        ShoppingCart databaseCart = new ShoppingCart();
         ShoppingCart staleSessionCart = mock(ShoppingCart.class);
         when(cartService.getCart(customer)).thenReturn(databaseCart);
         when(cartService.getTotalQuantity(customer)).thenReturn(2);
@@ -126,8 +126,6 @@ class PersistentCartWebFlowTest {
     @Test
     @WithMockUser(username = EMAIL, roles = "CUSTOMER")
     void successfulCheckoutUsesAuthenticatedCustomerAndDatabaseCartOnly() throws Exception {
-        ShoppingCart databaseCart = mock(ShoppingCart.class);
-        when(cartService.getCart(customer)).thenReturn(databaseCart);
         when(cartService.getTotalQuantity(customer)).thenReturn(1);
         CustomerOrder saved = new CustomerOrder();
         ReflectionTestUtils.setField(saved, "id", 77L);
