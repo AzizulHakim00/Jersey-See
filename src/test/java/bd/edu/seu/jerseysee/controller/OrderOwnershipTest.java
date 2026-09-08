@@ -4,6 +4,7 @@ import bd.edu.seu.jerseysee.config.SecurityConfig;
 import bd.edu.seu.jerseysee.model.CustomerOrder;
 import bd.edu.seu.jerseysee.model.User;
 import bd.edu.seu.jerseysee.model.enums.Role;
+import bd.edu.seu.jerseysee.service.CartService;
 import bd.edu.seu.jerseysee.service.InvoiceService;
 import bd.edu.seu.jerseysee.service.OrderService;
 import bd.edu.seu.jerseysee.service.UserService;
@@ -40,6 +41,9 @@ class OrderOwnershipTest {
 
     @MockitoBean
     private UserService userService;
+
+    @MockitoBean
+    private CartService cartService;
 
     @Autowired
     private MockMvc mockMvc;
