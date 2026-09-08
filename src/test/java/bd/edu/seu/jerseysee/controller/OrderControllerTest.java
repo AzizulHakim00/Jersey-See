@@ -2,19 +2,19 @@ package bd.edu.seu.jerseysee.controller;
 
 import bd.edu.seu.jerseysee.cart.ShoppingCart;
 import bd.edu.seu.jerseysee.config.SecurityConfig;
+import bd.edu.seu.jerseysee.dto.CheckoutDTO;
 import bd.edu.seu.jerseysee.model.CustomerOrder;
 import bd.edu.seu.jerseysee.model.User;
 import bd.edu.seu.jerseysee.model.enums.Role;
+import bd.edu.seu.jerseysee.service.CartService;
 import bd.edu.seu.jerseysee.service.InvoiceService;
 import bd.edu.seu.jerseysee.service.OrderService;
 import bd.edu.seu.jerseysee.service.UserService;
-import java.math.BigDecimal;
-import java.util.List;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
 import org.springframework.context.annotation.Import;
-import org.springframework.mock.web.MockHttpSession;
 import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.util.ReflectionTestUtils;
@@ -22,14 +22,13 @@ import org.springframework.test.web.servlet.MockMvc;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.redirectedUrl;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.flash;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.model;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.view;
 
@@ -46,22 +45,28 @@ class OrderControllerTest {
     @MockitoBean
     private UserService userService;
 
+    @MockitoBean
+    private CartService cartService;
+
     @Autowired
     private MockMvc mockMvc;
 
+    private User customer;
+
+    @BeforeEach
+    void setUp() {
+        customer = customer();
+        when(userService.getRequiredByEmail("customer@example.com")).thenReturn(customer);
+    }
+
     @Test
     @WithMockUser(username = "customer@example.com", roles = "CUSTOMER")
-    void checkoutClearsSessionCartOnlyAfterSuccessfulServiceReturn() throws Exception {
-        User customer = customer();
-        ShoppingCart cart = mock(ShoppingCart.class);
-        MockHttpSession session = new MockHttpSession();
-        session.setAttribute("shoppingCart", cart);
+    void successfulCheckoutDelegatesDatabaseCartConsumptionToOrderService() throws Exception {
         CustomerOrder saved = new CustomerOrder();
         ReflectionTestUtils.setField(saved, "id", 21L);
-        when(userService.getRequiredByEmail("customer@example.com")).thenReturn(customer);
-        when(orderService.checkout(eq(customer), eq(cart), any())).thenReturn(saved);
+        when(orderService.checkout(eq(customer), any(CheckoutDTO.class))).thenReturn(saved);
 
-        mockMvc.perform(post("/checkout").session(session).with(csrf())
+        mockMvc.perform(post("/checkout").with(csrf())
                         .param("deliveryRecipientName", "Amina Rahman")
                         .param("deliveryPhone", "01700000000")
                         .param("deliveryAddress", "Dhaka")
@@ -69,38 +74,32 @@ class OrderControllerTest {
                 .andExpect(status().is3xxRedirection())
                 .andExpect(redirectedUrl("/orders/21?created"));
 
-        verify(cart).clear();
+        verify(orderService).checkout(eq(customer), any(CheckoutDTO.class));
     }
 
     @Test
     @WithMockUser(username = "customer@example.com", roles = "CUSTOMER")
-    void failedCheckoutPreservesSessionCartAndFormInput() throws Exception {
-        User customer = customer();
-        ShoppingCart cart = mock(ShoppingCart.class);
-        MockHttpSession session = new MockHttpSession();
-        session.setAttribute("shoppingCart", cart);
-        when(userService.getRequiredByEmail("customer@example.com")).thenReturn(customer);
-        when(cart.getSubtotal()).thenReturn(BigDecimal.ZERO);
-        when(cart.getItems()).thenReturn(List.of());
-        when(orderService.checkout(eq(customer), eq(cart), any()))
+    void failedCheckoutReloadsPersistentCartAndPreservesFormInput() throws Exception {
+        ShoppingCart cart = new ShoppingCart();
+        when(cartService.getCart(customer)).thenReturn(cart);
+        when(orderService.checkout(eq(customer), any(CheckoutDTO.class)))
                 .thenThrow(new IllegalArgumentException("Insufficient stock for NAT-L."));
 
-        mockMvc.perform(post("/checkout").session(session).with(csrf())
+        mockMvc.perform(post("/checkout").with(csrf())
                         .param("deliveryRecipientName", "Amina Rahman")
                         .param("deliveryPhone", "01700000000")
                         .param("deliveryAddress", "Dhaka")
                         .param("paymentMethod", "CASH_ON_DELIVERY"))
                 .andExpect(status().isOk())
-                .andExpect(view().name("orders/checkout"));
+                .andExpect(view().name("orders/checkout"))
+                .andExpect(model().attribute("shoppingCart", cart));
 
-        verify(cart, never()).clear();
+        verify(cartService).getCart(customer);
     }
 
     @Test
     @WithMockUser(username = "customer@example.com", roles = "CUSTOMER")
     void repeatedCancellationReturnsUserFacingErrorInsteadOfServerError() throws Exception {
-        User customer = customer();
-        when(userService.getRequiredByEmail("customer@example.com")).thenReturn(customer);
         when(orderService.cancel(21L, customer))
                 .thenThrow(new IllegalArgumentException("This order can no longer be cancelled."));
 
@@ -130,6 +129,7 @@ class OrderControllerTest {
 
     private User customer() {
         User user = new User();
+        ReflectionTestUtils.setField(user, "id", 7L);
         user.setEmail("customer@example.com");
         user.setRole(Role.CUSTOMER);
         user.setEnabled(true);
