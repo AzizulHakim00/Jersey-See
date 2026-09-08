@@ -3,6 +3,7 @@ package bd.edu.seu.jerseysee.config;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.Locale;
 import org.junit.jupiter.api.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -26,8 +27,8 @@ class PersistentCartMigrationContractTest {
                 "app.public-demo.enabled=${JERSEYSEE_PUBLIC_DEMO_ENABLED:false}");
 
         assertThat(migrationPath).exists();
-        String migration = Files.readString(migrationPath);
-        assertThat(migration).containsIgnoringCase(
+        String migration = Files.readString(migrationPath).toLowerCase(Locale.ROOT);
+        assertThat(migration).contains(
                 "create table customer_cart_item",
                 "line_id",
                 "customer_id",
@@ -43,6 +44,6 @@ class PersistentCartMigrationContractTest {
                 "on delete cascade",
                 "index");
         assertThat(migration)
-                .doesNotContainIgnoringCase("drop table", "truncate", "delete from users", "delete from product");
+                .doesNotContain("drop table", "truncate", "delete from users", "delete from product");
     }
 }
