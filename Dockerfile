@@ -6,6 +6,8 @@ COPY pom.xml ./
 RUN mvn --batch-mode --no-transfer-progress -DskipTests dependency:go-offline
 
 COPY Dockerfile render.yaml ./
+COPY .github/workflows/keep-render-warm.yml .github/workflows/keep-render-warm.yml
+COPY .github/workflows/keep-render-warm-backup.yml .github/workflows/keep-render-warm-backup.yml
 COPY src ./src
 RUN mvn --batch-mode --no-transfer-progress clean verify
 
