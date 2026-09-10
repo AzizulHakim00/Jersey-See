@@ -22,6 +22,7 @@ import static org.assertj.core.api.Assertions.assertThat;
         "spring.datasource.username=sa",
         "spring.datasource.password=",
         "spring.jpa.hibernate.ddl-auto=create-drop",
+        "spring.flyway.enabled=false",
         "app.demo-data.enabled=false",
         "app.demo-catalog.enabled=false",
         "app.public-demo.enabled=true",
