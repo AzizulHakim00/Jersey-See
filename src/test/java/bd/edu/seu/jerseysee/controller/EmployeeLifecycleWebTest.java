@@ -1,7 +1,9 @@
 package bd.edu.seu.jerseysee.controller;
 
 import bd.edu.seu.jerseysee.config.SecurityConfig;
+import bd.edu.seu.jerseysee.service.CartService;
 import bd.edu.seu.jerseysee.service.EmployeeService;
+import bd.edu.seu.jerseysee.service.UserService;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
@@ -21,6 +23,12 @@ class EmployeeLifecycleWebTest {
 
     @MockitoBean
     private EmployeeService employeeService;
+
+    @MockitoBean
+    private UserService userService;
+
+    @MockitoBean
+    private CartService cartService;
 
     @Autowired
     private MockMvc mockMvc;
