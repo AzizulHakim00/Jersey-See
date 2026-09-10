@@ -17,7 +17,7 @@ class PersistentCartMigrationContractTest {
         String production = Files.readString(Path.of("src/main/resources/application-production.properties"));
         Path migrationPath = Path.of("src/main/resources/db/migration/V2__create_customer_cart_item.sql");
 
-        assertThat(pom).contains("flyway-core", "flyway-mysql");
+        assertThat(pom).contains("spring-boot-starter-flyway", "flyway-mysql");
         assertThat(defaults).contains("spring.flyway.enabled=false");
         assertThat(production).contains(
                 "spring.jpa.hibernate.ddl-auto=none",
