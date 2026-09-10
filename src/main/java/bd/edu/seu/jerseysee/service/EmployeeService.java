@@ -103,14 +103,14 @@ public class EmployeeService {
 
         String email = UserService.normalizeEmail(employee.getEmail());
         userRepository.findByEmail(email)
-                .filter(existing -> existing != user)
+                .filter(existing -> !Objects.equals(existing.getId(), user.getId()))
                 .ifPresent(existing -> {
                     throw new IllegalArgumentException("An account already exists for this email.");
                 });
 
         String employeeCode = normalizeEmployeeCode(employee.getEmployeeCode());
         employeeProfileRepository.findByEmployeeCode(employeeCode)
-                .filter(existing -> existing != profile)
+                .filter(existing -> !Objects.equals(existing.getId(), profile.getId()))
                 .ifPresent(existing -> {
                     throw new IllegalArgumentException("An employee already exists for this code.");
                 });
