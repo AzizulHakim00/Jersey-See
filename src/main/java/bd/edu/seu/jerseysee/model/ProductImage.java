@@ -15,7 +15,7 @@ public class ProductImage {
     private String storedName;
 
     @Lob
-    @Column(nullable = false, columnDefinition = "LONGBLOB")
+    @Column(nullable = false)
     private byte[] content;
 
     protected ProductImage() {
