@@ -9,12 +9,12 @@ services:
     autoDeploy: true
     envVars:
       - key: SPRING_PROFILES_ACTIVE
-        value: production
-      - key: JERSEYSEE_DB_URL
+        value: production,render-postgres
+      - key: JERSEYSEE_POSTGRES_URL
         sync: false
-      - key: JERSEYSEE_DB_USERNAME
+      - key: JERSEYSEE_POSTGRES_USERNAME
         sync: false
-      - key: JERSEYSEE_DB_PASSWORD
+      - key: JERSEYSEE_POSTGRES_PASSWORD
         sync: false
       - key: JERSEYSEE_DEMO_CATALOG_ENABLED
         value: "false"

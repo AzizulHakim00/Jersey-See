@@ -88,6 +88,19 @@ class ProductionDatabaseEnvironmentPostProcessorTest {
     }
 
     @Test
+    void ignoresLegacyMysqlVariableWhenRenderPostgresRecoveryProfileIsActive() {
+        MockEnvironment environment = new MockEnvironment()
+                .withProperty("spring.profiles.active", "production,render-postgres")
+                .withProperty("JERSEYSEE_DB_URL", "stale-and-invalid-aiven-host")
+                .withProperty("spring.datasource.url", "jdbc:postgresql://db.internal:5432/jerseysee");
+
+        assertThatCode(() -> postProcessor.postProcessEnvironment(environment, null))
+                .doesNotThrowAnyException();
+        assertThat(environment.getProperty("spring.datasource.url"))
+                .isEqualTo("jdbc:postgresql://db.internal:5432/jerseysee");
+    }
+
+    @Test
     void ignoresNonProductionProfiles() {
         MockEnvironment environment = new MockEnvironment()
                 .withProperty("spring.profiles.active", "demo")

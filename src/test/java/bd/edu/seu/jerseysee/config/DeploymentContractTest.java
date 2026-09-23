@@ -36,6 +36,30 @@ class DeploymentContractTest {
     }
 
     @Test
+    void renderPostgresProfileFailsClosedAndOwnsFreshSchemaCreation() throws IOException {
+        String postgres = Files.readString(Path.of("src/main/resources/application-render-postgres.properties"));
+        String render = Files.readString(Path.of("render.yaml"));
+        String productImage = Files.readString(
+                Path.of("src/main/java/bd/edu/seu/jerseysee/model/ProductImage.java"));
+        String pom = Files.readString(Path.of("pom.xml"));
+
+        assertThat(render).contains(
+                "value: production,render-postgres",
+                "- key: JERSEYSEE_POSTGRES_URL",
+                "- key: JERSEYSEE_POSTGRES_USERNAME",
+                "- key: JERSEYSEE_POSTGRES_PASSWORD");
+        assertThat(postgres).contains(
+                "spring.datasource.driver-class-name=org.postgresql.Driver",
+                "spring.jpa.database-platform=org.hibernate.dialect.PostgreSQLDialect",
+                "spring.jpa.hibernate.ddl-auto=update",
+                "spring.flyway.enabled=false",
+                "spring.datasource.hikari.initialization-fail-timeout=1",
+                "management.health.db.enabled=true");
+        assertThat(pom).contains("<artifactId>postgresql</artifactId>");
+        assertThat(productImage).doesNotContain("LONGBLOB");
+    }
+
+    @Test
     void productionColdStartDoesNotBlockOnRemoteDatabaseBootstrap() throws IOException {
         String production = Files.readString(Path.of("src/main/resources/application-production.properties"));
         String render = Files.readString(Path.of("render.yaml"));
