@@ -13,9 +13,11 @@ class DeploymentContractTest {
     void renderAndDockerUseProcessReadinessAndTheRuntimePort() throws IOException {
         String dockerfile = Files.readString(Path.of("Dockerfile"));
         String render = Files.readString(Path.of("render.yaml"));
+        String application = Files.readString(Path.of("src/main/resources/application.properties"));
         String production = Files.readString(Path.of("src/main/resources/application-production.properties"));
 
         assertThat(render).contains("healthCheckPath: /actuator/health");
+        assertThat(application).contains("server.address=0.0.0.0", "server.port=${PORT:8080}");
         assertThat(production).contains("server.address=0.0.0.0", "server.port=${PORT:8080}",
                 "management.health.db.enabled=false");
         assertThat(dockerfile)
