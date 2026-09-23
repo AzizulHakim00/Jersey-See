@@ -17,12 +17,13 @@ import org.springframework.core.env.MapPropertySource;
 public final class ProductionDatabaseEnvironmentPostProcessor implements EnvironmentPostProcessor, Ordered {
 
     private static final String PRODUCTION_PROFILE = "production";
+    private static final String RENDER_POSTGRES_PROFILE = "render-postgres";
     private static final String RENDER_DB_URL_KEY = "JERSEYSEE_DB_URL";
     private static final String NORMALIZED_DATASOURCE_PROPERTY_SOURCE = "jerseySeeNormalizedProductionDatasource";
 
     @Override
     public void postProcessEnvironment(ConfigurableEnvironment environment, SpringApplication application) {
-        if (!isProduction(environment)) {
+        if (!isProduction(environment) || isProfileActive(environment, RENDER_POSTGRES_PROFILE)) {
             return;
         }
 
@@ -43,12 +44,22 @@ public final class ProductionDatabaseEnvironmentPostProcessor implements Environ
     }
 
     private boolean isProduction(ConfigurableEnvironment environment) {
+        return isProfileActive(environment, PRODUCTION_PROFILE);
+    }
+
+    private boolean isProfileActive(ConfigurableEnvironment environment, String expectedProfile) {
         for (String profile : environment.getActiveProfiles()) {
-            if (PRODUCTION_PROFILE.equals(profile)) {
+            if (expectedProfile.equals(profile)) {
                 return true;
             }
         }
-        return PRODUCTION_PROFILE.equals(environment.getProperty("spring.profiles.active"));
+        String configuredProfiles = environment.getProperty("spring.profiles.active", "");
+        for (String profile : configuredProfiles.split(",")) {
+            if (expectedProfile.equals(profile.trim())) {
+                return true;
+            }
+        }
+        return false;
     }
 
     private String normalizeRenderDatabaseUrl(String renderDatabaseUrl) {
