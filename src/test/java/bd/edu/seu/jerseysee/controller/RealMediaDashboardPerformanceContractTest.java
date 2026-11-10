@@ -18,19 +18,19 @@ class RealMediaDashboardPerformanceContractTest {
         String login = read(TEMPLATES.resolve("auth/login.html"));
 
         assertThat(home)
-                .contains("/images/media/home-hero.webp", "/images/media/category-player.webp",
+                .contains("/images/media/home-campaign.jpg", "/images/media/category-player.webp",
                         "/images/media/category-retro.webp", "/images/media/category-boots.webp",
                         "/images/media/category-new-arrivals.webp", "/images/media/campaign-retro.webp")
                 .doesNotContain("auth-footballer.svg", "hero-kit.svg", "custom-printing.svg");
         assertThat(login)
-                .contains("/images/media/login-player.webp")
+                .contains("/images/media/login-campaign.jpg")
                 .doesNotContain("auth-footballer.svg");
     }
 
     @Test
     void suppliedMediaAssetsExistInTheStaticBundle() {
-        assertThat(STATIC.resolve("images/media/home-hero.webp")).exists();
-        assertThat(STATIC.resolve("images/media/login-player.webp")).exists();
+        assertThat(STATIC.resolve("images/media/home-campaign.jpg")).exists();
+        assertThat(STATIC.resolve("images/media/login-campaign.jpg")).exists();
         assertThat(STATIC.resolve("images/media/category-player.webp")).exists();
         assertThat(STATIC.resolve("images/media/category-retro.webp")).exists();
         assertThat(STATIC.resolve("images/media/category-boots.webp")).exists();

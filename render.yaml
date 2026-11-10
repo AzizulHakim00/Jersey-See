@@ -8,6 +8,18 @@ services:
     healthCheckPath: /actuator/health
     autoDeploy: true
     envVars:
+      - key: JWT_SECRET_BASE64
+        sync: false
+      - key: AUTH_SECURE_COOKIES
+        value: "true"
+      - key: IMAGE_STORAGE
+        value: cloudinary
+      - key: CLOUDINARY_CLOUD_NAME
+        sync: false
+      - key: CLOUDINARY_API_KEY
+        sync: false
+      - key: CLOUDINARY_API_SECRET
+        sync: false
       - key: SPRING_PROFILES_ACTIVE
         value: production,render-postgres
       - key: JERSEYSEE_POSTGRES_URL

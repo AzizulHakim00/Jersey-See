@@ -31,7 +31,9 @@ class FileStorageServiceTest {
         assertThat(stored.originalName()).isEqualTo("shirt.png");
         assertThat(stored.contentType()).isEqualTo("image/png");
         assertThat(stored.size()).isEqualTo(png.length);
-        assertThat(storage.load(stored.storedName()).getInputStream().readAllBytes()).isEqualTo(png);
+        try (var stream = storage.load(stored.storedName()).getInputStream()) {
+            assertThat(stream.readAllBytes()).isEqualTo(png);
+        }
         assertThat(Files.exists(uploadDirectory.resolve("shirt.png"))).isFalse();
     }
 

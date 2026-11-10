@@ -1,6 +1,27 @@
 /* JerseySee operational repair layer.
    Loaded after the premium storefront styles. */
 
+/* Keep both authentication columns inside the viewport, including at tablet widths. */
+.premium-auth-shell {
+    width: 100%;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 620px);
+}
+.premium-auth-panel, .premium-auth-card, .premium-auth-visual { min-width: 0; }
+.premium-auth-card { max-width: 100%; }
+.premium-auth-card input { min-width: 0; width: 100%; box-sizing: border-box; }
+.premium-auth-card h2 { overflow-wrap: anywhere; }
+.premium-auth-visual .premium-auth-player {
+    object-fit: contain;
+    object-position: center bottom;
+    background: #08090e;
+}
+.premium-auth-visual .premium-auth-copy { align-self: flex-start; padding-bottom: 0; }
+.premium-auth-visual .premium-auth-copy h1 { font-size: clamp(2rem, 3.5vw, 3.8rem); }
+.premium-register-shell .premium-auth-player { object-position: center; }
+@media (min-width: 761px) {
+    .premium-auth-visual .premium-auth-copy { margin-top: 32px; margin-bottom: auto; }
+}
+
 /* Keep retail/customer content in normal flow beneath the sticky header. */
 html {
     scroll-behavior: auto !important;
