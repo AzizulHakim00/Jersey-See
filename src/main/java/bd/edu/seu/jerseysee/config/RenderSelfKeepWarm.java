@@ -15,6 +15,8 @@ import org.springframework.scheduling.annotation.Scheduled;
 
 @Configuration(proxyBeanMethods = false)
 @Profile("production")
+@org.springframework.boot.autoconfigure.condition.ConditionalOnProperty(
+        name = "app.keep-warm.enabled", havingValue = "true", matchIfMissing = true)
 @EnableScheduling
 public class RenderSelfKeepWarm {
 

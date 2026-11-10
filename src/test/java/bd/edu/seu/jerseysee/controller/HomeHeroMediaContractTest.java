@@ -14,7 +14,7 @@ class HomeHeroMediaContractTest {
 
         assertThat(home).contains(
                 "class=\"premium-hero-media\"",
-                "th:src=\"@{/images/media/home-hero.webp}\"",
+                "th:src=\"@{/images/media/home-campaign.jpg}\"",
                 "/images/media/category-player.webp",
                 "/images/media/category-retro.webp",
                 "/images/media/category-boots.webp",

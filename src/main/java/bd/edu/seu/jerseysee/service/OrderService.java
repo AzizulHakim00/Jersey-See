@@ -49,6 +49,7 @@ public class OrderService {
         this.cartService = cartService;
     }
 
+    @org.springframework.cache.annotation.CacheEvict(value = "featuredCards", allEntries = true)
     @Transactional
     public CustomerOrder checkout(User customer, CheckoutDTO input) {
         requireCustomer(customer);
@@ -131,6 +132,7 @@ public class OrderService {
         throw new AccessDeniedException("Order access denied.");
     }
 
+    @org.springframework.cache.annotation.CacheEvict(value = "featuredCards", allEntries = true)
     @Transactional
     public CustomerOrder updateStatus(Long orderId, OrderStatus targetStatus, User actor) {
         requireWorkflowStaff(actor);
@@ -153,6 +155,7 @@ public class OrderService {
         return order;
     }
 
+    @org.springframework.cache.annotation.CacheEvict(value = "featuredCards", allEntries = true)
     @Transactional
     public CustomerOrder cancel(Long orderId, User customer) {
         requireCustomer(customer);

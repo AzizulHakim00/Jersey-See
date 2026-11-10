@@ -23,8 +23,8 @@
                 <div class="premium-hero-note">More than a jersey. A football identity.</div>
             </div>
             <div class="premium-hero-media">
-                <img class="premium-home-player" th:src="@{/images/media/home-hero.webp}"
-                     alt="Two football players sharing a match-day moment in a stadium" width="1200" height="400"
+                <img class="premium-home-player" th:src="@{/images/media/home-campaign.jpg}"
+                     alt="Football player holding a match ball in a stadium" width="738" height="414"
                      loading="eager" fetchpriority="high" decoding="async">
                 <a class="premium-hero-product" th:if="${heroProduct != null}" th:href="@{/products/{id}(id=${heroProduct.id})}">
                     <small th:text="${heroProduct.clubOrCountry != null ? heroProduct.clubOrCountry : 'JerseySee selection'}">JerseySee selection</small>

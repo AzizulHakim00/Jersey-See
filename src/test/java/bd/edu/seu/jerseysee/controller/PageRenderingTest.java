@@ -113,7 +113,7 @@ class PageRenderingTest {
         payment = order.getPayment();
         ShoppingCart cart = cartProjection();
 
-        when(productService.featuredProducts()).thenReturn(List.of(product));
+        when(productService.featuredCards()).thenReturn(List.of(bd.edu.seu.jerseysee.dto.ProductCard.from(product)));
         when(productService.categories()).thenReturn(List.of(category));
         when(productService.search(any(), any()))
                 .thenReturn(new PageImpl<>(List.of(product), PageRequest.of(0, 12), 1));

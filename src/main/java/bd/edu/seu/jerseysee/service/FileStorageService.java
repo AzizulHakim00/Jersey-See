@@ -24,6 +24,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 @Service
 @Profile("!production")
+@org.springframework.boot.autoconfigure.condition.ConditionalOnProperty(name = "app.images.storage", havingValue = "legacy", matchIfMissing = true)
 public class FileStorageService implements ProductImageStorage {
 
     static final long MAX_IMAGE_SIZE = 5L * 1024 * 1024;

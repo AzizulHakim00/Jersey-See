@@ -4,6 +4,8 @@ JerseySee is a premium, server-rendered football ecommerce storefront and store-
 
 ## Features
 
+- Signed JWT browser/API authentication, transaction-aware Caffeine caching, and optional Cloudinary photo uploads. See [service setup and hosting variables](docs/jwt-cache-cloudinary-setup.md) before deploying this version.
+
 - Public football merchandise catalog with search and filters.
 - Jersey, training, outerwear, footwear, football, cap, gadget, and accessory products with size variants and SKU-level inventory.
 - Customer registration, login, profile editing, session cart, printing choices, checkout, order history, cancellation, and invoice download.

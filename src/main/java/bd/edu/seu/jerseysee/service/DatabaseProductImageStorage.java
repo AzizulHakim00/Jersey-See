@@ -14,6 +14,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 @Service
 @Profile("production")
+@org.springframework.boot.autoconfigure.condition.ConditionalOnProperty(name = "app.images.storage", havingValue = "legacy", matchIfMissing = true)
 public class DatabaseProductImageStorage implements ProductImageStorage {
 
     private final ProductImageRepository imageRepository;

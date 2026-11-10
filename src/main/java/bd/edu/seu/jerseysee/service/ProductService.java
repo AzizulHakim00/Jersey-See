@@ -48,6 +48,7 @@ public class ProductService {
         this.imageStorage = imageStorage;
     }
 
+    @org.springframework.cache.annotation.CacheEvict(value = "featuredCards", allEntries = true)
     @Transactional
     @PreAuthorize("hasAnyRole('MANAGER', 'ADMIN')")
     public Product create(ProductDTO input, MultipartFile image) {
@@ -76,6 +77,7 @@ public class ProductService {
         }
     }
 
+    @org.springframework.cache.annotation.CacheEvict(value = "featuredCards", allEntries = true)
     @Transactional
     @PreAuthorize("hasAnyRole('MANAGER', 'ADMIN')")
     public Product update(Long id, ProductDTO input, MultipartFile replacementImage) {
@@ -145,11 +147,18 @@ public class ProductService {
         return initializeVariants(productRepository.findTop8ByActiveTrueAndFeaturedTrueOrderByIdDesc());
     }
 
+    @org.springframework.cache.annotation.Cacheable("featuredCards")
+    @Transactional(readOnly = true)
+    public List<bd.edu.seu.jerseysee.dto.ProductCard> featuredCards() {
+        return featuredProducts().stream().map(bd.edu.seu.jerseysee.dto.ProductCard::from).toList();
+    }
+
     @Transactional(readOnly = true)
     public List<Category> categories() {
         return categoryRepository.findAll();
     }
 
+    @org.springframework.cache.annotation.CacheEvict(value = "featuredCards", allEntries = true)
     @Transactional
     @PreAuthorize("hasAnyRole('MANAGER', 'ADMIN')")
     public ProductVariant addVariant(Long productId, ProductVariantDTO input) {
@@ -169,6 +178,7 @@ public class ProductService {
         }
     }
 
+    @org.springframework.cache.annotation.CacheEvict(value = "featuredCards", allEntries = true)
     @Transactional
     @PreAuthorize("hasAnyRole('MANAGER', 'ADMIN')")
     public ProductVariant updateVariant(Long productId, Long variantId, ProductVariantDTO input) {
@@ -190,6 +200,7 @@ public class ProductService {
         }
     }
 
+    @org.springframework.cache.annotation.CacheEvict(value = "featuredCards", allEntries = true)
     @Transactional
     @PreAuthorize("hasAnyRole('MANAGER', 'ADMIN')")
     public void deleteVariant(Long productId, Long variantId) {
@@ -199,6 +210,7 @@ public class ProductService {
         variantRepository.flush();
     }
 
+    @org.springframework.cache.annotation.CacheEvict(value = "featuredCards", allEntries = true)
     @Transactional
     @PreAuthorize("hasAnyRole('MANAGER', 'ADMIN')")
     public void delete(Long id) {
