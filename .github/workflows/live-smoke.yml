@@ -234,15 +234,29 @@ jobs:
           grep -Fq "$smoke_product_name" admin-product-edit.html
           preview_path="/staff/products/$smoke_product_id/image"
           cp admin.cookies admin-edit.cookies
-          test "$(get_page_status admin.cookies "$preview_path" admin-selected-kit.jpg)" = "200"
+          preview_status="$(browser_request admin.cookies --dump-header admin-preview.headers \
+            --output admin-selected-kit.jpg --write-out "%{http_code}" "$BASE_URL$preview_path")"
+          test "$preview_status" = "200"
           cmp supplied-kits/barcelona-home.jpg admin-selected-kit.jpg
           product_action="/staff/products/$smoke_product_id"
           product_csrf="$(extract_csrf admin-product-edit.html "$product_action")"
           test -n "$product_csrf"
           checkpoint="admin replaces product image with a file upload"
-          if ! cmp -s admin-edit.cookies admin.cookies; then
-            echo "Admin cookies changed while opening the image preview."
-          fi
+          python3 - <<'PY'
+          from pathlib import Path
+
+          def cookies(path):
+              rows = (line.split("\t") for line in Path(path).read_text().splitlines())
+              return {row[5]: row[6] for row in rows if len(row) == 7}
+
+          before = cookies("admin-edit.cookies")
+          after = cookies("admin.cookies")
+          for name in sorted(before.keys() | after.keys()):
+              print(f"Preview request cookie {name}: {'unchanged' if before.get(name) == after.get(name) else 'changed'}")
+          for line in Path("admin-preview.headers").read_text().splitlines():
+              if line.lower().startswith("set-cookie:"):
+                  print("Preview response set cookie:", line.split(":", 1)[1].split("=", 1)[0].strip())
+          PY
           update_status="$(submit_product "$product_action" "$product_csrf" "$smoke_product_name updated" admin-update \
             --form "image=@supplied-kits/arsenal-home.jpg;type=image/jpeg")"
           if [ "$update_status" != "302" ]; then

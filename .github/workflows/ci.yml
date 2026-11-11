@@ -59,6 +59,56 @@ jobs:
             workflow.fetch("jobs").fetch("smoke").fetch("steps").each { |step| puts step.fetch("run") }
           ' > "$RUNNER_TEMP/jerseysee-smoke.sh"
 
+          npm install --no-save --package-lock=false --ignore-scripts playwright-core
+          node <<'JS'
+          const assert = require("node:assert/strict");
+          const { chromium } = require("playwright-core");
+
+          async function verifyProductEditor() {
+              const base = "http://127.0.0.1:8080";
+              const browser = await chromium.launch({ executablePath: "/usr/bin/google-chrome", args: ["--no-sandbox"] });
+              try {
+                  const page = await browser.newPage();
+                  await page.goto(base + "/login");
+                  await page.locator('input[name="username"]').fill("admin@demo.local");
+                  await page.locator('input[name="password"]').fill("Demo123!");
+                  await page.locator('form[action="/login"] button[type="submit"]').click();
+                  await page.waitForURL("**/dashboard");
+                  await page.goto(base + "/staff/products/new");
+
+                  const form = page.locator("form.product-editor");
+                  await form.locator("#name").fill("Browser-only temporary product");
+                  await form.locator("#brand").fill("JerseySee");
+                  await form.locator("#description").fill("Browser verification fixture");
+                  await form.locator("#basePrice").fill("100");
+                  await form.locator("#categoryId").selectOption({ index: 1 });
+                  await form.locator("#productType").selectOption("ACCESSORY");
+                  await form.locator("#active").uncheck();
+                  await form.locator('label:has(input[name="selectedKitImage"][value="barcelona-home"])').click();
+                  await form.locator('button[type="submit"]').click();
+                  await page.waitForURL(/\/staff\/products\/\d+\/edit\?created$/);
+                  await page.locator("[data-image-preview]").evaluate(image => image.decode());
+
+                  const action = await form.getAttribute("action");
+                  await form.locator("#name").fill("Browser-only temporary product updated");
+                  await form.locator("#image").setInputFiles("src/main/resources/static/images/kits/arsenal-home.jpg");
+                  const [updated] = await Promise.all([
+                      page.waitForResponse(response => response.request().method() === "POST"
+                          && new URL(response.url()).pathname === action),
+                      form.locator('button[type="submit"]').click()
+                  ]);
+                  assert.equal(updated.status(), 302, "Chrome product image upload response");
+                  await page.waitForURL(/\/staff\/products\/\d+\/edit\?updated$/);
+                  await page.locator("[data-image-preview]").evaluate(image => image.decode());
+                  console.log("Chrome product creation, image preview, and file replacement passed.");
+              } finally {
+                  await browser.close();
+              }
+          }
+
+          verifyProductEditor().catch(error => { console.error(error.message); process.exitCode = 1; });
+          JS
+
           BASE_URL=http://127.0.0.1:8080 bash "$RUNNER_TEMP/jerseysee-smoke.sh"
 
   docker:
