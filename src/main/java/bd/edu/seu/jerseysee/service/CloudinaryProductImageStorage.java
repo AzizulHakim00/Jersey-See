@@ -1,5 +1,6 @@
 package bd.edu.seu.jerseysee.service;
 
+import bd.edu.seu.jerseysee.exception.InvalidFileException;
 import bd.edu.seu.jerseysee.exception.ResourceNotFoundException;
 import bd.edu.seu.jerseysee.repository.ProductImageRepository;
 import java.nio.charset.StandardCharsets;
@@ -85,12 +86,12 @@ public class CloudinaryProductImageStorage implements ProductImageStorage {
             Object secureUrl = reply == null ? null : reply.get("secure_url");
             if (!publicId.equals(returnedId) || !(secureUrl instanceof String url)
                     || !url.startsWith(expectedPrefix)) {
-                throw new IllegalStateException("Unexpected Cloudinary upload response.");
+                throw new InvalidFileException("Image storage could not confirm the upload. Please try again.");
             }
             return new StoredFile(publicId + "." + upload.extension(), upload.originalName(),
                     upload.contentType(), upload.content().length);
         } catch (RestClientException exception) {
-            throw new IllegalStateException("Cloudinary image upload failed.", exception);
+            throw new InvalidFileException("Image storage is unavailable. Please try the upload again.", exception);
         }
     }
 

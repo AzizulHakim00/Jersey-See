@@ -79,6 +79,27 @@ class ProductImageControllerTest {
     }
 
     @Test
+    @WithMockUser(roles = "ADMIN")
+    void administratorCanPreviewInactiveProductImage() throws Exception {
+        Product product = imageProduct();
+        product.setActive(false);
+        when(productService.getForManagement(15L)).thenReturn(product);
+        when(fileStorageService.load("safe-name.png")).thenReturn(new ByteArrayResource(new byte[] {1, 2, 3}));
+
+        mockMvc.perform(get("/staff/products/15/image"))
+                .andExpect(status().isOk())
+                .andExpect(header().string("Content-Disposition", "inline"))
+                .andExpect(content().bytes(new byte[] {1, 2, 3}));
+    }
+
+    @Test
+    @WithMockUser(roles = "CUSTOMER")
+    void customerCannotPreviewInactiveProductImage() throws Exception {
+        mockMvc.perform(get("/staff/products/15/image"))
+                .andExpect(status().isForbidden());
+    }
+
+    @Test
     @WithMockUser(roles = "CUSTOMER")
     void customerCannotDownloadOriginalProductImage() throws Exception {
         mockMvc.perform(get("/products/15/image/download"))

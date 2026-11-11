@@ -22,6 +22,8 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
 import java.util.Set;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -35,6 +37,8 @@ import org.springframework.web.multipart.MultipartFile;
 
 @Service
 public class ProductService {
+
+    private static final Logger log = LoggerFactory.getLogger(ProductService.class);
 
     private final ProductRepository productRepository;
     private final ProductVariantRepository variantRepository;
@@ -72,7 +76,7 @@ public class ProductService {
             return saved;
         } catch (RuntimeException exception) {
             if (stored != null && !imageStorage.participatesInProductTransaction()) {
-                imageStorage.delete(stored.storedName());
+                deleteUnusedImage(stored.storedName());
             }
             throw translateDuplicateSku(exception);
         }
@@ -102,7 +106,7 @@ public class ProductService {
             return saved;
         } catch (RuntimeException exception) {
             if (replacement != null && !imageStorage.participatesInProductTransaction()) {
-                imageStorage.delete(replacement.storedName());
+                deleteUnusedImage(replacement.storedName());
             }
             throw translateDuplicateSku(exception);
         }
@@ -435,11 +439,11 @@ public class ProductService {
             TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
                 @Override
                 public void afterCommit() {
-                    imageStorage.delete(storedName);
+                    deleteUnusedImage(storedName);
                 }
             });
         } else {
-            imageStorage.delete(storedName);
+            deleteUnusedImage(storedName);
         }
     }
 
@@ -453,10 +457,18 @@ public class ProductService {
                 @Override
                 public void afterCompletion(int status) {
                     if (status != STATUS_COMMITTED) {
-                        imageStorage.delete(storedName);
+                        deleteUnusedImage(storedName);
                     }
                 }
             });
+        }
+    }
+
+    private void deleteUnusedImage(String storedName) {
+        try {
+            imageStorage.delete(storedName);
+        } catch (RuntimeException exception) {
+            log.warn("Could not remove unused product image {}", storedName, exception);
         }
     }
 

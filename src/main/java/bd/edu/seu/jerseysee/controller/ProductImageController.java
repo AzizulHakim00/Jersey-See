@@ -36,6 +36,12 @@ public class ProductImageController {
         return imageResponse(product, ContentDisposition.inline().build());
     }
 
+    @GetMapping("/staff/products/{id}/image")
+    @PreAuthorize("hasAnyRole('MANAGER', 'ADMIN')")
+    public ResponseEntity<Resource> preview(@PathVariable Long id) {
+        return imageResponse(productService.getForManagement(id), ContentDisposition.inline().build());
+    }
+
     @GetMapping("/products/{id}/image/download")
     @PreAuthorize("hasAnyRole('MANAGER', 'ADMIN')")
     public ResponseEntity<Resource> download(@PathVariable Long id) {

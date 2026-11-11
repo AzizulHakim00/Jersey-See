@@ -3,6 +3,13 @@
 
     document.documentElement.classList.add("js");
 
+    window.addEventListener("pageshow", (event) => {
+        // A history snapshot may still contain forms from the previous login.
+        if (event.persisted && document.querySelector('form[method="post"] input[name="_csrf"]')) {
+            window.location.replace(window.location.href);
+        }
+    });
+
     const setExpanded = (button, expanded) => button?.setAttribute("aria-expanded", String(expanded));
 
     const menuButton = document.querySelector("[data-mobile-menu-toggle], [data-menu-toggle]");

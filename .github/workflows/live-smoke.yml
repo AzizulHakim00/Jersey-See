@@ -37,6 +37,7 @@ jobs:
 
           retry_curl "$BASE_URL/actuator/health" health.json
           grep -Eq '"status"\s*:\s*"UP"' health.json
+          retry_curl "$BASE_URL/actuator/info" release.json "$GITHUB_SHA"
 
           retry_curl "$BASE_URL/" home.html "data-hero-showcase"
           grep -Fq "/images/media/home-motion-strike.webp" home.html
@@ -171,7 +172,15 @@ jobs:
           done
 
           test "$(get_page_status admin.cookies /staff/products/new admin-product-form.html)" = "200"
-          product_csrf="$(extract_csrf admin-product-form.html)"
+          checkpoint="admin opens product editor and supplied kit images"
+          product_csrf="$(extract_csrf admin-product-form.html /staff/products)"
+          grep -Eo '/images/kits/[a-z0-9-]+\.jpg' admin-product-form.html | sort -u > supplied-kits.txt
+          test "$(wc -l < supplied-kits.txt)" -eq 22
+          mkdir -p supplied-kits
+          while IFS= read -r asset; do
+            curl --fail --silent --show-error --max-time 20 "$BASE_URL$asset" -o "supplied-kits/${asset##*/}"
+            test -s "supplied-kits/${asset##*/}"
+          done < supplied-kits.txt
           test -n "$product_csrf"
           category_id="$(python3 - <<'PY'
           import re
@@ -194,12 +203,15 @@ jobs:
 
           submit_product() {
             local route="$1" token="$2" name="$3" prefix="$4"
+            shift 4
             browser_request admin.cookies --request POST "$BASE_URL$route" \
-              --form-string "_csrf=$token" --form-string "name=$name" "${product_fields[@]}" \
+              --form-string "_csrf=$token" --form-string "name=$name" "${product_fields[@]}" "$@" \
               --output "${prefix}.html" --dump-header "${prefix}.headers" --write-out "%{http_code}"
           }
 
-          create_status="$(submit_product /staff/products "$product_csrf" "$smoke_product_name" admin-create)"
+          checkpoint="admin creates product with a supplied kit image"
+          create_status="$(submit_product /staff/products "$product_csrf" "$smoke_product_name" admin-create \
+            --form-string "selectedKitImage=barcelona-home")"
           if [ "$create_status" != "302" ]; then
             echo "Admin multipart product creation returned HTTP $create_status instead of 302" >&2
             exit 1
@@ -220,14 +232,28 @@ jobs:
 
           test "$(get_page_status admin.cookies "/staff/products/$smoke_product_id/edit" admin-product-edit.html)" = "200"
           grep -Fq "$smoke_product_name" admin-product-edit.html
-          product_csrf="$(extract_csrf admin-product-edit.html)"
+          preview_path="/staff/products/$smoke_product_id/image"
+          test "$(get_page_status admin.cookies "$preview_path" admin-selected-kit.jpg)" = "200"
+          cmp supplied-kits/barcelona-home.jpg admin-selected-kit.jpg
+          product_action="/staff/products/$smoke_product_id"
+          product_csrf="$(extract_csrf admin-product-edit.html "$product_action")"
           test -n "$product_csrf"
-          update_status="$(submit_product "/staff/products/$smoke_product_id" "$product_csrf" "$smoke_product_name updated" admin-update)"
-          test "$update_status" = "302"
+          checkpoint="admin replaces product image with a file upload"
+          update_status="$(submit_product "$product_action" "$product_csrf" "$smoke_product_name updated" admin-update \
+            --form "image=@supplied-kits/arsenal-home.jpg;type=image/jpeg")"
+          if [ "$update_status" != "302" ]; then
+            echo "Admin image replacement returned HTTP $update_status instead of 302." >&2
+            exit 1
+          fi
           grep -Eiq '^location:[[:space:]]*(https?://[^/]+)?/staff/products/[0-9]+/edit\?updated[[:space:]]*$' admin-update.headers
 
           test "$(get_page_status admin.cookies "/staff/products/$smoke_product_id/edit" admin-variant.html)" = "200"
           grep -Fq "$smoke_product_name updated" admin-variant.html
+          test "$(get_page_status admin.cookies "$preview_path" admin-replaced-kit.jpg)" = "200"
+          cmp supplied-kits/arsenal-home.jpg admin-replaced-kit.jpg
+          test "$(get_page_status admin.cookies "/products/$smoke_product_id/image/download" admin-download-kit.jpg)" = "200"
+          cmp admin-replaced-kit.jpg admin-download-kit.jpg
+          checkpoint="admin creates inventory variant"
           variant_csrf="$(extract_csrf admin-variant.html)"
           test -n "$variant_csrf"
           variant_status="$(browser_request admin.cookies --request POST "$BASE_URL/staff/products/$smoke_product_id/variants" \
@@ -261,7 +287,7 @@ jobs:
           grep -Eiq '^location:[[:space:]]*(https?://[^/]+)?/dashboard[[:space:]]*$' admin-relogin.headers
           test "$(get_page_status admin.cookies /dashboard admin-after-relogin.html)" = "200"
           grep -Fq "Admin dashboard" admin-after-relogin.html
-          echo "Admin sign-in, staff pages, product creation, editing, inventory, cleanup, logout, and re-login passed."
+          echo "Admin sign-in, staff pages, kit image selection, product creation, image upload and replacement, inventory, cleanup, logout, and re-login passed."
 
           # PERSISTENT_CART_SMOKE uses the demo customer only. It creates one
           # uniquely marked cart line, verifies that line after a completely
@@ -355,6 +381,50 @@ jobs:
           test "$(get_page_status customer.cookies /dashboard buyer-dashboard.html)" = "200"
           checkpoint="buyer profile"
           test "$(get_page_status customer.cookies /profile buyer-profile.html)" = "200"
+          checkpoint="buyer saves profile"
+          profile_csrf="$(extract_csrf buyer-profile.html /profile)"
+          test -n "$profile_csrf"
+          mapfile -d '' -t profile_fields < <(python3 - <<'PY'
+          from html.parser import HTMLParser
+          from pathlib import Path
+          import sys
+
+          class ProfileParser(HTMLParser):
+              def __init__(self):
+                  super().__init__()
+                  self.fields = {}
+                  self.in_address = False
+
+              def handle_starttag(self, tag, attributes):
+                  attrs = dict(attributes)
+                  field = attrs.get("name")
+                  if tag == "input" and field in {"name", "phone"}:
+                      self.fields[field] = attrs.get("value", "")
+                  if tag == "textarea" and field == "address":
+                      self.in_address = True
+                      self.fields[field] = ""
+
+              def handle_data(self, data):
+                  if self.in_address:
+                      self.fields["address"] += data
+
+              def handle_endtag(self, tag):
+                  if tag == "textarea":
+                      self.in_address = False
+
+          parser = ProfileParser()
+          parser.feed(Path("buyer-profile.html").read_text(encoding="utf-8"))
+          for field in ("name", "phone", "address"):
+              sys.stdout.write(field + "=" + parser.fields[field] + "\0")
+          PY
+          )
+          test "${#profile_fields[@]}" -eq 3
+          profile_status="$(browser_request customer.cookies --request POST "$BASE_URL/profile" \
+            --data-urlencode "_csrf=$profile_csrf" --data-urlencode "${profile_fields[0]}" \
+            --data-urlencode "${profile_fields[1]}" --data-urlencode "${profile_fields[2]}" \
+            --output /dev/null --dump-header buyer-profile-save.headers --write-out "%{http_code}")"
+          test "$profile_status" = "302"
+          grep -Eiq '^location:[[:space:]]*(https?://[^/]+)?/profile\?updated[[:space:]]*$' buyer-profile-save.headers
           checkpoint="buyer order history"
           test "$(get_page_status customer.cookies /orders buyer-orders.html)" = "200"
           checkpoint="buyer blocked from admin pages"
