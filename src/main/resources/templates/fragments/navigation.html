@@ -2,7 +2,9 @@
 <html lang="en" xmlns:th="http://www.thymeleaf.org">
 <body>
 <header class="store-header" th:fragment="navigation(activePage)" data-storefront-header>
+    <link rel="icon" th:href="@{/images/brand/jerseysee-icon.png}" type="image/png">
     <link rel="stylesheet" th:href="@{/css/storefront-repair.css}">
+    <link rel="stylesheet" th:href="@{/css/brand-refresh.css}">
     <div class="store-nav section-shell">
         <button class="menu-toggle modern-menu-toggle" type="button" data-menu-toggle data-mobile-menu-toggle
                 aria-controls="mobileMenu" aria-expanded="false" aria-label="Open navigation">
@@ -10,8 +12,8 @@
         </button>
 
         <a class="brand modern-brand" th:href="@{/}" aria-label="JerseySee home">
-            <img th:src="@{/images/brand-mark.svg}" alt="" width="39" height="44">
-            <span><strong>JerseySee</strong><small>Football store</small></span>
+            <img th:src="@{/images/brand/jerseysee-icon.png}" alt="" width="48" height="48">
+            <span class="brand-wordmark"><strong>JERSEY <em>SEE</em></strong><small>Football store</small></span>
         </a>
 
         <nav class="primary-shop-nav" id="mobileMenu" data-primary-shop-nav data-mobile-menu aria-label="Primary navigation">
