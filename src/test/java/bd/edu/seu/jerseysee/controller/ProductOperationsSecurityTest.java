@@ -2,6 +2,7 @@ package bd.edu.seu.jerseysee.controller;
 
 import bd.edu.seu.jerseysee.config.SecurityConfig;
 import bd.edu.seu.jerseysee.service.CartService;
+import bd.edu.seu.jerseysee.service.KitImageCatalog;
 import bd.edu.seu.jerseysee.service.ProductService;
 import bd.edu.seu.jerseysee.service.UserService;
 import org.junit.jupiter.api.BeforeEach;
@@ -25,6 +26,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 class ProductOperationsSecurityTest {
 
     @MockitoBean private ProductService productService;
+    @MockitoBean private KitImageCatalog kitImageCatalog;
     @MockitoBean private UserService userService;
     @MockitoBean private CartService cartService;
 
