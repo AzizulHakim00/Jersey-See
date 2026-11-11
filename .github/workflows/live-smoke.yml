@@ -37,7 +37,7 @@ jobs:
 
           retry_curl "$BASE_URL/actuator/health" health.json
           grep -Eq '"status"\s*:\s*"UP"' health.json
-          retry_curl "$BASE_URL/actuator/info" release.json "$GITHUB_SHA"
+          retry_curl "$BASE_URL/js/app.js?release=$GITHUB_SHA" account.js 'window.location.replace(window.location.href)'
 
           retry_curl "$BASE_URL/" home.html "data-hero-showcase"
           grep -Fq "/images/media/home-motion-strike.webp" home.html
