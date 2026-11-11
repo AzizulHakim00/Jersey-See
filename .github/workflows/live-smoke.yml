@@ -239,19 +239,6 @@ jobs:
           product_csrf="$(extract_csrf admin-product-edit.html "$product_action")"
           test -n "$product_csrf"
           checkpoint="admin replaces product image with a file upload"
-          python3 - "$product_csrf" <<'PY'
-          import base64
-          from pathlib import Path
-          import sys
-
-          cookies = [line.split("\t") for line in Path("admin.cookies").read_text().splitlines()]
-          expected = [row[6] for row in cookies if len(row) == 7 and row[5] == "XSRF-TOKEN"]
-          encoded = sys.argv[1]
-          token = base64.urlsafe_b64decode(encoded + "=" * (-len(encoded) % 4))
-          half = len(token) // 2
-          raw = bytes(left ^ right for left, right in zip(token[:half], token[half:]))
-          print(f"Edit form token matches a current cookie: {any(raw == value.encode() for value in expected)}")
-          PY
           update_status="$(submit_product "$product_action" "$product_csrf" "$smoke_product_name updated" admin-update \
             --form "image=@supplied-kits/arsenal-home.jpg;type=image/jpeg")"
           if [ "$update_status" != "302" ]; then
@@ -536,35 +523,12 @@ jobs:
           test -n "$line_id_before"
 
           checkpoint="buyer checkout page"
-          cp customer.cookies cart-before-checkout.cookies
           test "$(get_page_status customer.cookies /checkout checkout-page.html)" = "200"
           grep -Fq "data-checkout-layout" checkout-page.html
 
           checkpoint="buyer changes cart quantity"
-          test "$(get_page_status customer.cookies /cart cart-for-quantity.html)" = "200"
-          quantity_action="/cart/items/$line_id_before"
-          quantity_csrf="$(extract_csrf cart-for-quantity.html "$quantity_action")"
+          quantity_csrf="$(extract_csrf cart-before-logout.html "/cart/items/$line_id_before")"
           test -n "$quantity_csrf"
-          python3 - "$quantity_csrf" <<'PY'
-          import base64
-          from pathlib import Path
-          import sys
-
-          def csrf_cookie(path):
-              for line in Path(path).read_text().splitlines():
-                  fields = line.split("\t")
-                  if len(fields) == 7 and fields[5] == "XSRF-TOKEN":
-                      return fields[6]
-              return ""
-
-          current = csrf_cookie("customer.cookies")
-          encoded = sys.argv[1]
-          decoded = base64.urlsafe_b64decode(encoded + "=" * (-len(encoded) % 4))
-          half = len(decoded) // 2
-          raw = bytes(left ^ right for left, right in zip(decoded[:half], decoded[half:]))
-          print(f"Cart CSRF cookie persisted through checkout: {bool(current) and current == csrf_cookie('cart-before-checkout.cookies')}")
-          print(f"Quantity form token matches current CSRF cookie: {raw == current.encode()}")
-          PY
           quantity_status="$(browser_request customer.cookies --request POST "$BASE_URL/cart/items/$line_id_before" \
             --data-urlencode "_csrf=$quantity_csrf" --data-urlencode "quantity=2" \
             --output customer-quantity.html --dump-header customer-quantity.headers --write-out "%{http_code}")"

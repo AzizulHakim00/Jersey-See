@@ -21,7 +21,6 @@ import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
-import org.springframework.security.web.csrf.CookieCsrfTokenRepository;
 import org.springframework.security.web.context.NullSecurityContextRepository;
 
 @Configuration
@@ -34,8 +33,8 @@ public class SecurityConfig {
             ObjectProvider<UserDetailsService> users) throws Exception {
         http.sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .securityContext(context -> context.securityContextRepository(new NullSecurityContextRepository()))
-                .csrf(csrf -> csrf.csrfTokenRepository(new CookieCsrfTokenRepository())
-                        .ignoringRequestMatchers("/api/**"))
+                // Browser forms use the session CSRF token. Authentication remains JWT-based.
+                .csrf(csrf -> csrf.ignoringRequestMatchers("/api/**"))
                 .addFilterBefore(new JwtAuthFilter(tokens, users), UsernamePasswordAuthenticationFilter.class)
                 .authorizeHttpRequests(authorize -> authorize
                         .requestMatchers("/", "/catalog/**", "/products/**", "/product-images/**", "/register", "/login",
