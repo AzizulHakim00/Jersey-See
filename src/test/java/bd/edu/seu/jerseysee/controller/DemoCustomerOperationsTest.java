@@ -65,6 +65,16 @@ class DemoCustomerOperationsTest {
 
     @Test
     @WithMockUser(username = DEMO_CUSTOMER, roles = "CUSTOMER")
+    void demoCustomerCanChangeCartQuantity() throws Exception {
+        mockMvc.perform(post("/cart/items/demo-line").with(csrf()).param("quantity", "2"))
+                .andExpect(status().is3xxRedirection())
+                .andExpect(redirectedUrl("/cart?updated"));
+
+        verify(cartService).updateQuantity(customer, "demo-line", 2);
+    }
+
+    @Test
+    @WithMockUser(username = DEMO_CUSTOMER, roles = "CUSTOMER")
     void demoCustomerCanUpdateProfile() throws Exception {
         mockMvc.perform(post("/profile").with(csrf())
                         .param("name", "Demo Customer Updated")

@@ -454,8 +454,12 @@ jobs:
           test -n "$quantity_csrf"
           quantity_status="$(browser_request customer.cookies --request POST "$BASE_URL/cart/items/$line_id_before" \
             --data-urlencode "_csrf=$quantity_csrf" --data-urlencode "quantity=2" \
-            --output /dev/null --dump-header customer-quantity.headers --write-out "%{http_code}")"
-          test "$quantity_status" = "302"
+            --output customer-quantity.html --dump-header customer-quantity.headers --write-out "%{http_code}")"
+          if [ "$quantity_status" != "302" ]; then
+            echo "Cart quantity update returned HTTP $quantity_status instead of 302." >&2
+            grep -Eo 'Form expired|Quantity must be between 1 and 10 per cart line\.|Cart line not found\.|[Ii]nsufficient stock|[Oo]nly [0-9]+ in stock|Whitelabel Error Page|Internal Server Error' customer-quantity.html | sort -u || true
+            exit 1
+          fi
           grep -Eiq '^location:[[:space:]]*(https?://[^/]+)?/cart\?updated[[:space:]]*$' customer-quantity.headers
           test "$(get_page_status customer.cookies /cart cart-before-logout.html)" = "200"
 
