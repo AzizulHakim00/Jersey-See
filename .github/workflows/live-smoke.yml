@@ -233,17 +233,27 @@ jobs:
           test "$(get_page_status admin.cookies "/staff/products/$smoke_product_id/edit" admin-product-edit.html)" = "200"
           grep -Fq "$smoke_product_name" admin-product-edit.html
           preview_path="/staff/products/$smoke_product_id/image"
+          cp admin.cookies admin-edit.cookies
           test "$(get_page_status admin.cookies "$preview_path" admin-selected-kit.jpg)" = "200"
           cmp supplied-kits/barcelona-home.jpg admin-selected-kit.jpg
           product_action="/staff/products/$smoke_product_id"
           product_csrf="$(extract_csrf admin-product-edit.html "$product_action")"
           test -n "$product_csrf"
           checkpoint="admin replaces product image with a file upload"
+          if ! cmp -s admin-edit.cookies admin.cookies; then
+            echo "Admin cookies changed while opening the image preview."
+          fi
           update_status="$(submit_product "$product_action" "$product_csrf" "$smoke_product_name updated" admin-update \
             --form "image=@supplied-kits/arsenal-home.jpg;type=image/jpeg")"
           if [ "$update_status" != "302" ]; then
             echo "Admin image replacement returned HTTP $update_status instead of 302." >&2
             grep -Eo 'Form expired|Access denied|Image extension and content type do not match|Image content is invalid or undecodable|Image must not exceed 5 MB' admin-update.html | sort -u || true
+            test "$(get_page_status admin.cookies "$product_action/edit" admin-update-fresh.html)" = "200"
+            fresh_token="$(extract_csrf admin-update-fresh.html "$product_action")"
+            test -n "$fresh_token"
+            fresh_status="$(submit_product "$product_action" "$fresh_token" "$smoke_product_name updated" admin-update-fresh \
+              --form "image=@supplied-kits/arsenal-home.jpg;type=image/jpeg")"
+            echo "Admin upload with a newly loaded form returned HTTP $fresh_status."
             exit 1
           fi
           grep -Eiq '^location:[[:space:]]*(https?://[^/]+)?/staff/products/[0-9]+/edit\?updated[[:space:]]*$' admin-update.headers

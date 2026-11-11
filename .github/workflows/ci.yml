@@ -45,6 +45,22 @@ jobs:
           if-no-files-found: error
           retention-days: 3
 
+      - name: Verify buyer and admin operations in the packaged demo
+        shell: bash
+        run: |
+          set -euo pipefail
+          SPRING_PROFILES_ACTIVE=demo RENDER=true APP_KEEP_WARM_ENABLED=false \
+            java -jar target/jersey-see-0.0.1-SNAPSHOT.jar > "$RUNNER_TEMP/jerseysee-runtime.log" 2>&1 &
+          app_pid=$!
+          trap 'status=$?; if [ "$status" -ne 0 ]; then tail -n 100 "$RUNNER_TEMP/jerseysee-runtime.log"; fi; kill "$app_pid" 2>/dev/null || true' EXIT
+
+          ruby -ryaml -e '
+            workflow = YAML.load_file(".github/workflows/live-smoke.yml")
+            workflow.fetch("jobs").fetch("smoke").fetch("steps").each { |step| puts step.fetch("run") }
+          ' > "$RUNNER_TEMP/jerseysee-smoke.sh"
+
+          BASE_URL=http://127.0.0.1:8080 bash "$RUNNER_TEMP/jerseysee-smoke.sh"
+
   docker:
     needs: verify
     runs-on: ubuntu-latest
@@ -55,19 +71,3 @@ jobs:
 
       - name: Build production container
         run: docker build --tag jerseysee:ci .
-
-      - name: Verify buyer and admin operations in the built container
-        shell: bash
-        run: |
-          set -euo pipefail
-          docker run --detach --name jerseysee-ci --publish 127.0.0.1:8080:8080 \
-            --env SPRING_PROFILES_ACTIVE=demo --env RENDER=true \
-            --env APP_KEEP_WARM_ENABLED=false jerseysee:ci
-          trap 'status=$?; if [ "$status" -ne 0 ]; then docker logs jerseysee-ci; fi; docker rm -f jerseysee-ci >/dev/null' EXIT
-
-          ruby -ryaml -e '
-            workflow = YAML.load_file(".github/workflows/live-smoke.yml")
-            workflow.fetch("jobs").fetch("smoke").fetch("steps").each { |step| puts step.fetch("run") }
-          ' > "$RUNNER_TEMP/jerseysee-smoke.sh"
-
-          BASE_URL=http://127.0.0.1:8080 bash "$RUNNER_TEMP/jerseysee-smoke.sh"
