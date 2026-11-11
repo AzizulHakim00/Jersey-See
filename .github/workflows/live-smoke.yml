@@ -72,7 +72,9 @@ jobs:
       - name: Verify live sign-in and persistent cart
         shell: bash
         run: |
-          set -euo pipefail
+          set -Eeuo pipefail
+          checkpoint="read login forms"
+          trap 'echo "::error::Live operation failed at line $LINENO ($checkpoint)"' ERR
           extract_csrf() {
             python3 - "$1" <<'PY'
           from html.parser import HTMLParser
@@ -106,7 +108,10 @@ jobs:
 
           get_page_status() {
             local jar="$1" path="$2" output="$3"
-            browser_request "$jar" --output "$output" --write-out "%{http_code}" "$BASE_URL$path"
+            local status
+            status="$(browser_request "$jar" --output "$output" --write-out "%{http_code}" "$BASE_URL$path")"
+            printf "GET %s returned HTTP %s\n" "$path" "$status" >&2
+            printf "%s" "$status"
           }
 
           assert_signed_out() {
@@ -338,11 +343,17 @@ jobs:
             fi
           }
 
+          checkpoint="buyer sign-in"
           login_customer customer.cookies customer
+          checkpoint="buyer dashboard"
           test "$(get_page_status customer.cookies /dashboard buyer-dashboard.html)" = "200"
+          checkpoint="buyer profile"
           test "$(get_page_status customer.cookies /profile buyer-profile.html)" = "200"
+          checkpoint="buyer order history"
           test "$(get_page_status customer.cookies /orders buyer-orders.html)" = "200"
+          checkpoint="buyer blocked from admin pages"
           test "$(get_page_status customer.cookies /staff/products buyer-forbidden.html)" = "403"
+          checkpoint="buyer opens cart"
           remove_smoke_line_if_present customer.cookies customer-cart-initial.html
 
           curl --fail --silent --show-error --location \
@@ -350,6 +361,7 @@ jobs:
             --cookie customer.cookies --cookie-jar customer.cookies \
             "$BASE_URL/catalog" -o customer-catalog.html
 
+          checkpoint="find a product in the catalog"
           product_path="$(python3 - <<'PY'
           from html.parser import HTMLParser
 
@@ -378,6 +390,7 @@ jobs:
             --cookie customer.cookies --cookie-jar customer.cookies \
             "$BASE_URL$product_path" -o customer-product.html
 
+          checkpoint="find an in-stock product variant"
           variant_id="$(python3 - <<'PY'
           from html.parser import HTMLParser
 
@@ -402,6 +415,7 @@ jobs:
           )"
           test -n "$variant_id"
 
+          checkpoint="buyer adds a cart line"
           customer_csrf="$(extract_csrf customer-product.html)"
           test -n "$customer_csrf"
           add_status="$(curl --silent --show-error \
@@ -427,12 +441,15 @@ jobs:
             --connect-timeout 10 --max-time 30 \
             --cookie customer.cookies --cookie-jar customer.cookies \
             "$BASE_URL/cart" -o cart-before-logout.html
+          checkpoint="buyer cart contains the added product"
           line_id_before="$(find_smoke_line_id cart-before-logout.html)"
           test -n "$line_id_before"
 
+          checkpoint="buyer checkout page"
           test "$(get_page_status customer.cookies /checkout checkout-page.html)" = "200"
           grep -Fq "data-checkout-layout" checkout-page.html
 
+          checkpoint="buyer changes cart quantity"
           quantity_csrf="$(extract_csrf cart-before-logout.html)"
           test -n "$quantity_csrf"
           quantity_status="$(browser_request customer.cookies --request POST "$BASE_URL/cart/items/$line_id_before" \
@@ -442,6 +459,7 @@ jobs:
           grep -Eiq '^location:[[:space:]]*(https?://[^/]+)?/cart\?updated[[:space:]]*$' customer-quantity.headers
           test "$(get_page_status customer.cookies /cart cart-before-logout.html)" = "200"
 
+          checkpoint="buyer signs out"
           logout_csrf="$(extract_csrf cart-before-logout.html)"
           test -n "$logout_csrf"
           logout_status="$(curl --silent --show-error \
@@ -460,12 +478,14 @@ jobs:
           grep -Eiq '^location:[[:space:]]*(https?://[^/]+)?/login\?logout[[:space:]]*$' customer-logout.headers
           assert_signed_out customer.cookies customer
           cp customer.cookies fresh-customer.cookies
+          checkpoint="buyer signs back in"
           login_customer fresh-customer.cookies fresh-customer
           curl --fail --silent --show-error --location \
             --connect-timeout 10 --max-time 30 \
             --cookie fresh-customer.cookies --cookie-jar fresh-customer.cookies \
             "$BASE_URL/cart" -o cart-after-login.html
 
+          checkpoint="buyer cart persists after sign-in"
           line_id_after="$(find_smoke_line_id cart-after-login.html)"
           if [ -z "$line_id_after" ]; then
             echo "persisted cart line missing after fresh login" >&2
@@ -476,6 +496,7 @@ jobs:
             exit 1
           fi
 
+          checkpoint="buyer removes the cart line"
           cleanup_csrf="$(extract_csrf cart-after-login.html)"
           test -n "$cleanup_csrf"
           cleanup_status="$(curl --silent --show-error \
