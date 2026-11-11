@@ -239,10 +239,24 @@ jobs:
           product_csrf="$(extract_csrf admin-product-edit.html "$product_action")"
           test -n "$product_csrf"
           checkpoint="admin replaces product image with a file upload"
+          python3 - "$product_csrf" <<'PY'
+          import base64
+          from pathlib import Path
+          import sys
+
+          cookies = [line.split("\t") for line in Path("admin.cookies").read_text().splitlines()]
+          expected = [row[6] for row in cookies if len(row) == 7 and row[5] == "XSRF-TOKEN"]
+          encoded = sys.argv[1]
+          token = base64.urlsafe_b64decode(encoded + "=" * (-len(encoded) % 4))
+          half = len(token) // 2
+          raw = bytes(left ^ right for left, right in zip(token[:half], token[half:]))
+          print(f"Edit form token matches a current cookie: {any(raw == value.encode() for value in expected)}")
+          PY
           update_status="$(submit_product "$product_action" "$product_csrf" "$smoke_product_name updated" admin-update \
             --form "image=@supplied-kits/arsenal-home.jpg;type=image/jpeg")"
           if [ "$update_status" != "302" ]; then
             echo "Admin image replacement returned HTTP $update_status instead of 302." >&2
+            grep -Eo 'Form expired|Access denied|Image extension and content type do not match|Image content is invalid or undecodable|Image must not exceed 5 MB' admin-update.html | sort -u || true
             exit 1
           fi
           grep -Eiq '^location:[[:space:]]*(https?://[^/]+)?/staff/products/[0-9]+/edit\?updated[[:space:]]*$' admin-update.headers
