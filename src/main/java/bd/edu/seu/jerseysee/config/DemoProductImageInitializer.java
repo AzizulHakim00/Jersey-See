@@ -5,12 +5,13 @@ import bd.edu.seu.jerseysee.model.ProductImage;
 import bd.edu.seu.jerseysee.repository.ProductImageRepository;
 import bd.edu.seu.jerseysee.repository.ProductRepository;
 import java.io.IOException;
-import java.nio.charset.StandardCharsets;
-import java.util.Base64;
+import java.io.InputStream;
 import java.util.LinkedHashMap;
 import java.util.Map;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression;
 import org.springframework.boot.context.event.ApplicationReadyEvent;
+import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.context.annotation.Profile;
 import org.springframework.context.event.EventListener;
 import org.springframework.core.annotation.Order;
@@ -20,40 +21,51 @@ import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
 @Component
-@Profile("production")
-@ConditionalOnProperty(name = "app.public-demo.enabled", havingValue = "true")
+@Profile({"demo", "production"})
+@ConditionalOnExpression("${app.public-demo.enabled:false} || ${app.catalog.supplied-kits.enabled:false}")
 public class DemoProductImageInitializer {
 
-    private static final Map<String, DemoImage> IMAGES = imageMap();
     private static final String FALLBACK_IMAGE = "jerseysee-training-wear.svg";
+    private static final String KIT_IMAGE_DIRECTORY = "classpath:/static/images/kits/";
+    private static final Map<String, DemoImage> IMAGES = imageMap();
 
     private final ProductRepository productRepository;
     private final ProductImageRepository imageRepository;
     private final ResourceLoader resourceLoader;
+    private final boolean publicDemoEnabled;
 
     public DemoProductImageInitializer(ProductRepository productRepository,
             ProductImageRepository imageRepository,
-            ResourceLoader resourceLoader) {
+            ResourceLoader resourceLoader,
+            @Value("${app.public-demo.enabled:false}") boolean publicDemoEnabled) {
         this.productRepository = productRepository;
         this.imageRepository = imageRepository;
         this.resourceLoader = resourceLoader;
+        this.publicDemoEnabled = publicDemoEnabled;
     }
 
     @EventListener(ApplicationReadyEvent.class)
     @Order(20)
+    @CacheEvict(value = "featuredCards", allEntries = true)
     @Transactional
     public void onApplicationReady() {
         seedImages();
     }
 
     public void seedImages() {
-        IMAGES.forEach((seedKey, image) -> productRepository.findByDemoSeedKey(seedKey)
-                .ifPresent(product -> seedProductImage(product, image)));
+        IMAGES.forEach((seedKey, image) -> {
+            if (publicDemoEnabled || KIT_IMAGE_DIRECTORY.equals(image.resourceDirectory())) {
+                productRepository.findByDemoSeedKey(seedKey).ifPresent(product -> seedProductImage(product, image));
+            }
+        });
     }
 
     private void seedProductImage(Product product, DemoImage image) {
         String expectedStoredName = "demo-" + image.storedSlug() + image.extension();
         String currentStoredName = product.getStoredImageName();
+        if (!publicDemoEnabled && currentStoredName != null && !currentStoredName.startsWith("demo-")) {
+            return;
+        }
         if (expectedStoredName.equals(currentStoredName)
                 && imageRepository.findById(currentStoredName).isPresent()) {
             return;
@@ -76,25 +88,20 @@ public class DemoProductImageInitializer {
     }
 
     private LoadedImage loadImage(DemoImage image) throws IOException {
-        Resource encoded = resourceLoader.getResource("classpath:/demo-images/" + image.resourceName() + ".b64");
-        if (encoded.exists()) {
-            String payload = new String(encoded.getInputStream().readAllBytes(), StandardCharsets.UTF_8)
-                    .replaceAll("\\s+", "");
-            byte[] bytes = Base64.getDecoder().decode(payload);
-            return new LoadedImage(bytes, image.resourceName(), image.extension(), image.contentType());
-        }
-
-        Resource direct = resourceLoader.getResource("classpath:/demo-images/" + image.resourceName());
+        Resource direct = resourceLoader.getResource(image.resourceDirectory() + image.resourceName());
         if (direct.exists()) {
-            return new LoadedImage(direct.getInputStream().readAllBytes(), image.resourceName(),
-                    image.extension(), image.contentType());
+            try (InputStream input = direct.getInputStream()) {
+                return new LoadedImage(input.readAllBytes(), image.resourceName(), image.extension(), image.contentType());
+            }
         }
 
         Resource fallback = resourceLoader.getResource("classpath:/demo-images/" + FALLBACK_IMAGE);
         if (!fallback.exists()) {
             throw new IllegalStateException("Missing demo product image and fallback: " + image.resourceName());
         }
-        return new LoadedImage(fallback.getInputStream().readAllBytes(), FALLBACK_IMAGE, ".svg", "image/svg+xml");
+        try (InputStream input = fallback.getInputStream()) {
+            return new LoadedImage(input.readAllBytes(), FALLBACK_IMAGE, ".svg", "image/svg+xml");
+        }
     }
 
     private static Map<String, DemoImage> imageMap() {
@@ -124,9 +131,9 @@ public class DemoProductImageInitializer {
 
         addWebp(images, "premium-football-boots", "product-boot-white.webp");
         addWebp(images, "indoor-futsal-shoes", "product-boot-black.webp");
-        addWebp(images, "training-sneakers", "product-boot-white.webp");
-        addWebp(images, "match-football", "product-ball.webp");
-        addWebp(images, "training-football", "product-ball.webp");
+        addWebp(images, "training-sneakers", "product-training-sneakers.webp");
+        addWebp(images, "match-football", "product-match-ball.webp");
+        addWebp(images, "training-football", "product-training-ball.webp");
         addWebp(images, "mini-supporter-ball", "product-ball.webp");
         addWebp(images, "training-top", "product-training-top.webp");
 
@@ -141,20 +148,21 @@ public class DemoProductImageInitializer {
 
     private static void addJpeg(Map<String, DemoImage> images, String productSlug, String resourceName) {
         images.put("public.product." + productSlug,
-                new DemoImage(productSlug, resourceName, ".jpg", "image/jpeg"));
+                new DemoImage(productSlug + "-supplied", KIT_IMAGE_DIRECTORY, resourceName, ".jpg", "image/jpeg"));
     }
 
     private static void addWebp(Map<String, DemoImage> images, String productSlug, String resourceName) {
         images.put("public.product." + productSlug,
-                new DemoImage(productSlug, resourceName, ".webp", "image/webp"));
+                new DemoImage(productSlug + "-supplied", "classpath:/static/images/media/", resourceName, ".webp", "image/webp"));
     }
 
     private static void addSvg(Map<String, DemoImage> images, String productSlug, String resourceName) {
         images.put("public.product." + productSlug,
-                new DemoImage(productSlug, resourceName, ".svg", "image/svg+xml"));
+                new DemoImage(productSlug, "classpath:/demo-images/", resourceName, ".svg", "image/svg+xml"));
     }
 
-    private record DemoImage(String storedSlug, String resourceName, String extension, String contentType) { }
+    private record DemoImage(String storedSlug, String resourceDirectory, String resourceName,
+                             String extension, String contentType) { }
 
     private record LoadedImage(byte[] bytes, String originalName, String extension, String contentType) { }
 }

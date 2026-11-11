@@ -2,6 +2,7 @@ package bd.edu.seu.jerseysee.service;
 
 import bd.edu.seu.jerseysee.config.CacheConfig;
 import bd.edu.seu.jerseysee.model.Product;
+import bd.edu.seu.jerseysee.model.enums.ProductType;
 import bd.edu.seu.jerseysee.repository.*;
 import java.util.List;
 import org.junit.jupiter.api.Test;
@@ -28,11 +29,12 @@ class CatalogCacheTest {
     @Autowired CacheManager caches;
     @Test void cachesImmutablePublicCardsAndDefersEvictionUntilCommit() {
         Product product = new Product(); product.setName("Original shirt");
-        when(products.findTop8ByActiveTrueAndFeaturedTrueOrderByIdDesc()).thenReturn(List.of(product));
+        when(products.findTop8ByActiveTrueAndFeaturedTrueAndProductTypeOrderByIdDesc(ProductType.JERSEY))
+                .thenReturn(List.of(product));
         var first = service.featuredCards();
         product.setName("Changed shirt");
         assertThat(service.featuredCards().get(0).name()).isEqualTo("Original shirt");
-        verify(products, times(1)).findTop8ByActiveTrueAndFeaturedTrueOrderByIdDesc();
+        verify(products, times(1)).findTop8ByActiveTrueAndFeaturedTrueAndProductTypeOrderByIdDesc(ProductType.JERSEY);
         assertThatThrownBy(() -> first.clear()).isInstanceOf(UnsupportedOperationException.class);
         TransactionSynchronizationManager.initSynchronization();
         try {
@@ -41,6 +43,6 @@ class CatalogCacheTest {
             TransactionSynchronizationManager.getSynchronizations().forEach(s -> s.afterCommit());
         } finally { TransactionSynchronizationManager.clearSynchronization(); }
         assertThat(service.featuredCards().get(0).name()).isEqualTo("Changed shirt");
-        verify(products, times(2)).findTop8ByActiveTrueAndFeaturedTrueOrderByIdDesc();
+        verify(products, times(2)).findTop8ByActiveTrueAndFeaturedTrueAndProductTypeOrderByIdDesc(ProductType.JERSEY);
     }
 }

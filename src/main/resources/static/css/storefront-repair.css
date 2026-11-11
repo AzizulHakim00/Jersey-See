@@ -91,58 +91,152 @@ html {
     box-shadow: 0 5px 18px rgba(7,20,44,.07) !important;
 }
 
-/* Homepage: fill the hero with supplied real photography. */
+/* Homepage campaign and supplied product photography. */
 .premium-home-hero {
-    min-height: 500px;
+    min-height: 0;
+    background: #0a101c;
 }
+
+.premium-home-hero::before {
+    display: none;
+}
+
 .premium-hero-inner {
-    min-height: 500px;
+    min-height: 0;
+    max-width: 1200px;
+    grid-template-columns: minmax(0, .85fr) minmax(0, 1.15fr);
+    align-items: center;
+    gap: clamp(24px, 5vw, 72px);
+    padding-block: clamp(28px, 5vw, 70px);
 }
+
+.premium-hero-copy {
+    padding: 0;
+}
+
 .premium-hero-media {
-    min-height: 500px;
-    overflow: hidden;
-    border-left: 1px solid rgba(255,255,255,.09);
+    min-width: 0;
+    min-height: 0;
+    width: min(100%, 547px);
+    justify-self: end;
+    align-items: center;
+    gap: 12px;
 }
+
 .premium-hero-media::before {
-    display: none !important;
+    display: none;
 }
-.premium-home-player {
-    position: absolute !important;
-    inset: 0 !important;
-    z-index: 1;
-    width: 100% !important;
-    max-width: none !important;
-    height: 100% !important;
-    object-fit: cover !important;
-    object-position: center center !important;
-    filter: none !important;
-    padding: 0 !important;
+
+.premium-hero-media .premium-home-player {
+    display: block;
+    width: 100%;
+    height: auto;
+    border: 1px solid #303746;
+    border-radius: 16px;
+    background: #040404;
+    filter: none;
 }
-.premium-hero-media::after {
-    content: "";
-    position: absolute;
-    inset: 0;
-    z-index: 1;
-    pointer-events: none;
-    background: rgba(7,20,44,.12);
+
+.premium-hero-media .premium-hero-product {
+    position: static;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px 16px;
+    width: 100%;
+    padding: 10px 14px;
+    background: #131d2e;
+    border-color: #303746;
+    border-radius: 10px;
+    text-decoration: none;
 }
-.premium-hero-product {
-    z-index: 3 !important;
+
+.premium-hero-product:hover {
+    border-color: #b3bed0;
 }
+
+.premium-hero-product strong,
+.premium-hero-product b {
+    margin-top: 0;
+}
+
+.premium-category-card {
+    display: grid;
+    grid-template-rows: auto auto 1fr;
+    min-height: 0;
+    height: auto;
+    border: 1px solid #dce2ea;
+    background: #fff;
+    color: #12213b;
+}
+
 .premium-category-card img {
-    opacity: .88 !important;
+    display: block;
+    min-height: 0;
+    height: clamp(128px, 16vw, 230px);
+    padding: 10px;
+    object-fit: contain;
+    background: #edf0f4;
+    opacity: 1;
 }
+
 .premium-category-card::after {
-    height: 48% !important;
-    background: rgba(5,16,37,.72) !important;
+    display: none;
 }
+
+.premium-category-card span,
+.premium-category-card strong {
+    position: static;
+    margin-inline: 14px 45px;
+}
+
+.premium-category-card span {
+    margin-top: 11px;
+    color: #51617a;
+}
+
+.premium-category-card strong {
+    margin-block: 2px 12px;
+    line-height: 1.25;
+}
+
+.premium-category-card b {
+    border-color: #dce2ea;
+    color: #224b99;
+}
+
+.premium-campaign-media {
+    display: grid;
+    place-items: center;
+    min-height: 0;
+    height: auto;
+    align-self: stretch;
+    padding: 16px;
+    background: radial-gradient(ellipse at 50% 45%, #e2ddf5, #bfcde5);
+}
+
 .premium-campaign-media img {
-    width: 100% !important;
-    height: 100% !important;
-    min-height: 260px !important;
-    object-fit: cover !important;
-    object-position: center !important;
-    padding: 0 !important;
+    display: block;
+    width: auto;
+    max-width: 100%;
+    min-height: 0;
+    height: clamp(220px, 33vw, 350px);
+    padding: 0;
+    filter: drop-shadow(0 12px 13px rgba(21, 26, 49, .19));
+}
+
+@media (max-width: 760px) {
+    .premium-hero-inner {
+        grid-template-columns: minmax(0, 1fr);
+    }
+
+    .premium-hero-media {
+        justify-self: center;
+    }
+
+    .premium-hero-media .premium-hero-product {
+        flex-wrap: wrap;
+    }
 }
 
 /* Staff workspace: no horizontal sidebar slider and no content underlay. */
@@ -410,9 +504,6 @@ html {
         width: calc(100% - 224px);
         max-width: calc(100% - 224px);
     }
-    .premium-home-player {
-        object-position: center !important;
-    }
     .dashboard-content-grid {
         grid-template-columns: 1fr !important;
     }
@@ -432,12 +523,6 @@ html {
     }
     .premium-auth-copy {
         max-width: 78%;
-    }
-    .premium-hero-media {
-        min-height: 310px;
-    }
-    .premium-home-player {
-        height: 100% !important;
     }
     .account-tabs {
         scrollbar-width: none;

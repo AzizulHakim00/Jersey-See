@@ -2,10 +2,13 @@ package bd.edu.seu.jerseysee.controller;
 
 import bd.edu.seu.jerseysee.config.SecurityConfig;
 import bd.edu.seu.jerseysee.model.Product;
+import bd.edu.seu.jerseysee.model.ProductImage;
+import bd.edu.seu.jerseysee.repository.ProductImageRepository;
 import bd.edu.seu.jerseysee.service.CartService;
 import bd.edu.seu.jerseysee.service.FileStorageService;
 import bd.edu.seu.jerseysee.service.ProductService;
 import bd.edu.seu.jerseysee.service.UserService;
+import java.util.Optional;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
@@ -32,6 +35,9 @@ class ProductImageControllerTest {
     private FileStorageService fileStorageService;
 
     @MockitoBean
+    private ProductImageRepository seededImages;
+
+    @MockitoBean
     private UserService userService;
 
     @MockitoBean
@@ -52,6 +58,24 @@ class ProductImageControllerTest {
                 .andExpect(header().string("X-Content-Type-Options", "nosniff"))
                 .andExpect(content().contentType("image/png"))
                 .andExpect(content().bytes(new byte[] {1, 2, 3}));
+    }
+
+    @Test
+    void publicDemoImageIsServedFromItsSeededDatabaseEntry() throws Exception {
+        Product product = imageProduct();
+        String storedName = "demo-barcelona-home-fan-supplied.jpg";
+        byte[] photo = {1, 2, 3};
+        product.setDemoSeedKey("public.product.barcelona-home-fan");
+        product.setStoredImageName(storedName);
+        product.setOriginalImageName("barcelona-home.jpg");
+        product.setImageContentType("image/jpeg");
+        when(productService.getActiveByStoredImageName(storedName)).thenReturn(product);
+        when(seededImages.findById(storedName)).thenReturn(Optional.of(new ProductImage(storedName, photo)));
+
+        mockMvc.perform(get("/product-images/{storedName}", storedName))
+                .andExpect(status().isOk())
+                .andExpect(content().contentType("image/jpeg"))
+                .andExpect(content().bytes(photo));
     }
 
     @Test

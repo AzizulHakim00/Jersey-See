@@ -1,12 +1,16 @@
 package bd.edu.seu.jerseysee.config;
 
 import bd.edu.seu.jerseysee.model.Product;
+import bd.edu.seu.jerseysee.model.ProductImage;
 import bd.edu.seu.jerseysee.repository.ProductImageRepository;
 import bd.edu.seu.jerseysee.repository.ProductRepository;
+import java.io.IOException;
+import java.io.InputStream;
 import java.util.List;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.core.io.ClassPathResource;
 import org.springframework.core.io.DefaultResourceLoader;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ActiveProfiles;
@@ -32,7 +36,7 @@ class DemoProductImageInitializerTest {
     @Test
     void publicCatalogCanAttachPackagedProductPhotographyToDatabaseBackedImages() {
         DemoProductImageInitializer initializer = new DemoProductImageInitializer(
-                productRepository, productImageRepository, new DefaultResourceLoader());
+                productRepository, productImageRepository, new DefaultResourceLoader(), true);
         initializer.seedImages();
 
         List<Product> publicProducts = productRepository.findAll().stream()
@@ -61,7 +65,7 @@ class DemoProductImageInitializerTest {
     @Test
     void seededBootBallAndTrainingProductsUsePhotographicWebpMedia() {
         DemoProductImageInitializer initializer = new DemoProductImageInitializer(
-                productRepository, productImageRepository, new DefaultResourceLoader());
+                productRepository, productImageRepository, new DefaultResourceLoader(), true);
         initializer.seedImages();
 
         assertRealWebp("public.product.premium-football-boots");
@@ -74,22 +78,28 @@ class DemoProductImageInitializerTest {
     }
 
     @Test
-    void seedImagesRepairsSeededProductWhoseStoredImageReferenceIsMissing() {
+    void seedImagesUpgradesAnExistingDemoJerseyToTheSuppliedClubPhoto() throws IOException {
         Product product = productRepository.findByDemoSeedKey("public.product.barcelona-home-fan").orElseThrow();
-        product.setStoredImageName("missing-legacy-image.jpg");
-        product.setOriginalImageName("missing-legacy-image.jpg");
+        String legacyImage = "demo-barcelona-home-fan.jpg";
+        productImageRepository.saveAndFlush(new ProductImage(legacyImage, new byte[]{1}));
+        product.setStoredImageName(legacyImage);
+        product.setOriginalImageName("barcelona-home.jpg");
         product.setImageContentType("image/jpeg");
         product.setImageSize(123L);
         productRepository.saveAndFlush(product);
 
         DemoProductImageInitializer initializer = new DemoProductImageInitializer(
-                productRepository, productImageRepository, new DefaultResourceLoader());
+                productRepository, productImageRepository, new DefaultResourceLoader(), true);
         initializer.seedImages();
 
         Product repaired = productRepository.findByDemoSeedKey("public.product.barcelona-home-fan").orElseThrow();
-        assertThat(repaired.getStoredImageName()).isNotEqualTo("missing-legacy-image.jpg");
-        assertThat(productImageRepository.findById(repaired.getStoredImageName())).isPresent();
-        assertThat(repaired.getImageSize()).isPositive();
+        assertThat(repaired.getStoredImageName()).isNotEqualTo(legacyImage);
+        try (InputStream suppliedPhoto = new ClassPathResource("static/images/kits/barcelona-home.jpg").getInputStream()) {
+            byte[] expected = suppliedPhoto.readAllBytes();
+            assertThat(productImageRepository.findById(repaired.getStoredImageName()).orElseThrow().getContent())
+                    .isEqualTo(expected);
+            assertThat(repaired.getImageSize()).isEqualTo(expected.length);
+        }
     }
 
     private void assertRealWebp(String seedKey) {

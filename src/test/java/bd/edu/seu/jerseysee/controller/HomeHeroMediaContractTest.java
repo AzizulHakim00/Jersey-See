@@ -14,11 +14,13 @@ class HomeHeroMediaContractTest {
 
         assertThat(home).contains(
                 "class=\"premium-hero-media\"",
-                "th:src=\"@{/images/media/home-campaign.jpg}\"",
-                "/images/media/category-player.webp",
-                "/images/media/category-retro.webp",
-                "/images/media/category-boots.webp",
-                "/images/media/category-new-arrivals.webp");
-        assertThat(home).doesNotContain("auth-footballer.svg", "hero-kit.svg", "custom-printing.svg");
+                "th:src=\"@{/images/media/home-motion-strike.webp}\"",
+                "/images/media/home-red-purple-kit.webp",
+                "/images/kits/barcelona-away.jpg",
+                "/images/kits/ac-milan-retro.jpg",
+                "/images/media/product-boot-white.webp",
+                "/images/kits/barcelona-home.jpg");
+        assertThat(home).doesNotContain("home-campaign.jpg", "campaign-retro.webp",
+                "auth-footballer.svg", "hero-kit.svg", "custom-printing.svg");
     }
 }

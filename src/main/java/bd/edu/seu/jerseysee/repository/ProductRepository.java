@@ -1,6 +1,7 @@
 package bd.edu.seu.jerseysee.repository;
 
 import bd.edu.seu.jerseysee.model.Product;
+import bd.edu.seu.jerseysee.model.enums.ProductType;
 import java.util.List;
 import java.util.Optional;
 import org.springframework.data.domain.Page;
@@ -33,5 +34,5 @@ public interface ProductRepository extends JpaRepository<Product, Long>, JpaSpec
     List<Product> findAllByName(String name);
     @EntityGraph(attributePaths = {"variants", "category"})
     Optional<Product> findByDemoSeedKey(String demoSeedKey);
-    List<Product> findTop8ByActiveTrueAndFeaturedTrueOrderByIdDesc();
+    List<Product> findTop8ByActiveTrueAndFeaturedTrueAndProductTypeOrderByIdDesc(ProductType productType);
 }

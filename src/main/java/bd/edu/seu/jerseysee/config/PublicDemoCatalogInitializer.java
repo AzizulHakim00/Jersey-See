@@ -14,7 +14,8 @@ import bd.edu.seu.jerseysee.repository.ProductVariantRepository;
 import java.math.BigDecimal;
 import java.util.List;
 import java.util.Locale;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression;
 import org.springframework.boot.context.event.ApplicationReadyEvent;
 import org.springframework.context.annotation.Profile;
 import org.springframework.context.event.EventListener;
@@ -24,7 +25,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 @Component
 @Profile({"demo", "production"})
-@ConditionalOnProperty(name = "app.public-demo.enabled", havingValue = "true")
+@ConditionalOnExpression("${app.public-demo.enabled:false} || ${app.catalog.supplied-kits.enabled:false}")
 public class PublicDemoCatalogInitializer {
 
     private static final List<JerseySeed> JERSEYS = List.of(
@@ -80,13 +81,16 @@ public class PublicDemoCatalogInitializer {
     private final CategoryRepository categoryRepository;
     private final ProductRepository productRepository;
     private final ProductVariantRepository variantRepository;
+    private final boolean publicDemoEnabled;
 
     public PublicDemoCatalogInitializer(CategoryRepository categoryRepository,
             ProductRepository productRepository,
-            ProductVariantRepository variantRepository) {
+            ProductVariantRepository variantRepository,
+            @Value("${app.public-demo.enabled:false}") boolean publicDemoEnabled) {
         this.categoryRepository = categoryRepository;
         this.productRepository = productRepository;
         this.variantRepository = variantRepository;
+        this.publicDemoEnabled = publicDemoEnabled;
     }
 
     @EventListener(ApplicationReadyEvent.class)
@@ -94,6 +98,11 @@ public class PublicDemoCatalogInitializer {
     @Transactional
     public void initialize() {
         Category jerseys = ensureCategory("public.category.jerseys", "Club Jerseys", "Fan, player and retro shirts.");
+        if (!publicDemoEnabled) {
+            JERSEYS.forEach(seed -> importSuppliedKit(jerseys, seed));
+            return;
+        }
+
         Category training = ensureCategory("public.category.training", "Training Wear", "Training tops, trousers and jackets.");
         Category footwear = ensureCategory("public.category.footwear", "Football Footwear", "Boots, futsal shoes and sneakers.");
         Category footballs = ensureCategory("public.category.footballs", "Football Equipment", "Match, training and mini footballs.");
@@ -114,6 +123,7 @@ public class PublicDemoCatalogInitializer {
     private Category ensureCategory(String seedKey, String name, String description) {
         Category category = categoryRepository.findByDemoSeedKey(seedKey).orElse(null);
         if (category == null) category = categoryRepository.findByName(name).orElse(null);
+        if (category != null && !publicDemoEnabled) return category;
         if (category == null) category = new Category();
         category.setDemoSeedKey(seedKey);
         category.setName(name);
@@ -123,8 +133,27 @@ public class PublicDemoCatalogInitializer {
 
     private void ensureJersey(Category category, JerseySeed seed) {
         ensureProduct(category, "public.product." + seed.slug(), seed.name(), ProductType.JERSEY,
-                seed.club(), "2025/26", seed.kitType(), seed.edition(), SleeveType.SHORT,
+                seed.club(), publicDemoEnabled ? "2025/26" : null, seed.kitType(), seed.edition(), SleeveType.SHORT,
                 seed.price(), seed.featured(), List.of(SizeOption.S, SizeOption.M, SizeOption.L, SizeOption.XL));
+    }
+
+    private void importSuppliedKit(Category category, JerseySeed seed) {
+        String seedKey = "public.product." + seed.slug();
+        if (productRepository.findByDemoSeedKey(seedKey).isPresent()) return;
+
+        List<Product> matches = productRepository.findAllByName(seed.name()).stream()
+                .filter(product -> product.getProductType() == ProductType.JERSEY
+                        && product.getKitType() == seed.kitType()
+                        && product.getJerseyEdition() == seed.edition()
+                        && seed.club().equalsIgnoreCase(product.getClubOrCountry()))
+                .toList();
+        if (matches.isEmpty()) {
+            ensureJersey(category, seed);
+        } else if (matches.size() == 1 && matches.get(0).getDemoSeedKey() == null) {
+            Product product = matches.get(0);
+            product.setDemoSeedKey(seedKey);
+            productRepository.save(product);
+        }
     }
 
     private void ensureEssential(Category category, SimpleSeed seed) {

@@ -2,8 +2,10 @@ package bd.edu.seu.jerseysee.controller;
 
 import bd.edu.seu.jerseysee.exception.ResourceNotFoundException;
 import bd.edu.seu.jerseysee.model.Product;
+import bd.edu.seu.jerseysee.repository.ProductImageRepository;
 import bd.edu.seu.jerseysee.service.ProductImageStorage;
 import bd.edu.seu.jerseysee.service.ProductService;
+import org.springframework.core.io.ByteArrayResource;
 import org.springframework.core.io.Resource;
 import org.springframework.http.ContentDisposition;
 import org.springframework.http.HttpHeaders;
@@ -19,10 +21,13 @@ public class ProductImageController {
 
     private final ProductService productService;
     private final ProductImageStorage imageStorage;
+    private final ProductImageRepository seededImages;
 
-    public ProductImageController(ProductService productService, ProductImageStorage imageStorage) {
+    public ProductImageController(ProductService productService, ProductImageStorage imageStorage,
+            ProductImageRepository seededImages) {
         this.productService = productService;
         this.imageStorage = imageStorage;
+        this.seededImages = seededImages;
     }
 
     @GetMapping("/product-images/{storedName:.+}")
@@ -49,12 +54,22 @@ public class ProductImageController {
                 || product.getImageContentType() == null || product.getImageSize() == null) {
             throw new ResourceNotFoundException("Product image not found.");
         }
-        Resource resource = imageStorage.load(product.getStoredImageName());
         return ResponseEntity.ok()
                 .contentType(MediaType.parseMediaType(product.getImageContentType()))
                 .contentLength(product.getImageSize())
                 .header(HttpHeaders.CONTENT_DISPOSITION, disposition.toString())
                 .header("X-Content-Type-Options", "nosniff")
-                .body(resource);
+                .body(loadImage(product));
+    }
+
+    private Resource loadImage(Product product) {
+        String storedName = product.getStoredImageName();
+        String seedKey = product.getDemoSeedKey();
+        if (seedKey != null && seedKey.startsWith("public.product.") && storedName.startsWith("demo-")) {
+            return seededImages.findById(storedName)
+                    .map(image -> new ByteArrayResource(image.getContent()))
+                    .orElseThrow(() -> new ResourceNotFoundException("Product image not found."));
+        }
+        return imageStorage.load(storedName);
     }
 }

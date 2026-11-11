@@ -18,25 +18,20 @@ class RealMediaDashboardPerformanceContractTest {
         String login = read(TEMPLATES.resolve("auth/login.html"));
 
         assertThat(home)
-                .contains("/images/media/home-campaign.jpg", "/images/media/category-player.webp",
-                        "/images/media/category-retro.webp", "/images/media/category-boots.webp",
-                        "/images/media/category-new-arrivals.webp", "/images/media/campaign-retro.webp")
+                .contains("/images/media/home-motion-strike.webp", "/images/media/home-red-purple-kit.webp")
                 .doesNotContain("auth-footballer.svg", "hero-kit.svg", "custom-printing.svg");
         assertThat(login)
-                .contains("/images/media/login-electric.png", "/images/brand/jerseysee-icon.png")
-                .doesNotContain("auth-footballer.svg");
+                .contains("<figure class=\"login-kit\">", "/images/media/login-barcelona-kit.png",
+                        "/images/brand/jerseysee-icon.png")
+                .doesNotContain("auth-footballer.svg", "login-electric.png");
     }
 
     @Test
     void suppliedMediaAssetsExistInTheStaticBundle() {
-        assertThat(STATIC.resolve("images/media/home-campaign.jpg")).exists();
-        assertThat(STATIC.resolve("images/media/login-electric.png")).exists();
+        assertThat(STATIC.resolve("images/media/home-motion-strike.webp")).exists();
+        assertThat(STATIC.resolve("images/media/home-red-purple-kit.webp")).exists();
+        assertThat(STATIC.resolve("images/media/login-barcelona-kit.png")).exists();
         assertThat(STATIC.resolve("images/brand/jerseysee-icon.png")).exists();
-        assertThat(STATIC.resolve("images/media/category-player.webp")).exists();
-        assertThat(STATIC.resolve("images/media/category-retro.webp")).exists();
-        assertThat(STATIC.resolve("images/media/category-boots.webp")).exists();
-        assertThat(STATIC.resolve("images/media/category-new-arrivals.webp")).exists();
-        assertThat(STATIC.resolve("images/media/campaign-retro.webp")).exists();
         assertThat(STATIC.resolve("images/media/product-ball.webp")).exists();
         assertThat(STATIC.resolve("images/media/product-boot-black.webp")).exists();
         assertThat(STATIC.resolve("images/media/product-boot-white.webp")).exists();

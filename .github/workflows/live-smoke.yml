@@ -22,8 +22,10 @@ jobs:
           retry_curl() {
             local url="$1"
             local out="$2"
+            local expected="${3:-}"
             for attempt in $(seq 1 24); do
-              if curl --fail --silent --show-error --location --connect-timeout 10 --max-time 30 "$url" -o "$out"; then
+              if curl --fail --silent --show-error --location --connect-timeout 10 --max-time 30 "$url" -o "$out" &&
+                 { [ -z "$expected" ] || grep -Fq "$expected" "$out"; }; then
                 return 0
               fi
               echo "Attempt ${attempt}/24 failed for ${url}; waiting 20s..."
@@ -60,23 +62,24 @@ jobs:
           retry_curl "$BASE_URL/actuator/health" health.json
           grep -Eq '"status"\s*:\s*"UP"' health.json
 
-          retry_curl "$BASE_URL/" home.html
+          retry_curl "$BASE_URL/" home.html "/images/media/home-motion-strike.webp"
           grep -Fq "Wear The Passion" home.html
-          grep -Fq "/images/media/home-hero.webp" home.html
           grep -Fq "Shop by category" home.html
 
-          retry_curl "$BASE_URL/login" login.html
+          retry_curl "$BASE_URL/login" login.html "/images/media/login-barcelona-kit.png"
           grep -Fq "Sign in to JerseySee" login.html
-          grep -Fq "/images/media/login-player.webp" login.html
           grep -Fq "Demo credentials (for testing only)" login.html
 
           retry_curl "$BASE_URL/dashboard" dashboard-guest.html
           grep -Fq "Sign in to JerseySee" dashboard-guest.html
 
-          retry_curl "$BASE_URL/images/media/home-hero.webp" hero.webp
+          retry_curl "$BASE_URL/images/media/home-motion-strike.webp" hero.webp
           test -s hero.webp
-          retry_curl "$BASE_URL/images/media/login-player.webp" login-player.webp
-          test -s login-player.webp
+          retry_curl "$BASE_URL/images/media/login-barcelona-kit.png" login-kit.png
+          test -s login-kit.png
+          retry_curl "$BASE_URL/catalog?productType=JERSEY&clubOrCountry=Barcelona" catalog-kits.html "Barcelona Home Fan Jersey"
+          retry_curl "$BASE_URL/product-images/demo-barcelona-home-fan-supplied.jpg" barcelona-home.jpg
+          test -s barcelona-home.jpg
 
           # Exercise the exact admin form-login path that previously failed on
           # the first POST after a lazily initialized production startup.

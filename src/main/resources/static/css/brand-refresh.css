@@ -79,7 +79,6 @@
     filter: drop-shadow(0 0 9px rgba(37, 199, 255, .28));
 }
 
-/* Login visual: supplied electric-blue football image, framed as a premium campaign. */
 .premium-auth-shell {
     max-width: none;
     grid-template-columns: minmax(520px, 1fr) minmax(500px, 610px);
@@ -87,98 +86,88 @@
     box-shadow: none;
 }
 
+.login-auth-shell {
+    grid-template-columns: minmax(0, 1.15fr) minmax(0, 1fr);
+    min-height: 100svh;
+    background: #fff;
+}
+
 .login-auth-visual {
-    min-height: 100vh;
-    padding: clamp(34px, 4.4vw, 66px);
-    isolation: isolate;
-    background:
-        radial-gradient(circle at 52% 43%, rgba(24, 112, 255, .3), transparent 37%),
-        linear-gradient(145deg, #01040d 0%, #06152e 64%, #02050c 100%);
+    display: grid;
+    grid-template-rows: auto 1fr;
+    gap: clamp(20px, 4vh, 38px);
+    padding: clamp(22px, 3.8vw, 58px);
+    background: #e9eef7;
 }
 
-.login-auth-visual::before {
-    z-index: 1;
-    inset: 0;
-    width: auto;
-    height: auto;
-    border: 0;
-    border-radius: 0;
-    background:
-        linear-gradient(rgba(73, 150, 255, .055) 1px, transparent 1px),
-        linear-gradient(90deg, rgba(73, 150, 255, .055) 1px, transparent 1px);
-    background-size: 52px 52px;
-    opacity: .62;
+.login-auth-visual .modern-brand {
+    justify-self: start;
+    order: 0;
+    color: #101c36;
+    text-decoration: none;
 }
 
-.login-auth-visual::after {
-    z-index: 2;
-    background:
-        linear-gradient(180deg, rgba(0, 5, 17, .18) 0%, rgba(0, 6, 19, .2) 36%, rgba(0, 7, 20, .84) 100%),
-        linear-gradient(90deg, rgba(1, 6, 17, .48), transparent 45%, rgba(2, 9, 26, .3));
-}
-
-.login-auth-visual .premium-auth-player {
-    inset: clamp(92px, 10vh, 132px) clamp(30px, 7vw, 120px) clamp(145px, 17vh, 190px);
-    width: calc(100% - clamp(60px, 14vw, 240px));
-    height: calc(100% - clamp(237px, 27vh, 322px));
-    object-fit: contain;
-    object-position: center;
-    background: transparent;
-    filter: saturate(1.08) contrast(1.08) drop-shadow(0 30px 55px rgba(0, 80, 255, .28));
-    opacity: .95;
-}
-
-.login-auth-visual .modern-brand,
-.login-auth-visual .premium-auth-copy {
-    z-index: 4 !important;
-}
-
-.login-auth-visual .premium-auth-copy {
-    width: min(100%, 650px);
-    max-width: 650px;
-    padding: 0;
-    align-self: flex-start;
-    text-shadow: 0 3px 24px rgba(0, 0, 0, .55);
-}
-
-.login-auth-visual .premium-auth-copy h1 {
-    max-width: 640px;
-    margin: 12px 0 18px;
-    font-family: Georgia, "Times New Roman", serif;
-    font-size: clamp(3.25rem, 5.3vw, 5.9rem);
-    font-weight: 500;
-    letter-spacing: -.055em;
-    line-height: .88;
-}
-
-.login-auth-visual .premium-auth-copy p {
-    max-width: 510px;
+.login-kit {
+    display: grid;
+    align-content: center;
+    justify-items: center;
+    gap: 12px;
+    min-width: 0;
     margin: 0;
-    color: #d8e7fb;
-    font-size: clamp(.9rem, 1.3vw, 1.06rem);
+    padding: clamp(16px, 3.4vh, 34px);
+    border: 1px solid #d1daeb;
+    border-radius: 24px;
+    background: radial-gradient(ellipse at 50% 42%, #fafcff, #e4ebf7 65%, #d8e2f2);
 }
 
-.auth-visual-points {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 8px;
-    margin-top: 22px;
+.login-kit img {
+    display: block;
+    width: auto;
+    max-width: 100%;
+    height: clamp(300px, 59vh, 535px);
+    object-fit: contain;
+    filter: drop-shadow(0 12px 15px rgba(18, 34, 63, .17));
 }
 
-.auth-visual-points span {
-    min-height: 32px;
-    display: inline-flex;
-    align-items: center;
-    padding: 0 12px;
-    color: #e9f8ff;
-    background: rgba(7, 31, 72, .62);
-    border: 1px solid rgba(101, 206, 255, .28);
-    border-radius: 999px;
-    backdrop-filter: blur(8px);
-    font-size: .65rem;
+.login-kit figcaption {
+    color: #354768;
+    font-size: .8rem;
+    font-weight: 700;
+}
+
+.login-auth-shell .premium-auth-panel {
+    background: #fff;
+}
+
+.login-auth-shell .premium-auth-card {
+    width: min(100%, 410px);
+    padding: 0;
+    border: 0;
+    background: transparent;
+    box-shadow: none;
+}
+
+.login-auth-shell .premium-auth-card h1 {
+    margin: 8px 0;
+    color: #0d1b36;
+    font-size: clamp(1.95rem, 3vw, 2.8rem);
+    line-height: 1.08;
+    letter-spacing: -.04em;
+}
+
+.login-auth-shell .premium-auth-card > p {
+    font-size: .9rem;
+}
+
+.login-auth-shell .demo-credentials summary {
+    width: fit-content;
+    color: #405473;
     font-weight: 750;
-    letter-spacing: .06em;
-    text-transform: uppercase;
+    cursor: pointer;
+}
+
+.login-auth-shell .demo-credentials dl {
+    margin-top: 12px;
 }
 
 .premium-auth-panel {
@@ -201,24 +190,6 @@
     margin-bottom: 22px;
     color: #53627a;
     font-weight: 750;
-}
-
-.auth-panel-brand {
-    display: flex;
-    margin-bottom: 18px;
-    align-items: center;
-    gap: 9px;
-    color: #315078;
-    font-size: .59rem;
-    font-weight: 850;
-    letter-spacing: .17em;
-}
-
-.auth-panel-brand img {
-    width: 42px;
-    height: 42px;
-    object-fit: contain;
-    filter: drop-shadow(0 4px 10px rgba(29, 121, 255, .22));
 }
 
 .premium-auth-card h2 {
@@ -291,17 +262,9 @@
     margin-top: 20px !important;
 }
 
-@media (max-width: 1050px) {
-    .premium-auth-shell {
-        grid-template-columns: minmax(0, .9fr) minmax(460px, 1.1fr);
-    }
-
-    .login-auth-visual {
-        padding: 36px;
-    }
-
-    .login-auth-visual .premium-auth-copy h1 {
-        font-size: clamp(2.8rem, 5vw, 4.4rem);
+@media (min-width: 761px) and (max-width: 1050px) {
+    .premium-register-shell {
+        grid-template-columns: minmax(0, .9fr) minmax(0, 1.1fr);
     }
 }
 
@@ -312,35 +275,35 @@
     }
 
     .login-auth-visual {
-        min-height: 410px;
-        padding: 26px 24px 30px;
+        grid-template-columns: minmax(0, 1fr) minmax(0, 1.05fr);
+        grid-template-rows: auto;
+        align-items: center;
+        gap: 12px;
+        padding: 14px clamp(14px, 5vw, 36px);
     }
 
-    .login-auth-visual .premium-auth-player {
-        inset: 55px 14% 56px;
-        width: 72%;
-        height: calc(100% - 111px);
-        object-position: center;
-        opacity: .84;
+    .login-kit {
+        padding: 8px;
+        gap: 4px;
+        border-radius: 14px;
     }
 
-    .login-auth-visual .premium-auth-copy {
-        margin-top: auto;
-        max-width: 90%;
+    .login-kit img {
+        height: clamp(108px, 23vw, 160px);
     }
 
-    .login-auth-visual .premium-auth-copy h1 {
-        margin-block: 7px 10px;
-        font-size: clamp(2.45rem, 10.5vw, 3.7rem);
-    }
-
-    .login-auth-visual .premium-auth-copy p,
-    .auth-visual-points {
-        display: none;
+    .login-kit figcaption {
+        font-size: .66rem;
+        text-align: center;
     }
 
     .premium-auth-panel {
         padding: 30px 18px 46px;
+    }
+
+    .login-auth-shell .premium-auth-panel {
+        min-height: 0;
+        padding-inline: clamp(20px, 6vw, 40px);
     }
 
     .premium-auth-card {
@@ -359,24 +322,6 @@
     .modern-brand .brand-wordmark strong,
     .brand .brand-wordmark strong {
         font-size: 1.02rem;
-    }
-
-    .login-auth-visual {
-        min-height: 330px;
-    }
-
-    .login-auth-visual .premium-auth-player {
-        inset: 50px 5% 34px;
-        width: 90%;
-        height: calc(100% - 84px);
-    }
-
-    .login-auth-visual .premium-auth-copy h1 {
-        font-size: 2.35rem;
-    }
-
-    .auth-panel-brand {
-        display: none;
     }
 
     .premium-auth-card .auth-back {

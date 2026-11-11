@@ -18,17 +18,18 @@
             <div class="premium-hero-copy">
                 <span class="premium-eyebrow">FOOTBALL LIVES HERE</span>
                 <h1>Wear The Passion</h1>
-                <p>Premium football jerseys for real fans. Discover player editions, retro classics and match-day essentials with clear BDT pricing.</p>
+                <p>Shop player editions, retro jerseys and match-day essentials.</p>
                 <a class="premium-hero-cta" data-premium-press th:href="@{/catalog}">Shop Now <span aria-hidden="true">→</span></a>
-                <div class="premium-hero-note">More than a jersey. A football identity.</div>
             </div>
             <div class="premium-hero-media">
-                <img class="premium-home-player" th:src="@{/images/media/home-campaign.jpg}"
-                     alt="Football player holding a match ball in a stadium" width="738" height="414"
+                <img class="premium-home-player" th:src="@{/images/media/home-motion-strike.webp}"
+                     alt="Motion trail of a player in white and red preparing to strike a football" width="547" height="365"
                      loading="eager" fetchpriority="high" decoding="async">
                 <a class="premium-hero-product" th:if="${heroProduct != null}" th:href="@{/products/{id}(id=${heroProduct.id})}">
-                    <small th:text="${heroProduct.clubOrCountry != null ? heroProduct.clubOrCountry : 'JerseySee selection'}">JerseySee selection</small>
-                    <strong th:text="${heroProduct.name}">Featured jersey</strong>
+                    <span>
+                        <small th:text="${heroProduct.clubOrCountry != null ? heroProduct.clubOrCountry : 'JerseySee selection'}">JerseySee selection</small>
+                        <strong th:text="${heroProduct.name}">Featured jersey</strong>
+                    </span>
                     <b>৳<span th:text="${#numbers.formatDecimal(heroProduct.basePrice,1,0)}">1299</span></b>
                 </a>
             </div>
@@ -45,19 +46,19 @@
             </header>
             <div class="premium-category-grid">
                 <a class="premium-category-card" th:href="@{/catalog(edition='PLAYER')}">
-                    <img th:src="@{/images/media/category-player.webp}" alt="Player edition football jersey collection" width="900" height="675" loading="lazy" decoding="async">
+                    <img th:src="@{/images/kits/barcelona-away.jpg}" alt="" width="554" height="554" loading="lazy" decoding="async">
                     <span>Closer match fit</span><strong>Player Edition</strong><b>→</b>
                 </a>
                 <a class="premium-category-card" th:href="@{/catalog(edition='RETRO')}">
-                    <img th:src="@{/images/media/category-retro.webp}" alt="Retro football classics" width="900" height="675" loading="lazy" decoding="async">
+                    <img th:src="@{/images/kits/ac-milan-retro.jpg}" alt="" width="447" height="447" loading="lazy" decoding="async">
                     <span>Archive-inspired</span><strong>Retro Classics</strong><b>→</b>
                 </a>
                 <a class="premium-category-card" th:href="@{/catalog(productType='BOOTS')}">
-                    <img th:src="@{/images/media/category-boots.webp}" alt="Football boots collection" width="900" height="675" loading="lazy" decoding="async">
+                    <img th:src="@{/images/media/product-boot-white.webp}" alt="" width="447" height="447" loading="lazy" decoding="async">
                     <span>Built for the pitch</span><strong>Football Boots</strong><b>→</b>
                 </a>
                 <a class="premium-category-card" th:href="@{/catalog}">
-                    <img th:src="@{/images/media/category-new-arrivals.webp}" alt="New football jersey arrivals" width="900" height="675" loading="lazy" decoding="async">
+                    <img th:src="@{/images/kits/barcelona-home.jpg}" alt="" width="554" height="554" loading="lazy" decoding="async">
                     <span>Fresh football colours</span><strong>New Arrivals</strong><b>→</b>
                 </a>
             </div>
@@ -68,7 +69,6 @@
         <div class="section-shell">
             <header class="premium-section-heading">
                 <div><span class="premium-eyebrow">Curated now</span><h2>Featured jerseys</h2></div>
-                <p>Real kit imagery, live size stock and BDT prices, presented like a football store instead of a content feed.</p>
             </header>
             <div class="product-rail-shell" data-product-rail th:if="${featuredProducts != null and !#lists.isEmpty(featuredProducts)}">
                 <button class="product-rail-arrow product-rail-arrow-prev" type="button" data-product-rail-prev aria-label="Previous products">←</button>
@@ -88,13 +88,14 @@
     <section class="premium-secondary-campaign">
         <div class="section-shell premium-campaign-box">
             <div class="premium-campaign-copy">
-                <span class="premium-eyebrow">Different clubs. Same passion.</span>
-                <h2>Football unites us.</h2>
-                <p>Build a match-day wardrobe around the teams and eras you follow, then add your name and number when the jersey supports printing.</p>
+                <h2>Find your next kit.</h2>
+                <p>Explore club jerseys, from current home shirts to retro classics. Add a name and number on eligible jerseys.</p>
                 <a class="premium-hero-cta" th:href="@{/catalog(productType='JERSEY')}">Shop all jerseys →</a>
             </div>
             <div class="premium-campaign-media">
-                <img th:src="@{/images/media/campaign-retro.webp}" alt="Two classic football players together on the pitch" width="1200" height="400" loading="lazy" decoding="async">
+                <img th:src="@{/images/media/home-red-purple-kit.webp}"
+                     alt="Red and purple football kit with matching socks and white boots"
+                     width="520" height="1200" loading="lazy" decoding="async">
             </div>
         </div>
     </section>

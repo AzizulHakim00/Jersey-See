@@ -7,6 +7,7 @@ import bd.edu.seu.jerseysee.exception.ResourceNotFoundException;
 import bd.edu.seu.jerseysee.model.Category;
 import bd.edu.seu.jerseysee.model.Product;
 import bd.edu.seu.jerseysee.model.ProductVariant;
+import bd.edu.seu.jerseysee.model.enums.ProductType;
 import bd.edu.seu.jerseysee.repository.CategoryRepository;
 import bd.edu.seu.jerseysee.repository.ProductRepository;
 import bd.edu.seu.jerseysee.repository.ProductVariantRepository;
@@ -144,7 +145,8 @@ public class ProductService {
 
     @Transactional(readOnly = true)
     public List<Product> featuredProducts() {
-        return initializeVariants(productRepository.findTop8ByActiveTrueAndFeaturedTrueOrderByIdDesc());
+        return initializeVariants(productRepository
+                .findTop8ByActiveTrueAndFeaturedTrueAndProductTypeOrderByIdDesc(ProductType.JERSEY));
     }
 
     @org.springframework.cache.annotation.Cacheable("featuredCards")
