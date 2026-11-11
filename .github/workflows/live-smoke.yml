@@ -76,7 +76,7 @@ jobs:
           checkpoint="read login forms"
           trap 'echo "::error::Live operation failed at line $LINENO ($checkpoint)"' ERR
           extract_csrf() {
-            python3 - "$1" <<'PY'
+            python3 - "$1" "${2:-}" <<'PY'
           from html.parser import HTMLParser
           import sys
 
@@ -84,13 +84,19 @@ jobs:
               def __init__(self):
                   super().__init__()
                   self.value = ""
+                  self.action = ""
 
               def handle_starttag(self, tag, attrs):
-                  if tag != "input":
-                      return
                   values = dict(attrs)
-                  if values.get("name") == "_csrf":
-                      self.value = values.get("value", "")
+                  if tag == "form":
+                      self.action = values.get("action", "")
+                  if tag == "input" and values.get("name") == "_csrf":
+                      if not sys.argv[2] or self.action == sys.argv[2]:
+                          self.value = values.get("value", "")
+
+              def handle_endtag(self, tag):
+                  if tag == "form":
+                      self.action = ""
 
           parser = CsrfParser()
           with open(sys.argv[1], encoding="utf-8") as source:
@@ -446,12 +452,35 @@ jobs:
           test -n "$line_id_before"
 
           checkpoint="buyer checkout page"
+          cp customer.cookies cart-before-checkout.cookies
           test "$(get_page_status customer.cookies /checkout checkout-page.html)" = "200"
           grep -Fq "data-checkout-layout" checkout-page.html
 
           checkpoint="buyer changes cart quantity"
-          quantity_csrf="$(extract_csrf cart-before-logout.html)"
+          test "$(get_page_status customer.cookies /cart cart-for-quantity.html)" = "200"
+          quantity_action="/cart/items/$line_id_before"
+          quantity_csrf="$(extract_csrf cart-for-quantity.html "$quantity_action")"
           test -n "$quantity_csrf"
+          python3 - "$quantity_csrf" <<'PY'
+          import base64
+          from pathlib import Path
+          import sys
+
+          def csrf_cookie(path):
+              for line in Path(path).read_text().splitlines():
+                  fields = line.split("\t")
+                  if len(fields) == 7 and fields[5] == "XSRF-TOKEN":
+                      return fields[6]
+              return ""
+
+          current = csrf_cookie("customer.cookies")
+          encoded = sys.argv[1]
+          decoded = base64.urlsafe_b64decode(encoded + "=" * (-len(encoded) % 4))
+          half = len(decoded) // 2
+          raw = bytes(left ^ right for left, right in zip(decoded[:half], decoded[half:]))
+          print(f"Cart CSRF cookie persisted through checkout: {bool(current) and current == csrf_cookie('cart-before-checkout.cookies')}")
+          print(f"Quantity form token matches current CSRF cookie: {raw == current.encode()}")
+          PY
           quantity_status="$(browser_request customer.cookies --request POST "$BASE_URL/cart/items/$line_id_before" \
             --data-urlencode "_csrf=$quantity_csrf" --data-urlencode "quantity=2" \
             --output customer-quantity.html --dump-header customer-quantity.headers --write-out "%{http_code}")"
@@ -464,7 +493,7 @@ jobs:
           test "$(get_page_status customer.cookies /cart cart-before-logout.html)" = "200"
 
           checkpoint="buyer signs out"
-          logout_csrf="$(extract_csrf cart-before-logout.html)"
+          logout_csrf="$(extract_csrf cart-before-logout.html /logout)"
           test -n "$logout_csrf"
           logout_status="$(curl --silent --show-error \
             --connect-timeout 10 --max-time 30 \
@@ -501,7 +530,7 @@ jobs:
           fi
 
           checkpoint="buyer removes the cart line"
-          cleanup_csrf="$(extract_csrf cart-after-login.html)"
+          cleanup_csrf="$(extract_csrf cart-after-login.html "/cart/items/$line_id_after/remove")"
           test -n "$cleanup_csrf"
           cleanup_status="$(curl --silent --show-error \
             --connect-timeout 10 --max-time 30 \
