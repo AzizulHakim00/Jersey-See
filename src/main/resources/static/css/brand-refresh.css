@@ -19,6 +19,14 @@
     filter: drop-shadow(0 3px 8px rgba(21, 87, 214, .2));
 }
 
+.store-header .modern-brand img {
+    padding: 4px;
+    background: #031127;
+    border: 1px solid rgba(37, 199, 255, .34);
+    border-radius: 11px;
+    box-shadow: 0 5px 14px rgba(3, 17, 39, .16);
+}
+
 .brand-wordmark {
     display: grid;
     line-height: 1;
