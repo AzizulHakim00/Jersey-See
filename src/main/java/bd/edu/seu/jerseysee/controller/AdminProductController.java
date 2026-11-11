@@ -4,6 +4,7 @@ import bd.edu.seu.jerseysee.dto.ProductDTO;
 import bd.edu.seu.jerseysee.dto.ProductVariantDTO;
 import bd.edu.seu.jerseysee.exception.InvalidFileException;
 import bd.edu.seu.jerseysee.model.Product;
+import bd.edu.seu.jerseysee.service.KitImageCatalog;
 import bd.edu.seu.jerseysee.service.ProductService;
 import jakarta.validation.Valid;
 import org.springframework.data.domain.Pageable;
@@ -26,9 +27,11 @@ import org.springframework.web.multipart.MultipartFile;
 public class AdminProductController {
 
     private final ProductService productService;
+    private final KitImageCatalog kitImageCatalog;
 
-    public AdminProductController(ProductService productService) {
+    public AdminProductController(ProductService productService, KitImageCatalog kitImageCatalog) {
         this.productService = productService;
+        this.kitImageCatalog = kitImageCatalog;
     }
 
     @GetMapping
@@ -46,13 +49,14 @@ public class AdminProductController {
 
     @PostMapping
     public String create(@Valid @ModelAttribute("product") ProductDTO product, BindingResult bindingResult,
-            @RequestParam(name = "image", required = false) MultipartFile image, Model model) {
+            @RequestParam(name = "image", required = false) MultipartFile image,
+            @RequestParam(name = "selectedKitImage", required = false) String selectedKitImage, Model model) {
         if (bindingResult.hasErrors()) {
             addFormOptions(model);
             return "staff/products/form";
         }
         try {
-            Product created = productService.create(product, image);
+            Product created = productService.create(product, selectedImage(image, selectedKitImage));
             return "redirect:/staff/products/" + created.getId() + "/edit?created";
         } catch (InvalidFileException exception) {
             bindingResult.reject("image", exception.getMessage());
@@ -76,10 +80,11 @@ public class AdminProductController {
     @PostMapping("/{id}")
     public String update(@PathVariable Long id, @Valid @ModelAttribute("product") ProductDTO product,
             BindingResult bindingResult,
-            @RequestParam(name = "image", required = false) MultipartFile image, Model model) {
+            @RequestParam(name = "image", required = false) MultipartFile image,
+            @RequestParam(name = "selectedKitImage", required = false) String selectedKitImage, Model model) {
         if (!bindingResult.hasErrors()) {
             try {
-                productService.update(id, product, image);
+                productService.update(id, product, selectedImage(image, selectedKitImage));
                 return "redirect:/staff/products/" + id + "/edit?updated";
             } catch (InvalidFileException exception) {
                 bindingResult.reject("image", exception.getMessage());
@@ -145,5 +150,13 @@ public class AdminProductController {
 
     private void addFormOptions(Model model) {
         model.addAttribute("categories", productService.categories());
+        model.addAttribute("kitImages", kitImageCatalog.options());
+    }
+
+    private MultipartFile selectedImage(MultipartFile upload, String selectedKitImage) {
+        if (upload != null && !upload.isEmpty()) {
+            return upload;
+        }
+        return kitImageCatalog.selectedFile(selectedKitImage);
     }
 }

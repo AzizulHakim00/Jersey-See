@@ -118,11 +118,32 @@
         });
     });
 
+    const kitLibrary = document.querySelector("[data-kit-library-source]");
+    const imagePanel = document.querySelector(".image-panel");
+    const filePicker = imagePanel?.querySelector(".file-picker");
+    if (kitLibrary instanceof HTMLElement && imagePanel instanceof HTMLElement) {
+        kitLibrary.hidden = false;
+        imagePanel.insertBefore(kitLibrary, filePicker ?? null);
+    }
+
+    document.querySelectorAll("[data-kit-preview]").forEach((input) => {
+        input.addEventListener("change", () => {
+            if (!(input instanceof HTMLInputElement) || !input.checked) return;
+            const preview = document.querySelector("[data-image-preview]");
+            const upload = document.querySelector("[data-image-input]");
+            if (preview instanceof HTMLImageElement) preview.src = input.dataset.kitPreview || preview.src;
+            if (upload instanceof HTMLInputElement) upload.value = "";
+        });
+    });
+
     document.querySelectorAll("[data-image-input]").forEach((input) => {
         input.addEventListener("change", () => {
             const file = input.files?.[0];
             const preview = document.querySelector("[data-image-preview]");
             if (!file || !(preview instanceof HTMLImageElement)) return;
+            document.querySelectorAll("[data-kit-preview]").forEach((kit) => {
+                if (kit instanceof HTMLInputElement) kit.checked = false;
+            });
             const source = URL.createObjectURL(file);
             preview.addEventListener("load", () => URL.revokeObjectURL(source), {once: true});
             preview.src = source;

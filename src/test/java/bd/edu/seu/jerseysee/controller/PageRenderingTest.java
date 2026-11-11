@@ -24,6 +24,7 @@ import bd.edu.seu.jerseysee.service.CartService;
 import bd.edu.seu.jerseysee.service.DashboardService;
 import bd.edu.seu.jerseysee.service.EmployeeService;
 import bd.edu.seu.jerseysee.service.InvoiceService;
+import bd.edu.seu.jerseysee.service.KitImageCatalog;
 import bd.edu.seu.jerseysee.service.OrderService;
 import bd.edu.seu.jerseysee.service.PaymentService;
 import bd.edu.seu.jerseysee.service.ProductService;
@@ -79,6 +80,9 @@ class PageRenderingTest {
 
     @MockitoBean
     private ProductService productService;
+
+    @MockitoBean
+    private KitImageCatalog kitImageCatalog;
 
     @MockitoBean
     private UserService userService;
