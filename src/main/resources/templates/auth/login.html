@@ -4,34 +4,42 @@
     <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="description" content="Sign in to JerseySee, a premium football ecommerce store.">
     <title>Sign in | JerseySee</title>
-    <link rel="icon" th:href="@{/images/brand-mark.svg}" type="image/svg+xml">
+    <link rel="icon" th:href="@{/images/brand/jerseysee-icon.png}" type="image/png">
     <link rel="stylesheet" th:href="@{/css/jerseysee.css}">
     <link rel="stylesheet" th:href="@{/css/storefront-premium-v2.css}">
     <link rel="stylesheet" th:href="@{/css/storefront-repair.css}">
+    <link rel="stylesheet" th:href="@{/css/brand-refresh.css}">
 </head>
 <body class="auth-body premium-auth-body">
 <main class="premium-auth-shell">
-    <section class="premium-auth-visual" data-auth-campaign>
+    <section class="premium-auth-visual login-auth-visual" data-auth-campaign>
         <a class="brand modern-brand" th:href="@{/}" aria-label="JerseySee home">
-            <img th:src="@{/images/brand-mark.svg}" alt="" width="39" height="44">
-            <span><strong>JerseySee</strong><small>Football store</small></span>
+            <img th:src="@{/images/brand/jerseysee-icon.png}" alt="" width="52" height="52">
+            <span class="brand-wordmark"><strong>JERSEY <em>SEE</em></strong><small>Football store</small></span>
         </a>
-        <img class="premium-auth-player" th:src="@{/images/media/login-campaign.jpg}"
-             alt="Football captain wearing a Barcelona jersey" width="316" height="632"
+        <img class="premium-auth-player" th:src="@{/images/media/login-electric.png}"
+             alt="Football player striking a ball inside an electric-blue stadium ring" width="364" height="408"
              loading="eager" fetchpriority="high" decoding="async">
         <div class="premium-auth-copy">
-            <span class="premium-eyebrow">YOUR FOOTBALL WARDROBE</span>
-            <h1>Good players.<br>Better fans.</h1>
-            <p>Join a football-first store built around premium jerseys, retro classics and match-day identity.</p>
+            <span class="premium-eyebrow">YOUR FOOTBALL IDENTITY</span>
+            <h1>See the shirt.<br>Feel the game.</h1>
+            <p>One account for premium jerseys, retro classics, secure checkout and every match-day order.</p>
+            <div class="auth-visual-points" aria-label="Store benefits">
+                <span>Premium kits</span><span>BDT pricing</span><span>Secure account</span>
+            </div>
         </div>
     </section>
 
     <section class="auth-panel premium-auth-panel" data-auth-panel>
         <div class="modern-auth-card premium-auth-card">
             <a class="auth-back" th:href="@{/}">← Back to store</a>
+            <div class="auth-panel-brand" aria-hidden="true">
+                <img th:src="@{/images/brand/jerseysee-icon.png}" alt="" width="42" height="42">
+                <span>MEMBER ACCESS</span>
+            </div>
             <span class="premium-eyebrow">Welcome back</span>
             <h2>Sign in to JerseySee</h2>
-            <p>Access your account to continue.</p>
+            <p>Continue to your account, orders and saved details.</p>
 
             <div th:replace="~{fragments/messages :: messages}"></div>
             <div class="inline-alert danger" th:if="${param.error != null}" role="alert">Email or password was not recognised.</div>

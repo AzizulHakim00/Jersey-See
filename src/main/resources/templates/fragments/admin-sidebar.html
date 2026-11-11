@@ -2,12 +2,14 @@
 <html lang="en" xmlns:th="http://www.thymeleaf.org">
 <body>
 <th:block th:fragment="sidebar(activePage)">
+    <link rel="icon" th:href="@{/images/brand/jerseysee-icon.png}" type="image/png">
     <link rel="stylesheet" th:href="@{/css/storefront-premium-v2.css}">
     <link rel="stylesheet" th:href="@{/css/storefront-repair.css}">
+    <link rel="stylesheet" th:href="@{/css/brand-refresh.css}">
     <aside class="staff-sidebar" id="staffSidebar">
         <a class="staff-brand" th:href="@{/dashboard}">
-            <img th:src="@{/images/brand-mark.svg}" alt="" width="48" height="48">
-            <span><strong>JerseySee</strong><small>Team operations</small></span>
+            <img th:src="@{/images/brand/jerseysee-icon.png}" alt="" width="48" height="48">
+            <span><strong>JERSEY SEE</strong><small>Team operations</small></span>
         </a>
         <div class="staff-identity" th:if="${currentUser != null}">
             <span class="avatar" th:text="${#strings.substring(currentUser.name,0,1)}">J</span>
@@ -32,7 +34,7 @@
         </form>
     </aside>
     <header class="staff-mobile-bar">
-        <a th:href="@{/dashboard}"><img th:src="@{/images/brand-mark.svg}" alt="" width="38" height="38"><strong>JerseySee Ops</strong></a>
+        <a th:href="@{/dashboard}"><img th:src="@{/images/brand/jerseysee-icon.png}" alt="" width="38" height="38"><strong>JerseySee Ops</strong></a>
         <button type="button" data-sidebar-toggle aria-controls="staffSidebar" aria-expanded="false">Menu</button>
     </header>
     <div class="sidebar-scrim" data-sidebar-scrim></div>

@@ -23,14 +23,15 @@ class RealMediaDashboardPerformanceContractTest {
                         "/images/media/category-new-arrivals.webp", "/images/media/campaign-retro.webp")
                 .doesNotContain("auth-footballer.svg", "hero-kit.svg", "custom-printing.svg");
         assertThat(login)
-                .contains("/images/media/login-campaign.jpg")
+                .contains("/images/media/login-electric.png", "/images/brand/jerseysee-icon.png")
                 .doesNotContain("auth-footballer.svg");
     }
 
     @Test
     void suppliedMediaAssetsExistInTheStaticBundle() {
         assertThat(STATIC.resolve("images/media/home-campaign.jpg")).exists();
-        assertThat(STATIC.resolve("images/media/login-campaign.jpg")).exists();
+        assertThat(STATIC.resolve("images/media/login-electric.png")).exists();
+        assertThat(STATIC.resolve("images/brand/jerseysee-icon.png")).exists();
         assertThat(STATIC.resolve("images/media/category-player.webp")).exists();
         assertThat(STATIC.resolve("images/media/category-retro.webp")).exists();
         assertThat(STATIC.resolve("images/media/category-boots.webp")).exists();
