@@ -15,7 +15,7 @@ jobs:
     env:
       BASE_URL: https://jersey-see.onrender.com
     steps:
-      - name: Wait for Render and verify live storefront
+      - name: Verify the deployed homepage, login, and catalog
         shell: bash
         run: |
           set -euo pipefail
@@ -35,6 +35,39 @@ jobs:
             return 1
           }
 
+          retry_curl "$BASE_URL/actuator/health" health.json
+          grep -Eq '"status"\s*:\s*"UP"' health.json
+
+          retry_curl "$BASE_URL/" home.html "data-hero-showcase"
+          grep -Fq "/images/media/home-motion-strike.webp" home.html
+          grep -Fq "/css/home-campaign.css" home.html
+          test "$(grep -c 'data-hero-slide' home.html)" -ge 2
+          retry_curl "$BASE_URL/css/home-campaign.css" home-campaign.css "hero-jersey-float"
+          retry_curl "$BASE_URL/js/storefront-premium-v2.js" home-showcase.js "data-hero-showcase"
+          retry_curl "$BASE_URL/css/fonts/barlow-condensed-800-italic.ttf" campaign-font.ttf
+          test -s campaign-font.ttf
+          grep -Fq "Wear The Passion" home.html
+          grep -Fq "Shop by category" home.html
+
+          retry_curl "$BASE_URL/login" login.html "/images/media/login-barcelona-kit.png"
+          grep -Fq "Sign in to JerseySee" login.html
+          grep -Fq "Demo credentials (for testing only)" login.html
+
+          retry_curl "$BASE_URL/dashboard" dashboard-guest.html
+          grep -Fq "Sign in to JerseySee" dashboard-guest.html
+
+          retry_curl "$BASE_URL/images/media/home-motion-strike.webp" hero.webp
+          test -s hero.webp
+          retry_curl "$BASE_URL/images/media/login-barcelona-kit.png" login-kit.png
+          test -s login-kit.png
+          retry_curl "$BASE_URL/catalog?productType=JERSEY&clubOrCountry=Barcelona" catalog-kits.html "Barcelona Home Fan Jersey"
+          retry_curl "$BASE_URL/product-images/demo-barcelona-home-fan-supplied.jpg" barcelona-home.jpg
+          test -s barcelona-home.jpg
+
+      - name: Verify live sign-in and persistent cart
+        shell: bash
+        run: |
+          set -euo pipefail
           extract_csrf() {
             python3 - "$1" <<'PY'
           from html.parser import HTMLParser
@@ -58,28 +91,6 @@ jobs:
           print(parser.value)
           PY
           }
-
-          retry_curl "$BASE_URL/actuator/health" health.json
-          grep -Eq '"status"\s*:\s*"UP"' health.json
-
-          retry_curl "$BASE_URL/" home.html "/images/media/home-motion-strike.webp"
-          grep -Fq "Wear The Passion" home.html
-          grep -Fq "Shop by category" home.html
-
-          retry_curl "$BASE_URL/login" login.html "/images/media/login-barcelona-kit.png"
-          grep -Fq "Sign in to JerseySee" login.html
-          grep -Fq "Demo credentials (for testing only)" login.html
-
-          retry_curl "$BASE_URL/dashboard" dashboard-guest.html
-          grep -Fq "Sign in to JerseySee" dashboard-guest.html
-
-          retry_curl "$BASE_URL/images/media/home-motion-strike.webp" hero.webp
-          test -s hero.webp
-          retry_curl "$BASE_URL/images/media/login-barcelona-kit.png" login-kit.png
-          test -s login-kit.png
-          retry_curl "$BASE_URL/catalog?productType=JERSEY&clubOrCountry=Barcelona" catalog-kits.html "Barcelona Home Fan Jersey"
-          retry_curl "$BASE_URL/product-images/demo-barcelona-home-fan-supplied.jpg" barcelona-home.jpg
-          test -s barcelona-home.jpg
 
           # Exercise the exact admin form-login path that previously failed on
           # the first POST after a lazily initialized production startup.

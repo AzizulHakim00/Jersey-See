@@ -112,7 +112,7 @@ class StorefrontTemplateContractTest {
         assertThat(navigation)
                 .contains("data-storefront-header", "data-primary-shop-nav", "BOOTS")
                 .doesNotContain("class=\"category-nav\"", "class=\"store-promise\"");
-        assertThat(home).contains("FOOTBALL LIVES HERE", "Wear The Passion", "data-product-rail",
+        assertThat(home).contains("Wear The Passion", "data-product-rail",
                 "data-product-rail-next", "data-product-rail-prev", "storefront-premium-v2.css");
         assertThat(login)
                 .contains("Demo credentials (for testing only)", "customer@demo.local", "admin@demo.local", "Demo123!")

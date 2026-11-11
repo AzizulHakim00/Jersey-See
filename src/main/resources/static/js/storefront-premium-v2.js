@@ -1,9 +1,42 @@
 (() => {
     "use strict";
 
-    // Keep a reduced-motion capability check available for accessibility,
-    // while using instant rail movement for every user to avoid expensive animation work.
-    window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)");
+
+    document.querySelectorAll("[data-hero-showcase]").forEach((showcase) => {
+        const slides = [...showcase.querySelectorAll("[data-hero-slide]")];
+        if (slides.length < 2) return;
+
+        let activeIndex = 0;
+        let pointerInside = false;
+        let timer;
+
+        const showNext = () => {
+            slides[activeIndex].hidden = true;
+            activeIndex = (activeIndex + 1) % slides.length;
+            slides[activeIndex].hidden = false;
+        };
+
+        const updateTimer = () => {
+            window.clearInterval(timer);
+            if (!reducedMotion.matches && !pointerInside && !document.hidden) {
+                timer = window.setInterval(showNext, 5000);
+            }
+        };
+
+        showcase.addEventListener("pointerenter", (event) => {
+            if (event.pointerType === "touch") return;
+            pointerInside = true;
+            updateTimer();
+        });
+        showcase.addEventListener("pointerleave", () => {
+            pointerInside = false;
+            updateTimer();
+        });
+        document.addEventListener("visibilitychange", updateTimer);
+        reducedMotion.addEventListener("change", updateTimer);
+        updateTimer();
+    });
 
     document.querySelectorAll("[data-product-rail]").forEach((rail) => {
         const track = rail.querySelector("[data-product-rail-track]");

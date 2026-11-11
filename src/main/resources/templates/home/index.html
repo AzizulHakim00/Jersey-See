@@ -8,30 +8,40 @@
     <link rel="stylesheet" th:href="@{/css/jerseysee.css}">
     <link rel="stylesheet" th:href="@{/css/storefront-premium-v2.css}">
     <link rel="stylesheet" th:href="@{/css/storefront-repair.css}">
+    <link rel="stylesheet" th:href="@{/css/home-campaign.css}">
 </head>
 <body class="storefront-body premium-home">
 <div th:replace="~{fragments/navigation :: navigation('home')}"></div>
 <main>
-    <section class="premium-home-hero" data-campaign-hero
-             th:with="heroProduct=${featuredProducts != null and !#lists.isEmpty(featuredProducts) ? featuredProducts[0] : null}">
+    <section class="premium-home-hero" data-campaign-hero>
         <div class="section-shell premium-hero-inner">
             <div class="premium-hero-copy">
-                <span class="premium-eyebrow">FOOTBALL LIVES HERE</span>
                 <h1>Wear The Passion</h1>
                 <p>Shop player editions, retro jerseys and match-day essentials.</p>
                 <a class="premium-hero-cta" data-premium-press th:href="@{/catalog}">Shop Now <span aria-hidden="true">→</span></a>
             </div>
-            <div class="premium-hero-media">
+            <div class="premium-hero-media"
+                 th:with="jerseys=${featuredProducts != null ? featuredProducts.?[storedImageName != null] : null}">
                 <img class="premium-home-player" th:src="@{/images/media/home-motion-strike.webp}"
                      alt="Motion trail of a player in white and red preparing to strike a football" width="547" height="365"
                      loading="eager" fetchpriority="high" decoding="async">
-                <a class="premium-hero-product" th:if="${heroProduct != null}" th:href="@{/products/{id}(id=${heroProduct.id})}">
-                    <span>
-                        <small th:text="${heroProduct.clubOrCountry != null ? heroProduct.clubOrCountry : 'JerseySee selection'}">JerseySee selection</small>
-                        <strong th:text="${heroProduct.name}">Featured jersey</strong>
-                    </span>
-                    <b>৳<span th:text="${#numbers.formatDecimal(heroProduct.basePrice,1,0)}">1299</span></b>
-                </a>
+                <div class="premium-hero-featured" data-hero-showcase aria-hidden="true"
+                     th:if="${jerseys != null and !#lists.isEmpty(jerseys)}">
+                    <div class="premium-hero-jersey" data-hero-slide
+                         th:each="jersey, slide : ${jerseys}" th:hidden="${!slide.first}">
+                        <div class="premium-hero-kit-stage">
+                            <div class="premium-hero-kit-float">
+                                <img class="premium-hero-kit-photo" alt="" decoding="async" fetchpriority="low"
+                                     th:src="@{/product-images/{name}(name=${jersey.storedImageName})}"
+                                     onerror="this.onerror=null;this.src='/images/product-placeholder.svg'">
+                            </div>
+                        </div>
+                        <div class="premium-hero-kit-info">
+                            <strong th:text="${jersey.name}">Featured jersey</strong>
+                            <b>৳<span th:text="${#numbers.formatDecimal(jersey.basePrice, 1, 'COMMA', 0, 'POINT')}">1,299</span></b>
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
     </section>

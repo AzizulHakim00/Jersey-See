@@ -23,7 +23,7 @@ class ModernStorefrontContractTest {
                 .contains("data-storefront-header", "data-primary-shop-nav", "Home", "Shop", "Player edition", "Retro", "BOOTS")
                 .doesNotContain("storefront-modern.css", "storefront-final.css", "class=\"category-nav\"", "class=\"store-promise\"");
         assertThat(home)
-                .contains("FOOTBALL LIVES HERE", "Wear The Passion", "data-campaign-hero", "data-service-strip",
+                .contains("Wear The Passion", "data-campaign-hero", "data-service-strip",
                         "Shop by category", "Featured jerseys", "data-product-rail")
                 .contains("storefront-premium-v2.css", "storefront-premium-v2.js");
         assertThat(footer).contains("© 2026 Azizul Hakim Omor. All rights reserved.", "৳5,000");

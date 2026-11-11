@@ -19,8 +19,12 @@ class HomeHeroMediaContractTest {
                 "/images/kits/barcelona-away.jpg",
                 "/images/kits/ac-milan-retro.jpg",
                 "/images/media/product-boot-white.webp",
-                "/images/kits/barcelona-home.jpg");
+                "/images/kits/barcelona-home.jpg",
+                "/css/home-campaign.css",
+                "data-hero-showcase",
+                "<div class=\"premium-hero-jersey\" data-hero-slide");
         assertThat(home).doesNotContain("home-campaign.jpg", "campaign-retro.webp",
-                "auth-footballer.svg", "hero-kit.svg", "custom-printing.svg");
+                "auth-footballer.svg", "hero-kit.svg", "custom-printing.svg", "data-hero-controls",
+                "class=\"premium-hero-product\"");
     }
 }

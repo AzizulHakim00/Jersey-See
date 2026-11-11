@@ -1,0 +1,345 @@
+@font-face {
+    font-family: "Barlow Condensed";
+    src: url("fonts/barlow-condensed-800-italic.ttf") format("truetype");
+    font-style: italic;
+    font-weight: 800;
+    font-display: swap;
+}
+
+.premium-home {
+    --campaign-ink: #090e15;
+    --campaign-paper: #f7efdf;
+    --campaign-gold: #d1ab60;
+    --campaign-line: #37342c;
+}
+
+.premium-home .store-header,
+.premium-home .premium-home-hero {
+    color: var(--campaign-paper);
+    background: var(--campaign-ink);
+}
+
+.premium-home .store-header {
+    border-color: var(--campaign-line);
+}
+
+.premium-home .store-header .brand-wordmark strong {
+    color: var(--campaign-paper);
+    font-family: "Barlow Condensed", "Arial Narrow", sans-serif;
+    font-style: italic;
+    font-weight: 800;
+    font-size: 1.55rem;
+    letter-spacing: .025em;
+}
+
+.premium-home .store-header .brand-wordmark em,
+.premium-home .primary-shop-links a:is(:hover, .is-active),
+.premium-home .store-header .nav-icon-link:hover {
+    color: var(--campaign-gold);
+}
+
+.premium-home .store-header .brand-wordmark small {
+    color: #c9c1b1;
+}
+
+.premium-home .store-header .modern-brand img {
+    background: transparent;
+    border: 0;
+    box-shadow: none;
+    filter: grayscale(1) sepia(.6);
+}
+
+.premium-home .primary-shop-links a,
+.premium-home .store-header .nav-icon-link,
+.premium-home .store-header .header-search :is(input, button) {
+    color: var(--campaign-paper);
+}
+
+.premium-home .primary-shop-links a::after {
+    background: var(--campaign-gold);
+}
+
+.premium-home .store-header .header-search,
+.premium-home .store-header .header-search :is(input, button),
+.premium-home .store-header .nav-icon-link:hover,
+.premium-home .store-header .menu-toggle {
+    background: #15191f;
+    border-color: var(--campaign-line);
+}
+
+.premium-home .store-header .header-search input::placeholder {
+    color: #c9c1b1;
+}
+
+.premium-home .store-header .menu-toggle span {
+    background: var(--campaign-paper);
+}
+
+.premium-home .premium-home-hero::after {
+    height: 2px;
+    background: var(--campaign-gold);
+}
+
+.premium-home .premium-hero-inner {
+    max-width: 1440px;
+    grid-template-columns: minmax(0, .72fr) minmax(0, 1.28fr);
+    gap: clamp(14px, 2.5vw, 42px);
+    padding-block: clamp(20px, 3.6vw, 54px) clamp(28px, 4vw, 66px);
+}
+
+.premium-home .premium-hero-copy h1 {
+    max-inline-size: 5em;
+    margin: 0 0 20px;
+    color: var(--campaign-paper);
+    font-family: "Barlow Condensed", "Arial Narrow", sans-serif;
+    font-size: clamp(3.65rem, 8vw, 8.4rem);
+    font-style: italic;
+    font-weight: 800;
+    line-height: .88;
+    letter-spacing: -.012em;
+    text-transform: uppercase;
+    text-wrap: balance;
+}
+
+.premium-home .premium-hero-copy p {
+    max-inline-size: 33ch;
+    color: #e0d8c8;
+    font-size: clamp(1rem, 1.5vw, 1.25rem);
+}
+
+.premium-home .premium-hero-cta {
+    color: #15120c;
+    background: var(--campaign-gold);
+}
+
+.premium-home .premium-hero-cta:hover {
+    background: #e0bd76;
+}
+
+.premium-home .premium-hero-media {
+    width: 100%;
+    gap: 0;
+}
+
+.premium-home .premium-hero-media .premium-home-player {
+    aspect-ratio: 16 / 10;
+    object-fit: cover;
+    object-position: center 65%;
+    border: 0;
+    border-radius: 0;
+    background: transparent;
+    mask-image: linear-gradient(to right, transparent, #000 13% 98%, transparent),
+        linear-gradient(to bottom, transparent, #000 9% 87%, transparent);
+    mask-composite: intersect;
+}
+
+.premium-home .premium-hero-featured {
+    position: relative;
+    z-index: 3;
+    justify-self: start;
+    width: min(100%, 440px);
+    margin-top: clamp(-34px, -2.6vw, -16px);
+}
+
+.premium-home .premium-hero-jersey:not([hidden]) {
+    display: grid;
+    grid-template-columns: clamp(112px, 14vw, 192px) minmax(0, 1fr);
+    align-items: center;
+    gap: clamp(12px, 2vw, 26px);
+    min-height: clamp(104px, 13vw, 175px);
+    animation: hero-jersey-appear .65s ease-out both;
+}
+
+.premium-home .premium-hero-kit-stage {
+    position: relative;
+    display: grid;
+    place-items: center;
+    isolation: isolate;
+}
+
+.premium-home .premium-hero-kit-stage::after {
+    position: absolute;
+    z-index: -1;
+    right: 8%;
+    bottom: 0;
+    left: 8%;
+    height: 20%;
+    background: radial-gradient(ellipse, #000 13%, #161713 48%, transparent 72%);
+    content: "";
+}
+
+.premium-home .premium-hero-kit-float {
+    display: grid;
+    width: 100%;
+    place-items: center;
+    filter: drop-shadow(0 5px 12px #0009);
+    animation: hero-jersey-float 4.3s ease-in-out infinite;
+}
+
+.premium-home .premium-hero-media .premium-hero-kit-photo {
+    position: static;
+    display: block;
+    width: auto;
+    max-width: 100%;
+    height: clamp(104px, 13vw, 174px);
+    object-fit: contain;
+    object-position: center;
+    filter: none;
+    clip-path: var(--jersey-shape, none);
+    transform: scale(var(--jersey-scale, 1));
+}
+
+.premium-home .premium-hero-kit-info {
+    display: grid;
+    gap: 5px;
+    line-height: 1.2;
+}
+
+.premium-home .premium-hero-kit-info strong {
+    font-size: clamp(.95rem, 1.55vw, 1.2rem);
+    font-weight: 650;
+}
+
+.premium-home .premium-hero-kit-info b {
+    color: var(--campaign-gold);
+    font-size: clamp(1.08rem, 1.8vw, 1.5rem);
+}
+
+@keyframes hero-jersey-appear {
+    from { opacity: 0; transform: translateY(8px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes hero-jersey-float {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-7px); }
+}
+
+.premium-home .premium-section,
+.premium-home .premium-secondary-campaign,
+.premium-home .service-strip {
+    background: #faf8f3;
+}
+
+.premium-home .premium-campaign-box,
+.premium-home .modern-footer {
+    background: var(--campaign-ink);
+}
+
+.premium-home .premium-campaign-media {
+    background: radial-gradient(ellipse at 50% 45%, #eee5d3, #ccbc9d);
+}
+
+@media (max-width: 980px) {
+    .premium-home .store-header .primary-shop-nav {
+        color: var(--campaign-paper);
+        background: var(--campaign-ink);
+    }
+
+    .premium-home .store-header .primary-shop-links a {
+        border-color: var(--campaign-line);
+    }
+}
+
+@media (max-width: 760px) {
+    .premium-home .premium-hero-inner {
+        grid-template-columns: minmax(0, 1fr);
+        gap: 18px;
+    }
+
+    .premium-home .premium-hero-copy h1 {
+        margin-bottom: 14px;
+        font-size: clamp(3.4rem, 12vw, 5.5rem);
+    }
+
+    .premium-home .premium-hero-media .premium-home-player {
+        aspect-ratio: 3 / 2;
+    }
+
+    .premium-home .premium-hero-featured {
+        margin-top: -12px;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .premium-home .premium-hero-jersey:not([hidden]),
+    .premium-home .premium-hero-kit-float {
+        animation: none;
+    }
+}
+
+/* Match the visible jersey outline to the original photo for each supplied kit. */
+.premium-hero-kit-photo[src$="demo-juventus-94-95-retro-supplied.jpg"] {
+    --jersey-shape: polygon(
+        42% 22%, 49% 26%, 55% 25%, 59% 22%, 67% 27%, 70% 36%,
+        75% 56%, 69% 59%, 69% 85%, 67% 89%, 32% 88%, 30% 84%,
+        32% 58%, 23% 54%, 30% 31%, 36% 26%
+    );
+    --jersey-scale: 1.2;
+}
+
+.premium-hero-kit-photo[src$="demo-ac-milan-retro-supplied.jpg"] {
+    --jersey-shape: polygon(
+        40% 10%, 47% 12%, 56% 10%, 61% 16%, 77% 25%, 91% 32%,
+        86% 45%, 75% 40%, 76% 87%, 64% 92%, 44% 92%, 24% 87%,
+        23% 39%, 17% 47%, 8% 33%, 31% 20%, 36% 15%
+    );
+    --jersey-scale: 1.02;
+}
+
+.premium-hero-kit-photo[src$="demo-manchester-united-away-player-supplied.jpg"] {
+    --jersey-shape: polygon(
+        40% 4%, 47% 5%, 59% 4%, 66% 7%, 76% 11%, 81% 18%,
+        86% 42%, 72% 43%, 72% 96%, 30% 96%, 29% 43%, 14% 43%,
+        17% 21%, 19% 16%, 26% 11%, 34% 7%
+    );
+}
+
+.premium-hero-kit-photo[src$="demo-manchester-city-home-fan-supplied.jpg"] {
+    --jersey-shape: polygon(
+        40% 2%, 50% 3%, 62% 2%, 68% 4%, 80% 10%, 89% 23%,
+        97% 36%, 78% 50%, 75% 43%, 78% 92%, 74% 98%, 28% 98%,
+        22% 95%, 21% 89%, 24% 43%, 20% 49%, 3% 36%, 14% 17%,
+        23% 10%, 32% 6%
+    );
+}
+
+.premium-hero-kit-photo[src$="demo-liverpool-home-fan-supplied.jpg"] {
+    --jersey-shape: polygon(
+        36% 6%, 51% 4%, 57% 5%, 65% 5%, 77% 7%, 91% 13%,
+        99% 20%, 100% 55%, 97% 55%, 88% 48%, 84% 60%, 77% 73%,
+        74% 85%, 63% 91%, 60% 97%, 53% 98%, 48% 93%, 34% 93%,
+        24% 90%, 13% 86%, 0% 82%, 0% 77%, 9% 65%, 16% 53%,
+        20% 42%, 22% 32%, 14% 35%, 4% 34%, 6% 29%, 17% 13%,
+        27% 9%
+    );
+}
+
+.premium-hero-kit-photo[src$="demo-chelsea-home-fan-supplied.jpg"] {
+    --jersey-shape: polygon(
+        34% 5%, 39% 3%, 50% 3%, 59% 7%, 64% 11%, 74% 15%,
+        80% 25%, 84% 40%, 82% 43%, 76% 45%, 68% 44%, 68% 65%,
+        68% 92%, 65% 96%, 57% 97%, 47% 98%, 34% 96%, 24% 93%,
+        25% 68%, 27% 45%, 18% 43%, 16% 41%, 17% 34%, 22% 21%,
+        25% 15%
+    );
+}
+
+.premium-hero-kit-photo[src$="demo-arsenal-home-fan-supplied.jpg"] {
+    --jersey-shape: polygon(
+        38% 17%, 44% 19%, 53% 16%, 63% 18%, 79% 26%, 92% 43%,
+        78% 52%, 72% 47%, 72% 62%, 76% 87%, 65% 88%, 52% 87%,
+        39% 88%, 25% 88%, 22% 86%, 24% 65%, 24% 49%, 20% 52%,
+        8% 45%, 14% 36%, 21% 26%, 30% 21%
+    );
+}
+
+.premium-hero-kit-photo[src$="demo-real-madrid-retro-supplied.jpg"] {
+    --jersey-shape: polygon(
+        36% 19%, 40% 16%, 45% 17%, 51% 16%, 58% 17%, 63% 19%,
+        79% 22%, 94% 25%, 91% 41%, 74% 43%, 73% 75%, 71% 80%,
+        67% 83%, 56% 84%, 38% 84%, 31% 82%, 27% 77%, 26% 43%,
+        8% 41%, 7% 33%, 7% 26%, 15% 24%
+    );
+    --jersey-scale: 1.08;
+}
