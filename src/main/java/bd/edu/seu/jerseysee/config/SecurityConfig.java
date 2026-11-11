@@ -1,5 +1,7 @@
 package bd.edu.seu.jerseysee.config;
 
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Lazy;
@@ -14,6 +16,7 @@ import bd.edu.seu.jerseysee.security.JwtAuthFilter;
 import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.core.env.Environment;
 import org.springframework.core.env.Profiles;
+import org.springframework.http.HttpHeaders;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.config.http.SessionCreationPolicy;
@@ -48,17 +51,27 @@ public class SecurityConfig {
                         .successHandler((request, response, authentication) -> {
                             UserDetails user = users.getObject().loadUserByUsername(authentication.getName());
                             cookies.issue(response, tokens.issue(user));
-                            response.sendRedirect(request.getContextPath() + "/dashboard");
+                            redirect(request, response, "/dashboard");
                         })
+                        .failureHandler((request, response, exception) -> redirect(request, response, "/login?error"))
                         .permitAll())
                 .exceptionHandling(exceptions -> exceptions.accessDeniedPage("/access-denied")
                         .authenticationEntryPoint((request, response, exception) -> {
-                            if (request.getRequestURI().substring(request.getContextPath().length()).startsWith("/api/")) response.sendError(401);
-                            else response.sendRedirect(request.getContextPath() + "/login");
+                            if (request.getRequestURI().substring(request.getContextPath().length()).startsWith("/api/")) {
+                                response.sendError(HttpServletResponse.SC_UNAUTHORIZED);
+                            } else {
+                                redirect(request, response, "/login");
+                            }
                         }))
                 .logout(logout -> logout.addLogoutHandler((request, response, authentication) -> cookies.clear(response))
-                        .logoutSuccessUrl("/login?logout").permitAll());
+                        .logoutSuccessHandler((request, response, authentication) -> redirect(request, response, "/login?logout"))
+                        .permitAll());
         return http.build();
+    }
+
+    private static void redirect(HttpServletRequest request, HttpServletResponse response, String path) {
+        response.setStatus(HttpServletResponse.SC_FOUND);
+        response.setHeader(HttpHeaders.LOCATION, request.getContextPath() + path);
     }
 
     @Bean

@@ -235,10 +235,12 @@
         logoutModal.hidden = true;
         if (lastFocused instanceof HTMLElement) lastFocused.focus();
     };
-    document.querySelectorAll("[data-logout-form]").forEach((form) => form.addEventListener("submit", (event) => {
-        event.preventDefault();
-        showModal();
-    }));
+    if (logoutModal?.querySelector("form") instanceof HTMLFormElement) {
+        document.querySelectorAll("[data-logout-form]").forEach((form) => form.addEventListener("submit", (event) => {
+            event.preventDefault();
+            showModal();
+        }));
+    }
     document.querySelectorAll("[data-close-modal]").forEach((button) => button.addEventListener("click", hideModal));
     logoutModal?.addEventListener("click", (event) => {
         if (event.target === logoutModal) hideModal();

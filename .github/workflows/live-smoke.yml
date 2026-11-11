@@ -50,6 +50,11 @@ jobs:
           grep -Fq "Shop by category" home.html
 
           retry_curl "$BASE_URL/login" login.html "/images/media/login-barcelona-kit.png"
+          retry_curl "$BASE_URL/js/app.js?v=account-operations" account.js 'logoutModal?.querySelector("form") instanceof HTMLFormElement'
+          expired_status="$(curl --silent --show-error --max-time 25 --request POST "$BASE_URL/login" \
+            --output expired-form.html --write-out "%{http_code}")"
+          test "$expired_status" = "403"
+          grep -Fq "Form expired" expired-form.html
           grep -Fq "Sign in to JerseySee" login.html
           grep -Fq "Demo credentials (for testing only)" login.html
 
@@ -92,8 +97,28 @@ jobs:
           PY
           }
 
-          # Exercise the exact admin form-login path that previously failed on
-          # the first POST after a lazily initialized production startup.
+          browser_request() {
+            local jar="$1"
+            shift
+            curl --silent --show-error --connect-timeout 10 --max-time 30 \
+              --cookie "$jar" --cookie-jar "$jar" "$@"
+          }
+
+          get_page_status() {
+            local jar="$1" path="$2" output="$3"
+            browser_request "$jar" --output "$output" --write-out "%{http_code}" "$BASE_URL$path"
+          }
+
+          assert_signed_out() {
+            local jar="$1" prefix="$2"
+            local status
+            status="$(browser_request "$jar" --output /dev/null --dump-header "${prefix}-signed-out.headers" \
+              --write-out "%{http_code}" "$BASE_URL/dashboard")"
+            test "$status" = "302"
+            grep -Eiq '^location:[[:space:]]*(https?://[^/]+)?/login[[:space:]]*$' "${prefix}-signed-out.headers"
+          }
+
+          # Verify the browser form and cookies with the actual demo administrator.
           curl --fail --silent --show-error --location \
             --connect-timeout 10 --max-time 30 \
             --cookie-jar admin.cookies \
@@ -115,17 +140,117 @@ jobs:
 
           if [ "$login_status" != "302" ]; then
             echo "Admin login returned HTTP $login_status instead of 302" >&2
-            cat admin-login.headers >&2 || true
             exit 1
           fi
           grep -Eiq '^location:[[:space:]]*(https?://[^/]+)?/dashboard([?#][^[:space:]]*)?[[:space:]]*$' admin-login.headers
 
           curl --fail --silent --show-error --location \
             --connect-timeout 10 --max-time 30 \
-            --cookie admin.cookies \
+            --cookie admin.cookies --cookie-jar admin.cookies \
             "$BASE_URL/dashboard" -o admin-dashboard.html
           grep -Fq "Admin dashboard" admin-dashboard.html
           grep -Fq "STORE OPERATIONS" admin-dashboard.html
+
+          for route in /staff/products /staff/orders /staff/payments /staff/employees /profile; do
+            staff_status="$(get_page_status admin.cookies "$route" staff-page.html)"
+            if [ "$staff_status" != "200" ]; then
+              echo "Admin page $route returned HTTP $staff_status instead of 200" >&2
+              exit 1
+            fi
+          done
+
+          test "$(get_page_status admin.cookies /staff/products/new admin-product-form.html)" = "200"
+          product_csrf="$(extract_csrf admin-product-form.html)"
+          test -n "$product_csrf"
+          category_id="$(python3 - <<'PY'
+          import re
+          from pathlib import Path
+
+          markup = Path("admin-product-form.html").read_text(encoding="utf-8")
+          select = re.search(r'<select\b[^>]*\bname="categoryId"[^>]*>(.*?)</select>', markup, re.S)
+          assert select, "Product form category selector missing"
+          option = re.search(r'<option\b[^>]*\bvalue="(\d+)"', select[1])
+          assert option, "No product category available"
+          print(option[1])
+          PY
+          )"
+
+          smoke_product_name="Private smoke product $GITHUB_RUN_ID"
+          product_fields=(--form-string "categoryId=$category_id"
+            --form-string "description=Temporary inactive release verification fixture"
+            --form-string "brand=JerseySee" --form-string "productType=ACCESSORY"
+            --form-string "basePrice=100" --form-string "active=false")
+
+          submit_product() {
+            local route="$1" token="$2" name="$3" prefix="$4"
+            browser_request admin.cookies --request POST "$BASE_URL$route" \
+              --form-string "_csrf=$token" --form-string "name=$name" "${product_fields[@]}" \
+              --output "${prefix}.html" --dump-header "${prefix}.headers" --write-out "%{http_code}"
+          }
+
+          create_status="$(submit_product /staff/products "$product_csrf" "$smoke_product_name" admin-create)"
+          if [ "$create_status" != "302" ]; then
+            echo "Admin multipart product creation returned HTTP $create_status instead of 302" >&2
+            exit 1
+          fi
+          smoke_product_id="$(tr -d '\r' < admin-create.headers | sed -nE 's@^[Ll]ocation: *(https?://[^/]+)?/staff/products/([0-9]+)/edit\?created$@\2@p')"
+          test -n "$smoke_product_id"
+
+          cleanup_admin_product() {
+            local csrf status
+            test "$(get_page_status admin.cookies "/staff/products/$smoke_product_id/edit" admin-cleanup.html)" = "200" || return 1
+            csrf="$(extract_csrf admin-cleanup.html)"
+            test -n "$csrf" || return 1
+            status="$(browser_request admin.cookies --request POST "$BASE_URL/staff/products/$smoke_product_id/delete" \
+              --data-urlencode "_csrf=$csrf" --output /dev/null --write-out "%{http_code}")"
+            test "$status" = "302"
+          }
+          trap cleanup_admin_product EXIT
+
+          test "$(get_page_status admin.cookies "/staff/products/$smoke_product_id/edit" admin-product-edit.html)" = "200"
+          grep -Fq "$smoke_product_name" admin-product-edit.html
+          product_csrf="$(extract_csrf admin-product-edit.html)"
+          test -n "$product_csrf"
+          update_status="$(submit_product "/staff/products/$smoke_product_id" "$product_csrf" "$smoke_product_name updated" admin-update)"
+          test "$update_status" = "302"
+          grep -Eiq '^location:[[:space:]]*(https?://[^/]+)?/staff/products/[0-9]+/edit\?updated[[:space:]]*$' admin-update.headers
+
+          test "$(get_page_status admin.cookies "/staff/products/$smoke_product_id/edit" admin-variant.html)" = "200"
+          grep -Fq "$smoke_product_name updated" admin-variant.html
+          variant_csrf="$(extract_csrf admin-variant.html)"
+          test -n "$variant_csrf"
+          variant_status="$(browser_request admin.cookies --request POST "$BASE_URL/staff/products/$smoke_product_id/variants" \
+            --data-urlencode "_csrf=$variant_csrf" --data-urlencode "size=ONE_SIZE" \
+            --data-urlencode "sku=SMOKE-$GITHUB_RUN_ID" --data-urlencode "stockQuantity=0" \
+            --data-urlencode "priceAdjustment=0" --output /dev/null \
+            --dump-header admin-variant-save.headers --write-out "%{http_code}")"
+          test "$variant_status" = "302"
+          grep -Eiq '^location:[[:space:]]*(https?://[^/]+)?/staff/products/[0-9]+/edit\?variantCreated[[:space:]]*$' admin-variant-save.headers
+          cleanup_admin_product
+          trap - EXIT
+
+          test "$(get_page_status admin.cookies /dashboard admin-before-logout.html)" = "200"
+          admin_logout_csrf="$(extract_csrf admin-before-logout.html)"
+          test -n "$admin_logout_csrf"
+          admin_logout_status="$(browser_request admin.cookies --request POST "$BASE_URL/logout" \
+            --data-urlencode "_csrf=$admin_logout_csrf" --output /dev/null \
+            --dump-header admin-logout.headers --write-out "%{http_code}")"
+          test "$admin_logout_status" = "302"
+          grep -Eiq '^location:[[:space:]]*(https?://[^/]+)?/login\?logout[[:space:]]*$' admin-logout.headers
+          assert_signed_out admin.cookies admin
+
+          test "$(get_page_status admin.cookies '/login?logout' admin-relogin.html)" = "200"
+          admin_relogin_csrf="$(extract_csrf admin-relogin.html)"
+          test -n "$admin_relogin_csrf"
+          admin_relogin_status="$(browser_request admin.cookies --request POST "$BASE_URL/login" \
+            --data-urlencode "username=admin@demo.local" --data-urlencode "password=Demo123!" \
+            --data-urlencode "_csrf=$admin_relogin_csrf" --output /dev/null \
+            --dump-header admin-relogin.headers --write-out "%{http_code}")"
+          test "$admin_relogin_status" = "302"
+          grep -Eiq '^location:[[:space:]]*(https?://[^/]+)?/dashboard[[:space:]]*$' admin-relogin.headers
+          test "$(get_page_status admin.cookies /dashboard admin-after-relogin.html)" = "200"
+          grep -Fq "Admin dashboard" admin-after-relogin.html
+          echo "Admin sign-in, staff pages, product creation, editing, inventory, cleanup, logout, and re-login passed."
 
           # PERSISTENT_CART_SMOKE uses the demo customer only. It creates one
           # uniquely marked cart line, verifies that line after a completely
@@ -135,10 +260,9 @@ jobs:
           login_customer() {
             local cookie_jar="$1"
             local prefix="$2"
-            rm -f "$cookie_jar"
             curl --fail --silent --show-error --location \
               --connect-timeout 10 --max-time 30 \
-              --cookie-jar "$cookie_jar" \
+              --cookie "$cookie_jar" --cookie-jar "$cookie_jar" \
               "$BASE_URL/login" -o "${prefix}-login.html"
 
             local customer_csrf
@@ -159,7 +283,6 @@ jobs:
 
             if [ "$customer_login_status" != "302" ]; then
               echo "Customer login returned HTTP $customer_login_status instead of 302" >&2
-              cat "${prefix}-login.headers" >&2 || true
               exit 1
             fi
             grep -Eiq '^location:[[:space:]]*(https?://[^/]+)?/dashboard([?#][^[:space:]]*)?[[:space:]]*$' "${prefix}-login.headers"
@@ -188,7 +311,7 @@ jobs:
             local cart_file="$2"
             curl --fail --silent --show-error --location \
               --connect-timeout 10 --max-time 30 \
-              --cookie "$cookie_jar" \
+              --cookie "$cookie_jar" --cookie-jar "$cookie_jar" \
               "$BASE_URL/cart" -o "$cart_file"
 
             local stale_line_id
@@ -203,7 +326,7 @@ jobs:
             local remove_status
             remove_status="$(curl --silent --show-error \
               --connect-timeout 10 --max-time 30 \
-              --cookie "$cookie_jar" \
+              --cookie "$cookie_jar" --cookie-jar "$cookie_jar" \
               --request POST "$BASE_URL/cart/items/$stale_line_id/remove" \
               --data-urlencode "_csrf=$remove_csrf" \
               --dump-header stale-remove.headers \
@@ -216,11 +339,15 @@ jobs:
           }
 
           login_customer customer.cookies customer
+          test "$(get_page_status customer.cookies /dashboard buyer-dashboard.html)" = "200"
+          test "$(get_page_status customer.cookies /profile buyer-profile.html)" = "200"
+          test "$(get_page_status customer.cookies /orders buyer-orders.html)" = "200"
+          test "$(get_page_status customer.cookies /staff/products buyer-forbidden.html)" = "403"
           remove_smoke_line_if_present customer.cookies customer-cart-initial.html
 
           curl --fail --silent --show-error --location \
             --connect-timeout 10 --max-time 30 \
-            --cookie customer.cookies \
+            --cookie customer.cookies --cookie-jar customer.cookies \
             "$BASE_URL/catalog" -o customer-catalog.html
 
           product_path="$(python3 - <<'PY'
@@ -248,7 +375,7 @@ jobs:
 
           curl --fail --silent --show-error --location \
             --connect-timeout 10 --max-time 30 \
-            --cookie customer.cookies \
+            --cookie customer.cookies --cookie-jar customer.cookies \
             "$BASE_URL$product_path" -o customer-product.html
 
           variant_id="$(python3 - <<'PY'
@@ -279,7 +406,7 @@ jobs:
           test -n "$customer_csrf"
           add_status="$(curl --silent --show-error \
             --connect-timeout 10 --max-time 30 \
-            --cookie customer.cookies \
+            --cookie customer.cookies --cookie-jar customer.cookies \
             --request POST "$BASE_URL/cart/items" \
             --data-urlencode "variantId=$variant_id" \
             --data-urlencode "quantity=1" \
@@ -298,16 +425,28 @@ jobs:
 
           curl --fail --silent --show-error --location \
             --connect-timeout 10 --max-time 30 \
-            --cookie customer.cookies \
+            --cookie customer.cookies --cookie-jar customer.cookies \
             "$BASE_URL/cart" -o cart-before-logout.html
           line_id_before="$(find_smoke_line_id cart-before-logout.html)"
           test -n "$line_id_before"
+
+          test "$(get_page_status customer.cookies /checkout checkout-page.html)" = "200"
+          grep -Fq "data-checkout-layout" checkout-page.html
+
+          quantity_csrf="$(extract_csrf cart-before-logout.html)"
+          test -n "$quantity_csrf"
+          quantity_status="$(browser_request customer.cookies --request POST "$BASE_URL/cart/items/$line_id_before" \
+            --data-urlencode "_csrf=$quantity_csrf" --data-urlencode "quantity=2" \
+            --output /dev/null --dump-header customer-quantity.headers --write-out "%{http_code}")"
+          test "$quantity_status" = "302"
+          grep -Eiq '^location:[[:space:]]*(https?://[^/]+)?/cart\?updated[[:space:]]*$' customer-quantity.headers
+          test "$(get_page_status customer.cookies /cart cart-before-logout.html)" = "200"
 
           logout_csrf="$(extract_csrf cart-before-logout.html)"
           test -n "$logout_csrf"
           logout_status="$(curl --silent --show-error \
             --connect-timeout 10 --max-time 30 \
-            --cookie customer.cookies \
+            --cookie customer.cookies --cookie-jar customer.cookies \
             --request POST "$BASE_URL/logout" \
             --data-urlencode "_csrf=$logout_csrf" \
             --dump-header customer-logout.headers \
@@ -318,10 +457,13 @@ jobs:
             exit 1
           fi
 
+          grep -Eiq '^location:[[:space:]]*(https?://[^/]+)?/login\?logout[[:space:]]*$' customer-logout.headers
+          assert_signed_out customer.cookies customer
+          cp customer.cookies fresh-customer.cookies
           login_customer fresh-customer.cookies fresh-customer
           curl --fail --silent --show-error --location \
             --connect-timeout 10 --max-time 30 \
-            --cookie fresh-customer.cookies \
+            --cookie fresh-customer.cookies --cookie-jar fresh-customer.cookies \
             "$BASE_URL/cart" -o cart-after-login.html
 
           line_id_after="$(find_smoke_line_id cart-after-login.html)"
@@ -338,7 +480,7 @@ jobs:
           test -n "$cleanup_csrf"
           cleanup_status="$(curl --silent --show-error \
             --connect-timeout 10 --max-time 30 \
-            --cookie fresh-customer.cookies \
+            --cookie fresh-customer.cookies --cookie-jar fresh-customer.cookies \
             --request POST "$BASE_URL/cart/items/$line_id_after/remove" \
             --data-urlencode "_csrf=$cleanup_csrf" \
             --dump-header customer-remove.headers \
@@ -352,9 +494,10 @@ jobs:
 
           curl --fail --silent --show-error --location \
             --connect-timeout 10 --max-time 30 \
-            --cookie fresh-customer.cookies \
+            --cookie fresh-customer.cookies --cookie-jar fresh-customer.cookies \
             "$BASE_URL/cart" -o customer-cart-cleaned.html
           if [ -n "$(find_smoke_line_id customer-cart-cleaned.html)" ]; then
             echo "Persistent-cart smoke line remained after cleanup" >&2
             exit 1
           fi
+          echo "Buyer dashboard, profile, orders, cart, checkout page, role boundaries, logout, and re-login passed."
