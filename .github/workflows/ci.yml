@@ -60,6 +60,8 @@ jobs:
             workflow.fetch("jobs").fetch("smoke").fetch("steps").each { |step| puts step.fetch("run") }
           ' > "$RUNNER_TEMP/jerseysee-smoke.sh"
 
+          curl --fail --silent --show-error --retry 30 --retry-connrefused --retry-delay 1 \
+            --max-time 3 http://127.0.0.1:8080/actuator/health >/dev/null
           npm install --no-save --package-lock=false --ignore-scripts playwright-core
           node <<'JS'
           const assert = require("node:assert/strict");
