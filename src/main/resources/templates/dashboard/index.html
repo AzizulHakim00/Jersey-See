@@ -8,8 +8,12 @@
     <link rel="stylesheet" th:href="@{/css/storefront-repair.css}">
 </head>
 <body th:classappend="${currentRole != null and currentRole.name() != 'CUSTOMER'} ? ' staff-body' : ' storefront-body'">
-<div th:if="${currentRole != null and currentRole.name() == 'CUSTOMER'}" th:replace="~{fragments/navigation :: navigation('dashboard')}"></div>
-<div th:if="${currentRole != null and currentRole.name() != 'CUSTOMER'}" th:replace="~{fragments/admin-sidebar :: sidebar('dashboard')}"></div>
+<th:block th:if="${currentRole != null and currentRole.name() == 'CUSTOMER'}">
+    <div th:replace="~{fragments/navigation :: navigation('dashboard')}"></div>
+</th:block>
+<th:block th:if="${currentRole != null and currentRole.name() != 'CUSTOMER'}">
+    <div th:replace="~{fragments/admin-sidebar :: sidebar('dashboard')}"></div>
+</th:block>
 
 <main th:class="${currentRole != null and currentRole.name() != 'CUSTOMER'} ? 'staff-main admin-dashboard-shell' : 'page-main account-page premium-account-page customer-dashboard-shell'">
     <div class="section-shell" th:classappend="${currentRole != null and currentRole.name() != 'CUSTOMER'} ? ' staff-content' : ''">
@@ -178,7 +182,9 @@
     </div>
 </main>
 
-<div th:if="${currentRole != null and currentRole.name() == 'CUSTOMER'}" th:replace="~{fragments/footer :: footer}"></div>
+<th:block th:if="${currentRole != null and currentRole.name() == 'CUSTOMER'}">
+    <div th:replace="~{fragments/footer :: footer}"></div>
+</th:block>
 <script th:src="@{/js/app.js}" defer></script>
 <script th:if="${currentRole != null and currentRole.name() == 'CUSTOMER'}" th:src="@{/js/storefront-premium-v2.js}" defer></script>
 </body>
