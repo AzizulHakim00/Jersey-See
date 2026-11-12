@@ -21,6 +21,12 @@ public class JwtAuthFilter extends OncePerRequestFilter {
         this.tokens = tokens; this.users = users;
     }
     @Override
+    protected boolean shouldNotFilter(HttpServletRequest request) {
+        String path = request.getRequestURI().substring(request.getContextPath().length());
+        return path.startsWith("/css/") || path.startsWith("/js/") || path.startsWith("/images/");
+    }
+
+    @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain chain)
             throws IOException, ServletException {
         String path = request.getRequestURI().substring(request.getContextPath().length());
