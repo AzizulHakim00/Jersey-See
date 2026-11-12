@@ -16,6 +16,8 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
 import static org.assertj.core.api.Assertions.*;
+import static org.hamcrest.Matchers.containsString;
+import static org.hamcrest.Matchers.not;
 
 @SpringBootTest
 @AutoConfigureMockMvc
@@ -57,7 +59,13 @@ class JwtLoginFlowTest {
                 .andExpect(redirectedUrl("/dashboard")).andReturn().getResponse();
         Cookie access = response.getCookie(JwtCookieService.NAME);
         assertThat(access).isNotNull(); assertThat(access.isHttpOnly()).isTrue();
-        mvc.perform(get("/dashboard").cookie(access)).andExpect(status().isOk());
+        mvc.perform(get("/dashboard").cookie(access))
+                .andExpect(status().isOk())
+                .andExpect(content().string(containsString("Customer dashboard")))
+                .andExpect(content().string(not(containsString("id=\"staffSidebar\""))));
+        mvc.perform(get("/profile").cookie(access))
+                .andExpect(status().isOk())
+                .andExpect(content().string(not(containsString("id=\"staffSidebar\""))));
         mvc.perform(get("/api/auth/me").cookie(access)).andExpect(status().isUnauthorized());
         mvc.perform(get("/api/auth/me").header("Authorization", "Bearer " + access.getValue()))
                 .andExpect(status().isOk());
