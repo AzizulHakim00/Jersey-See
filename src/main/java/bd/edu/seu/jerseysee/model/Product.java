@@ -18,6 +18,7 @@ import jakarta.persistence.OneToMany;
 import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
+import org.hibernate.annotations.BatchSize;
 
 @Entity
 public class Product {
@@ -74,6 +75,7 @@ public class Product {
     private Long imageSize;
 
     @OneToMany(mappedBy = "product", cascade = CascadeType.ALL, orphanRemoval = true)
+    @BatchSize(size = 32)
     private List<ProductVariant> variants = new ArrayList<>();
 
     public void addVariant(ProductVariant variant) {
