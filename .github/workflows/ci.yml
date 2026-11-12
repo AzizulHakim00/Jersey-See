@@ -83,7 +83,7 @@ jobs:
                   await form.locator("#basePrice").fill("100");
                   await form.locator("#categoryId").selectOption({ index: 1 });
                   await form.locator("#productType").selectOption("ACCESSORY");
-                  await form.locator("#active").uncheck();
+                  await form.locator('input[type="checkbox"][name="active"]').uncheck();
                   await form.locator('label:has(input[name="selectedKitImage"][value="barcelona-home"])').click();
                   await form.locator('button[type="submit"]').click();
                   await page.waitForURL(/\/staff\/products\/\d+\/edit\?created$/);
