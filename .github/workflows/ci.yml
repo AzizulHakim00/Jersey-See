@@ -50,6 +50,7 @@ jobs:
         run: |
           set -euo pipefail
           SPRING_PROFILES_ACTIVE=demo RENDER=true APP_KEEP_WARM_ENABLED=false \
+            LOGGING_LEVEL_ORG_SPRINGFRAMEWORK_SECURITY_WEB_CSRF=DEBUG \
             java -jar target/jersey-see-0.0.1-SNAPSHOT.jar > "$RUNNER_TEMP/jerseysee-runtime.log" 2>&1 &
           app_pid=$!
           trap 'status=$?; if [ "$status" -ne 0 ]; then tail -n 100 "$RUNNER_TEMP/jerseysee-runtime.log"; fi; kill "$app_pid" 2>/dev/null || true' EXIT
@@ -97,6 +98,20 @@ jobs:
                           && new URL(response.url()).pathname === action),
                       form.locator('button[type="submit"]').click()
                   ]);
+                  if (updated.status() !== 302) {
+                      const submitted = updated.request().postDataBuffer()?.toString("latin1") ?? "";
+                      const sentCookies = (await updated.request().allHeaders()).cookie ?? "";
+                      const pageText = await updated.text();
+                      console.error("Upload diagnostics", JSON.stringify({
+                          formHasCsrf: await form.locator('input[name="_csrf"]').count(),
+                          submittedCsrf: /name="_csrf"\r\n\r\n[^\r\n]+/.test(submitted),
+                          submittedImage: /name="image"; filename=/.test(submitted),
+                          hasSessionCookie: /(?:^|; )JSESSIONID=/.test(sentCookies),
+                          hasAccessCookie: /(?:^|; )JERSEYSEE_ACCESS=/.test(sentCookies),
+                          formExpired: /form expired/i.test(pageText),
+                          status: updated.status()
+                      }));
+                  }
                   assert.equal(updated.status(), 302, "Chrome product image upload response");
                   await page.waitForURL(/\/staff\/products\/\d+\/edit\?updated$/);
                   await page.locator("[data-image-preview]").evaluate(image => image.decode());
