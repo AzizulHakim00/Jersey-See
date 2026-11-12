@@ -19,9 +19,9 @@ import org.springframework.core.env.Profiles;
 import org.springframework.http.HttpHeaders;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
-import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.security.web.context.NullSecurityContextRepository;
+import org.springframework.security.web.savedrequest.NullRequestCache;
 
 @Configuration
 @EnableMethodSecurity
@@ -31,11 +31,10 @@ public class SecurityConfig {
     @Lazy(false)
     SecurityFilterChain securityFilterChain(HttpSecurity http, JwtService tokens, JwtCookieService cookies,
             ObjectProvider<UserDetailsService> users) throws Exception {
-        http.sessionManagement(session -> session
-                        .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
-                        // Rotate the form token on login rather than on each JWT-authenticated request.
-                        .requireExplicitAuthenticationStrategy(true))
+        // Only interactive authentication should rotate the browser's form token.
+        http.sessionManagement(session -> session.requireExplicitAuthenticationStrategy(true))
                 .securityContext(context -> context.securityContextRepository(new NullSecurityContextRepository()))
+                .requestCache(cache -> cache.requestCache(new NullRequestCache()))
                 // Browser forms use the session CSRF token. Authentication remains JWT-based.
                 .csrf(csrf -> csrf.ignoringRequestMatchers("/api/**"))
                 .addFilterBefore(new JwtAuthFilter(tokens, users), UsernamePasswordAuthenticationFilter.class)
