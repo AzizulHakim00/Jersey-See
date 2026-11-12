@@ -31,7 +31,10 @@ public class SecurityConfig {
     @Lazy(false)
     SecurityFilterChain securityFilterChain(HttpSecurity http, JwtService tokens, JwtCookieService cookies,
             ObjectProvider<UserDetailsService> users) throws Exception {
-        http.sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+        http.sessionManagement(session -> session
+                        .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
+                        // Rotate the form token on login rather than on each JWT-authenticated request.
+                        .requireExplicitAuthenticationStrategy(true))
                 .securityContext(context -> context.securityContextRepository(new NullSecurityContextRepository()))
                 // Browser forms use the session CSRF token. Authentication remains JWT-based.
                 .csrf(csrf -> csrf.ignoringRequestMatchers("/api/**"))
